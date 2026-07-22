@@ -10,6 +10,7 @@ import Navbar from './components/Navbar'
 import { Toaster } from 'sonner'
 import AuthPage from './pages/auth/AuthPage.tsx'
 import Setting from './pages/Setting.tsx'
+import PaymentVerify from './pages/PaymentVerify.tsx'
 
 
 const App = () => {
@@ -17,7 +18,8 @@ const App = () => {
 
   const hideNavbar = pathname.startsWith('/projects/') && pathname !== '/projects' 
                       || pathname.startsWith('/view/') 
-                      || pathname.startsWith('/preview/')   
+                      || pathname.startsWith('/preview/')
+                      || pathname.startsWith('/payment/') 
   return (
     <div>
       <Toaster />
@@ -33,6 +35,7 @@ const App = () => {
         <Route path='/view/:projectId' element={<View/>}/>
         <Route path='/auth/:pathname' element={<AuthPage/>} />
         <Route path='/account/settings' element={<Setting/>} />
+        <Route path='/payment/verify' element={<PaymentVerify/>} />
       </Routes>
     </div>
   )

@@ -77,17 +77,20 @@ model Version {
 }
 
 model Transaction {
-  id        String   @id @default(uuid())
-  isPaid    Boolean  @default(false)
-  planId    String
-  amount    Float
-  credits   Int
-  userId    String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id              String   @id @default(uuid())
+  gatewayOrderId  String   @unique  // Cashfree order_id (or other gateway's order ID)
+  gatewayProvider String   @default("cashfree")
+  status          String   @default("pending")  // pending | completed | failed
+  isPaid          Boolean  @default(false)
+  planId          String
+  amount          Float
+  credits         Int
+  userId          String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
   // Relations
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Session {

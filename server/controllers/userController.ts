@@ -218,7 +218,9 @@ export const createUserProject = async (req: Request, res: Response) => {
             data: {credits: {increment: 5}}
         })
         console.log(error.code || error.message);
-        res.status(500).json({ message: error.message })
+        if (!res.headersSent) {
+            res.status(500).json({ message: error.message })
+        }
     }
 }
 
