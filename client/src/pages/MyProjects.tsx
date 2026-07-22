@@ -1,31 +1,51 @@
-import React, { useEffect, useState } from 'react'
+import React, { use, useEffect, useState } from 'react'
 import type { Project } from '../types';
-import { Loader, Loader2, Loader2Icon, PlusIcon, TrashIcon } from 'lucide-react';
+import { Loader2Icon, PlusIcon, TrashIcon, User } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { dummyProjects } from '../assets/assets';
 import Footer from '../components/Footer';
+import api from '@/configs/axios';
+import { toast } from 'sonner';
+import { authClient } from '@/lib/auth-client';
 
 const MyProjects = () => {
+
+    const {data: session, isPending} = authClient.useSession();
 
     const [loading, setLoading] = useState(true);
     const [projects, setProjects] = useState<Project[]>([])
     const navigate = useNavigate();
 
     const fetchProjects = async () => {
-        // simulate loading
-        setTimeout(() => {
-            setProjects(dummyProjects)
+        try {
+            const {data} = await api.get('/api/user/projects');
+            setProjects(data.projects);
             setLoading(false);
-        }, 1000);
+        } catch (error: any) {
+            console.log(error)
+            toast.error(error.response?.data?.message || error.message);
+        }
     }
 
     useEffect(() => {
-        fetchProjects()
-    }, [])
+        if (session?.user && !isPending) {
+            fetchProjects()
+        }else if (!isPending && !session.user) {
+            navigate('/');
+            toast("Please login to view your projects")
+        }
+    }, [session?.user])
 
     const deleteProject = async (projectId: string) => {
-        
-
+        try {
+            const confirm = window.confirm('Are you sure you want to delete these project?');
+            if (!confirm) return;
+            const {data} = await api.delete(`/api/project/${projectId}`);
+            toast.success(data.message);
+            fetchProjects();
+        } catch (error: any) {
+            console.log(error)
+            toast.error(error.response?.data?.message || error.message);
+        }
     }
     return (
         <>
