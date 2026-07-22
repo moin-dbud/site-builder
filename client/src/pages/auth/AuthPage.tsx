@@ -5,8 +5,15 @@ export default function AuthPage() {
     const { pathname } = useParams()
 
     return (
-        <main className="p-6 flex flex-col justify-center items-center h-[80vh]">
-            <AuthView pathname={pathname} classNames={{ base: 'bg-black/10 ring ring-indigo-900' }} />
+        <main className="p-6 flex flex-col justify-center items-center min-h-[80vh] bg-[#08080a]">
+            <div className="w-full max-w-md p-2 rounded-2xl bg-[#111216] border border-[#22242c] shadow-2xl">
+                <AuthView 
+                    pathname={pathname} 
+                    classNames={{ 
+                        base: 'bg-transparent text-white border-none shadow-none font-sans',
+                    }} 
+                />
+            </div>
         </main>
     )
 }

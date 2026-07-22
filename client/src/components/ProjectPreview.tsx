@@ -1,4 +1,4 @@
-import React, { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react'
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import type { Project } from '../types';
 import { iframeScript } from '../assets/assets';
 import EditorPanel from './EditorPanel';
@@ -83,14 +83,20 @@ const ProjectPreview = forwardRef<ProjectPreviewRef, ProjectPreviewProps>(({ pro
             return html + iframeScript
         }
     }
+
     return (
-        <div className="relative bg-gray-900 h-full rounded-xl overflow-hidden max-sm:ml-2">
+        <div className="relative bg-[#08080a] h-full rounded-2xl overflow-hidden border border-[#22242c] shadow-2xl flex flex-col justify-center items-center">
             {project.current_code ? (
-                <>
-                    <iframe
-                        ref={iframeRef}
-                        srcDoc={injectPreview(project.current_code)}
-                        className={`h-full max-sm:w-full ${resolutions[device]} mx-auto transition-all`} />
+                <div className="relative w-full h-full flex flex-col items-center justify-center p-2 sm:p-4">
+                    {/* Viewport Frame */}
+                    <div className={`h-full ${resolutions[device]} transition-all duration-300 ease-in-out bg-white rounded-xl overflow-hidden shadow-2xl border border-[#22242c] relative`}>
+                        <iframe
+                            ref={iframeRef}
+                            srcDoc={injectPreview(project.current_code)}
+                            className="w-full h-full border-none bg-white" 
+                        />
+                    </div>
+
                     {showEditorPanel && selectedElement && (
                         <EditorPanel  selectedElement={selectedElement} onUpdate={handleUpdate} onClose={()=>{
                             setSelectedElement(null);
@@ -99,7 +105,7 @@ const ProjectPreview = forwardRef<ProjectPreviewRef, ProjectPreviewProps>(({ pro
                             }
                         }}/>
                     ) }
-                </>
+                </div>
             ) : isGenerating && (
                 <LoaderSteps/>
             )}

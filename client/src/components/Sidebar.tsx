@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
 import type { Message, Project, Version } from '../types';
-import { BotIcon, EyeIcon, Loader2Icon, SendIcon, UserIcon } from 'lucide-react';
+import { BotIcon, EyeIcon, Loader2Icon, SendIcon, UserIcon, GitCommitIcon, SparklesIcon } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import api from '@/configs/axios';
 import { toast } from 'sonner';
@@ -12,7 +12,6 @@ interface SidebarProps {
     isGenerating: boolean;
     setIsGenerating: (isGenerating: boolean) => void;
 }
-
 
 const Sidebar = ({ isMenuOpen, project, setProject, isGenerating, setIsGenerating }
     : SidebarProps
@@ -76,33 +75,41 @@ const Sidebar = ({ isMenuOpen, project, setProject, isGenerating, setIsGeneratin
             messageRef.current.scrollIntoView({behavior:'smooth'})
         }
     },[project.conversation.length,isGenerating])   
+
     return (
-        <div className={`h-full sm:max-w-sm rounded-xl bg-gray-900 border-gray-800 trasition-all ${isMenuOpen ? 'max-sm:w-0 overflow-hidden' : 'w-full'}`}>
+        <div className={`h-full sm:max-w-sm rounded-2xl bg-[#0b0c0e] border border-[#22242c] transition-all duration-300 ${isMenuOpen ? 'max-sm:w-0 overflow-hidden' : 'w-full'}`}>
             <div className='flex flex-col h-full'>
-                {/* message conainer */}
-                <div className='flex-1 overflow-y-auto no-scrollbar px-3 flex flex-col gap-4'>
+                {/* Drawer Header */}
+                <div className='px-4 py-3 border-b border-[#1c1e26] flex items-center justify-between font-mono-tech text-xs text-gray-400'>
+                    <div className='flex items-center gap-1.5'>
+                        <SparklesIcon className='size-3.5 text-indigo-400' />
+                        <span className='font-semibold text-gray-200'>REVISION_ASSISTANT</span>
+                    </div>
+                    <span className='text-[10px] text-gray-500'>V2.4</span>
+                </div>
+
+                {/* Message Container */}
+                <div className='flex-1 overflow-y-auto no-scrollbar p-3.5 flex flex-col gap-4'>
                     {[...project.conversation, ...project.versions]
                         .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()).map((message) => {
                             const isMessage = 'content' in message;
 
                             if (isMessage) {
                                 const msg = message as Message;
-
                                 const isUser = msg.role === 'user';
                                 return (
-                                    <div key={msg.id} className={`flex items-center gap-3 $
-                                {isUser ? "justify-end" : "justify-start}`}>
+                                    <div key={msg.id} className={`flex items-start gap-2.5 ${isUser ? "justify-end" : "justify-start"}`}>
                                         {!isUser && (
-                                            <div className='w-8 h-8 rounded-full bg-linear-to-br from-indigo-600 to-indigo-700 flex items-center justify-center shrink-0'>
-                                                <BotIcon className='size-4 text-white' />
+                                            <div className='size-7 rounded-lg bg-indigo-950/80 border border-indigo-500/30 flex items-center justify-center shrink-0 mt-1'>
+                                                <BotIcon className='size-3.5 text-indigo-400' />
                                             </div>
                                         )}
-                                        <div className={`max-w-[80%] p-2 px-4 rounded-2xl shadow-sm text-sm mt-5 leading-relaxed ${isUser ? "bg-linear-to-r from-indigo-500 to-indigo-600 text-white rounded-tr-none" : "bg-gray-700 rounded-tl-none text-gray-200"}`}>
+                                        <div className={`max-w-[85%] p-3 rounded-2xl text-xs sm:text-sm leading-relaxed ${isUser ? "bg-indigo-600 text-white rounded-tr-none shadow-md shadow-indigo-950/40" : "bg-[#16171d] border border-[#22242c] rounded-tl-none text-gray-200 font-sans"}`}>
                                             {msg.content}
                                         </div>
                                         {isUser && (
-                                            <div className='w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center'>
-                                                <UserIcon className='size-5 text-gray-200' />
+                                            <div className='size-7 rounded-lg bg-[#1c1e26] border border-[#2d303b] flex items-center justify-center shrink-0 mt-1'>
+                                                <UserIcon className='size-4 text-gray-300' />
                                             </div>
                                         )}
                                     </div>
@@ -110,22 +117,27 @@ const Sidebar = ({ isMenuOpen, project, setProject, isGenerating, setIsGeneratin
                             } else {
                                 const ver = message as Version;
                                 return (
-                                    <div key={ver.id} className='w-4/5 mx-auto my-2 p-3 rounded-xl bg-gray-800 text-gray-200 shadow flex flex-col gap-2 '>
-                                        <div className='text-xs font-medium'>
-                                            code updated <br /> <span className='text-xs text-gray-400'>
-                                                {new Date(ver.timestamp).toLocaleString()}
-                                            </span>
+                                    <div key={ver.id} className='w-full my-1 p-3 rounded-xl bg-[#111216] border border-[#22242c] text-gray-200 shadow-lg flex flex-col gap-2.5 font-mono-tech'>
+                                        <div className='flex items-center gap-2 text-xs font-medium text-gray-300'>
+                                            <GitCommitIcon className='size-3.5 text-cyan-400' />
+                                            <span>Code snapshot updated</span>
                                         </div>
-                                        <div className='flex items-center justify-between'>
+                                        <span className='text-[10px] text-gray-500'>
+                                            {new Date(ver.timestamp).toLocaleString()}
+                                        </span>
+                                        <div className='flex items-center justify-between pt-1 border-t border-[#1c1e26]'>
                                             {project.current_version_index === ver.id ? (
-                                                <button className='text-xs text-gray-400 rounded-md px-2 py-1'>Current Version</button>
+                                                <span className='text-[11px] text-emerald-400 font-medium px-2 py-0.5 bg-emerald-950/40 border border-emerald-500/30 rounded-md'>
+                                                    Current Version
+                                                </span>
                                             ): (
-                                                <button onClick={()=> handleRollBack(ver.id)} className='px-3 py-1 rounded-md text-xs bg-indigo-500 hover:bg-indigo-600 text-white'>Roll back to this version</button>
+                                                <button onClick={()=> handleRollBack(ver.id)} className='px-2.5 py-1 rounded-lg text-xs bg-[#171920] hover:bg-indigo-600 border border-[#262833] hover:border-indigo-500 text-gray-300 hover:text-white transition-all'>
+                                                    Roll back
+                                                </button>
                                             )}
                                             <Link target='_blank' to={`/preview/${project.id}/${ver.id}`}>
-                                                <EyeIcon className='size-6 p-1 bg-gray-700 hover:bg-indigo-500 transition-colors rounded'/> 
+                                                <EyeIcon className='size-7 p-1.5 bg-[#171920] hover:bg-indigo-600 text-gray-400 hover:text-white transition-colors rounded-lg border border-[#262833]'/> 
                                             </Link>
-                                            
                                         </div>
                                     </div>
                                 )
@@ -133,29 +145,36 @@ const Sidebar = ({ isMenuOpen, project, setProject, isGenerating, setIsGeneratin
                         })}
                         {
                             isGenerating && (
-                                <div className='flex items-start gap-3'>
-                                    <div className='w-8 h-8 rounded-full bg-linear-to-br from-indigo-600 to-indigo-700 flex items-center justify-center'>
-                                        <BotIcon className='size-5 text-white'/>
+                                <div className='flex items-center gap-2.5 p-3 rounded-xl bg-[#111216] border border-[#22242c]'>
+                                    <div className='size-7 rounded-lg bg-indigo-950/80 border border-indigo-500/30 flex items-center justify-center shrink-0'>
+                                        <BotIcon className='size-3.5 text-indigo-400 animate-pulse'/>
                                     </div>
-                                    {/* three dot */}
-                                    <div className='flex gap-1.5 h-full items-end'>
-                                        <span className='size-2 rounded-full animate-bounce bg-gray-600' style={{animationDelay : '0s'}}/>
-                                        <span className='size-2 rounded-full animate-bounce bg-gray-600' style={{animationDelay : '0.2s'}}/>
-                                        <span className='size-2 rounded-full animate-bounce bg-gray-600' style={{animationDelay : '0.4s'}}/>
-                                    </div>
+                                    <span className='text-xs font-mono-tech text-gray-400'>Synthesizing code changes...</span>
+                                    <Loader2Icon className='size-3.5 animate-spin text-indigo-400 ml-auto' />
                                 </div>
                             )
                         }
                         <div ref={messageRef}/>
                 </div>
-                {/* inpur area */}
-                <form className='m-3 relative' onSubmit={handleRevisions}>
-                        <div className='flex items-center hap-2'>
-                            <textarea onChange={(e)=> setInput(e.target.value)} value={input} rows={4} placeholder='Describe your website or request changes' className='flex-1 p-3 rounded-xl resize-none text-sm outline-none ring ring-gray-700 focus:ring-indigo-500 bg-gray-800 text-gray-100 placeholder-gray-400 trasition-all' disabled={isGenerating}/>
-                                <button disabled={isGenerating || !input.trim()} className="absolute bottom-2.5 right-2.5 rounded-full bg-linear-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover: to-indigo-700 text-white transition-colors disabled:opacity-60">
-                                    {isGenerating ? <Loader2Icon className='size-7 p-1.5 animate-spin text-white'/> : <SendIcon className='p-1.5 size-7 text-white'/>}
-                                </button>
-                        </div>
+
+                {/* Input Area */}
+                <form className='p-3 border-t border-[#1c1e26] bg-[#08080a]' onSubmit={handleRevisions}>
+                    <div className='relative flex items-center'>
+                        <textarea 
+                            onChange={(e)=> setInput(e.target.value)} 
+                            value={input} 
+                            rows={3} 
+                            placeholder='Describe revisions or request UI changes...' 
+                            className='w-full p-3 pr-10 rounded-xl resize-none text-xs outline-none border border-[#22242c] focus:border-indigo-500/70 bg-[#111216] text-gray-100 placeholder-gray-500 transition-all font-sans' 
+                            disabled={isGenerating}
+                        />
+                        <button 
+                            disabled={isGenerating || !input.trim()} 
+                            className="absolute bottom-2.5 right-2.5 p-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                        >
+                            {isGenerating ? <Loader2Icon className='size-4 animate-spin text-white'/> : <SendIcon className='size-4 text-white'/>}
+                        </button>
+                    </div>
                 </form>
             </div>
         </div>

@@ -1,8 +1,8 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { appPlans } from '../assets/assets';
 import Footer from '../components/Footer';
 import { toast } from 'sonner';
-import { Loader2Icon } from 'lucide-react';
+import { Loader2Icon, CheckIcon, SparklesIcon, ZapIcon } from 'lucide-react';
 import api from '@/configs/axios';
 import { authClient } from '@/lib/auth-client';
 import { useNavigate } from 'react-router-dom';
@@ -35,23 +35,19 @@ const Pricing = () => {
 
             // 1. Create a Cashfree order on the backend
             const { data } = await api.post('/api/cashfree/create-order', { planId });
-            const { payment_session_id, order_id } = data;
+            const { payment_session_id } = data;
 
             // 2. Load Cashfree JS SDK
-            // DEPLOY NOTE: Change mode to "production" when going live.
-            // The SDK URL also changes — swap sdk.cashfree.com/js/v3/cashfree.sandbox.js
-            // for sdk.cashfree.com/js/v3/cashfree.js in your index.html script tag.
             const cashfree = await load({
                 mode: (import.meta.env.VITE_CASHFREE_ENV as 'sandbox' | 'production') || 'sandbox',
             });
 
-            // 3. Launch hosted checkout (redirects to return_url after payment)
+            // 3. Launch hosted checkout
             const result = await cashfree.checkout({
                 paymentSessionId: payment_session_id,
-                redirectTarget: '_self',  // redirect in the same tab
+                redirectTarget: '_self',
             });
 
-            // result.error is set if the user cancelled or checkout failed before redirect
             if (result?.error) {
                 toast.error(result.error.message || 'Payment was cancelled or failed');
             }
@@ -64,77 +60,89 @@ const Pricing = () => {
         }
     };
 
-    // "Pro" is the recommended / highlighted plan
     const isRecommended = (planId: string) => planId === 'pro';
 
     return (
         <>
-            <div className='w-full max-w-5xl mx-auto z-20 max-md:px-4 min-h-[80vh]'>
-                <div className='text-center mt-16'>
-                    <h2 className='text-gray-100 text-3xl font-medium'>Choose Your Plan</h2>
-                    <p className='text-gray-400 text-sm max-w-md mx-auto mt-2'>
-                        Start for free and scale up as you grow. Find the perfect plan for your content creation needs.
+            <div className='w-full max-w-6xl mx-auto z-20 px-4 md:px-8 min-h-[85vh] text-white font-sans bg-[#08080a] py-12'>
+                <div className='text-center max-w-xl mx-auto mt-6'>
+                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-950/60 border border-indigo-500/30 text-indigo-300 text-xs font-mono-tech mb-4">
+                        <ZapIcon size={13} /> FLEXIBLE CREDIT PACKS
+                    </div>
+                    <h2 className='text-3xl sm:text-4xl font-semibold tracking-tight text-gray-100'>Choose Your Synthesis Plan</h2>
+                    <p className='text-gray-400 text-xs sm:text-sm mt-2.5 leading-relaxed font-mono-tech'>
+                        Scale your website creations effortlessly. 1 Creation or Revision = 5 Credits.
                     </p>
                 </div>
 
-                <div className='pt-14 py-4 px-4'>
-                    <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
-                        {plans.map((plan, idx) => (
-                            <div
-                                key={idx}
-                                className={`p-6 bg-black/20 mx-auto w-full max-w-sm rounded-lg text-white transition-all duration-300 ${
-                                    isRecommended(plan.id)
-                                        ? 'ring-2 ring-indigo-500 shadow-lg shadow-indigo-900/30'
-                                        : 'ring ring-indigo-950 hover:ring-indigo-500'
-                                }`}
-                            >
-                                {isRecommended(plan.id) && (
-                                    <span className='inline-block text-xs bg-indigo-600 text-white px-2 py-0.5 rounded-full mb-3 font-medium'>
-                                        Recommended
-                                    </span>
-                                )}
-                                <h3 className='text-xl font-bold'>{plan.name}</h3>
-                                <div className='my-2'>
-                                    <span className='text-4xl font-bold'>{plan.price}</span>
-                                    <span className='text-gray-300'> / {plan.credits} credits</span>
-                                </div>
-
-                                <p className='text-gray-300 mb-6'>{plan.description}</p>
-
-                                <ul className='space-y-1.5 mb-6 text-sm'>
-                                    {plan.features.map((feature, i) => (
-                                        <li key={i} className='flex items-center'>
-                                            <svg className='h-5 w-5 text-indigo-300 mr-2 shrink-0' xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='currentColor'>
-                                                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth='2' d='M5 13l4 4L19 7' />
-                                            </svg>
-                                            <span className='text-gray-400'>{feature}</span>
-                                        </li>
-                                    ))}
-                                </ul>
-
-                                <button
-                                    onClick={() => handlePurchase(plan.id)}
-                                    disabled={loadingPlanId === plan.id}
-                                    className={`w-full py-2 px-4 text-sm rounded-md transition-all flex items-center justify-center gap-2 ${
-                                        isRecommended(plan.id)
-                                            ? 'bg-indigo-500 hover:bg-indigo-600 active:scale-95'
-                                            : 'bg-indigo-900/60 hover:bg-indigo-600 active:scale-95'
-                                    } disabled:opacity-60 disabled:cursor-not-allowed`}
+                <div className='pt-12 pb-6'>
+                    <div className='grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch'>
+                        {plans.map((plan, idx) => {
+                            const highlighted = isRecommended(plan.id);
+                            return (
+                                <div
+                                    key={idx}
+                                    className={`relative p-6 sm:p-8 bg-[#111216] rounded-2xl text-white transition-all duration-300 flex flex-col justify-between border ${
+                                        highlighted
+                                            ? 'border-indigo-500/80 shadow-2xl shadow-indigo-950/50 bg-gradient-to-b from-[#161722] to-[#111216]'
+                                            : 'border-[#22242c] hover:border-[#2d303b]'
+                                    }`}
                                 >
-                                    {loadingPlanId === plan.id ? (
-                                        <><Loader2Icon size={14} className='animate-spin' /> Processing...</>
-                                    ) : (
-                                        'Buy Now'
+                                    {highlighted && (
+                                        <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 text-[10px] font-mono-tech uppercase tracking-wider bg-gradient-to-r from-indigo-500 to-cyan-500 text-white px-3 py-1 rounded-full font-semibold shadow-md flex items-center gap-1">
+                                            <SparklesIcon size={12} /> Recommended
+                                        </div>
                                     )}
-                                </button>
-                            </div>
-                        ))}
+
+                                    <div>
+                                        <h3 className='text-lg font-semibold text-gray-100'>{plan.name}</h3>
+                                        <p className='text-xs text-gray-400 mt-1 font-mono-tech'>{plan.description}</p>
+
+                                        <div className='my-6 pb-6 border-b border-[#1c1e26]'>
+                                            <div className="flex items-baseline gap-1">
+                                                <span className='text-4xl sm:text-5xl font-bold tracking-tight text-gray-100'>{plan.price}</span>
+                                                <span className='text-xs font-mono-tech text-indigo-400 font-semibold'>INR</span>
+                                            </div>
+                                            <span className='inline-block text-xs font-mono-tech text-gray-400 mt-1'>
+                                                Includes <strong className="text-gray-200">{plan.credits} credits</strong>
+                                            </span>
+                                        </div>
+
+                                        <ul className='space-y-2.5 mb-8 text-xs font-sans'>
+                                            {plan.features.map((feature, i) => (
+                                                <li key={i} className='flex items-center text-gray-300 gap-2.5'>
+                                                    <div className={`p-0.5 rounded-full ${highlighted ? 'bg-indigo-500/20 text-indigo-400' : 'bg-gray-800 text-gray-400'}`}>
+                                                        <CheckIcon size={13} />
+                                                    </div>
+                                                    <span>{feature}</span>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+
+                                    <button
+                                        onClick={() => handlePurchase(plan.id)}
+                                        disabled={loadingPlanId === plan.id}
+                                        className={`w-full py-3 px-4 text-xs font-semibold rounded-xl transition-all flex items-center justify-center gap-2 ${
+                                            highlighted
+                                                ? 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-950/50 border border-indigo-400/30 active:scale-95'
+                                                : 'bg-[#181920] hover:bg-indigo-600 border border-[#22242c] hover:border-indigo-500 text-gray-200 hover:text-white active:scale-95'
+                                        } disabled:opacity-60 disabled:cursor-not-allowed`}
+                                    >
+                                        {loadingPlanId === plan.id ? (
+                                            <><Loader2Icon size={14} className='animate-spin' /> Processing Order...</>
+                                        ) : (
+                                            'Acquire Plan'
+                                        )}
+                                    </button>
+                                </div>
+                            );
+                        })}
                     </div>
                 </div>
 
-                <p className='text-center text-sm mt-10 mx-auto max-w-md text-white/60 font-light'>
-                    Project <span className='text-white'>Creation / Revision</span> consume{' '}
-                    <span className='text-white'>5 credits</span>. You can purchase more credits to create more projects.
+                <p className='text-center text-xs mt-8 font-mono-tech text-gray-500 max-w-md mx-auto leading-relaxed'>
+                    Project creation and revisions consume 5 credits each. Purchased credits never expire.
                 </p>
             </div>
             <Footer />

@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Loader2Icon, CheckCircle2Icon, XCircleIcon } from 'lucide-react';
 import api from '@/configs/axios';
-import { ZapIcon } from 'lucide-react';
 import { assets } from '@/assets/assets';
 
 // Cashfree redirects the user here after payment with ?order_id=...

@@ -37,17 +37,20 @@ const fetchCode = async () => {
     if (!isPending && session?.user) {
       fetchCode()
     }
-  },[session?.user])
+  },[session?.user, isPending])
 
   if (loading) {
     return (
-      <div className='flex items-center justify-center h-screen'>
-        <Loader2Icon className='animate-spin text-white size=7' />
+      <div className='flex items-center justify-center h-screen bg-[#08080a] text-white'>
+        <div className="flex flex-col items-center gap-3 font-mono-tech text-xs text-indigo-400">
+          <Loader2Icon className='animate-spin text-indigo-500 size-8' />
+          <span>LOADING_CANVAS_PREVIEW...</span>
+        </div>
       </div>
     )
   }
   return (
-    <div className="h-screen">
+    <div className="h-screen w-full bg-[#08080a] p-2">
       {code && <ProjectPreview project={{current_code: code} as Project } 
       isGenerating={false} showEditorPanel={false} />}
     </div>

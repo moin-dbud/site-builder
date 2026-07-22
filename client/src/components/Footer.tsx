@@ -1,10 +1,15 @@
-import React from 'react'
 
 const Footer = () => {
     return (
-        <div className='text-center py-4 text-gray-400 text-sm border-t border-gray-800 mt-24'>
-            <p>Copyright @ 2026 AI Website Builder</p>
-        </div>
+        <footer className='w-full py-8 text-center text-xs text-gray-500 border-t border-[#22242c] mt-24 bg-[#08080a] font-mono-tech'>
+            <div className="max-w-6xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div className="flex items-center gap-2">
+                    <span className="size-1.5 rounded-full bg-indigo-500 inline-block" />
+                    <p className="text-gray-400">Buildo AI Engine — Architectural Web Generator</p>
+                </div>
+                <p className="text-gray-500">© 2026 Buildo. All rights reserved.</p>
+            </div>
+        </footer>
     )
 }
 
