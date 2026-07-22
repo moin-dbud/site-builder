@@ -119,7 +119,7 @@ export const makeRevision = async (req: Request, res: Response) => {
                 },
                 {
                     role : 'user',
-                    content: `Here is the current website code: "${currentProject.current_code}" The user wants this change" "${enhancedPrompt}"`
+                    content: `Here is the current website code:\n\n${currentProject.current_code}\n\nThe user wants this change: ${enhancedPrompt}`
                 }
             ]
         })
@@ -141,11 +141,15 @@ export const makeRevision = async (req: Request, res: Response) => {
         return;
         }
 
+        const cleanCode = code
+            .replace(/```[a-z]*\n?/gi, '')
+            .replace(/```$/gi, '')
+            .replace(/\\"/g, '"')
+            .trim();
+
         const version = await prisma.version.create({
             data : {
-                code: code.replace(/```[a-z]*\n?/gi, '')
-                        .replace(/```$/gi, '')
-                        .trim(),
+                code: cleanCode,
                 description: 'Changes made',
                 projectId
             }
@@ -162,10 +166,8 @@ export const makeRevision = async (req: Request, res: Response) => {
         await prisma.websiteProject.update({
             where: {id: projectId},
             data: {
-                current_code: code.replace(/```[a-z]*\n?/gi, '')
-                        .replace(/```$/gi, '')
-                        .trim(),
-                        current_version_index: version.id
+                current_code: cleanCode,
+                current_version_index: version.id
             }
         })
         

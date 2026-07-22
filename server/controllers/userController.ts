@@ -177,11 +177,15 @@ export const createUserProject = async (req: Request, res: Response) => {
         }
 
         // create version for project
+        const cleanCode = code
+            .replace(/```[a-z]*\n?/gi, '')
+            .replace(/```$/gi, '')
+            .replace(/\\"/g, '"')
+            .trim();
+
         const version = await prisma.version.create({
             data:{
-                code: code.replace(/```[a-z]*\n?/gi, '')
-                        .replace(/```$/gi, '')
-                        .trim(),
+                code: cleanCode,
                 description: 'Initial version',
                 projectId: project.id
             }
@@ -198,9 +202,7 @@ export const createUserProject = async (req: Request, res: Response) => {
         await prisma.websiteProject.update({
             where: {id: project.id},
             data:{
-                current_code: code.replace(/```[a-z]*\n?/gi, '')
-                        .replace(/```$/gi, '')
-                        .trim(),
+                current_code: cleanCode,
                 current_version_index: version.id
             }
         })

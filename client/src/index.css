@@ -7,7 +7,7 @@
 
 @custom-variant dark (&:is(.dark *));
 
-*{
+* {
   font-family: "Outfit", sans-serif;
 }
 
@@ -15,12 +15,15 @@
   button {
     @apply cursor-pointer;
   }
+
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
   }
+
   html {
     @apply font-sans;
   }
@@ -31,12 +34,17 @@
 }
 
 .animate-fade-in {
-  animation: fade-in 1s ease-out ;
+  animation: fade-in 1s ease-out;
 }
 
 @keyframes fade-in {
-  0% {opacity: 0;}
-  100% {opacity: 1;}
+  0% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 1;
+  }
 }
 
 @theme inline {
