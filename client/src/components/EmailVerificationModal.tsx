@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { MailIcon, Loader2Icon, SparklesIcon, RefreshCwIcon, CheckCircle2Icon } from 'lucide-react'
+import { MailIcon, Loader2Icon, RefreshCwIcon, CheckCircle2Icon } from 'lucide-react'
 import api from '@/configs/axios'
 import { toast } from 'sonner'
 
