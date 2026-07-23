@@ -14,7 +14,14 @@ export const auth = betterAuth({
         enabled: true,
     },
     user: {
-        deleteUser: {enabled: true}
+        deleteUser: {enabled: true},
+        additionalFields: {
+            username: {
+                type: "string",
+                required: true,
+                returned: true,
+            }
+        }
     },
 
 

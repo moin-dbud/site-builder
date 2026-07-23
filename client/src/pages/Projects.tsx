@@ -70,9 +70,25 @@ const Projects = () => {
 
     const togglePublish = async () => {
         try {
-            const {data} = await api.get(`/api/user/publish-toggle/${projectId}`);
+            let name = project?.name;
+            if (!project?.isPublished && (!name || name === 'Untitled Project' || name.trim() === '')) {
+                const inputName = window.prompt("Enter a name for your published project:", project?.name || "");
+                if (inputName !== null && inputName.trim()) {
+                    name = inputName.trim();
+                }
+            }
+
+            const {data} = await api.get(`/api/user/publish-toggle/${projectId}?name=${encodeURIComponent(name || '')}`);
             toast.success(data.message);
-            setProject((prev)=> prev ? ({...prev, isPublished: !prev.isPublished}) : null)
+            if (data.publicUrl) {
+                toast.info(`Public URL: ${window.location.origin}${data.publicUrl}`, {
+                    action: {
+                        label: 'Open',
+                        onClick: () => window.open(`${window.location.origin}${data.publicUrl}`, '_blank')
+                    }
+                });
+            }
+            setProject((prev)=> prev ? ({...prev, isPublished: data.isPublished, slug: data.slug, name: name || prev.name}) : null)
         } catch (error: any) {
             toast.error(error.response?.data?.message || error.message);
             console.log(error);

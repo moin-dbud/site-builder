@@ -56,10 +56,12 @@ const Community = () => {
 
                         {/* Projects Grid */}
                         <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6'>
-                            {projects.map((project)=>(
+                            {projects.map((project)=>{
+                                const projectUrl = project.user?.username && project.slug ? `/@${project.user.username}/${project.slug}` : `/view/${project.id}`;
+                                return (
                                 <Link 
                                     key={project.id} 
-                                    to={`/view/${project.id}`}
+                                    to={projectUrl}
                                     target='_blank'
                                     className='relative group cursor-pointer bg-[#111216] border border-[#22242c] rounded-2xl overflow-hidden shadow-xl hover:border-cyan-500/50 hover:shadow-cyan-950/20 transition-all duration-300 flex flex-col justify-between'
                                 >
@@ -117,16 +119,27 @@ const Community = () => {
                                         {/* Author & Date */}
                                         <div className='flex justify-between items-center pt-3 border-t border-[#1c1e26] text-xs font-mono-tech text-gray-500'>
                                             <span>{new Date(project.createdAt).toLocaleDateString()}</span>
-                                            <div className='flex items-center gap-1.5 bg-[#171920] border border-[#22242c] px-2.5 py-1 rounded-full text-gray-300'>
+                                            <div 
+                                                onClick={(e) => {
+                                                    e.preventDefault();
+                                                    e.stopPropagation();
+                                                    if (project.user?.username) {
+                                                        navigate(`/@${project.user.username}`);
+                                                    }
+                                                }}
+                                                className='flex items-center gap-1.5 bg-[#171920] border border-[#22242c] hover:border-cyan-500/50 hover:bg-[#1c1e26] px-2.5 py-1 rounded-full text-gray-300 transition-colors cursor-pointer'
+                                            >
                                                 <span className='bg-indigo-600 size-4 rounded-full text-white font-semibold flex items-center justify-center text-[10px]'>
                                                     {project.user?.name?.slice(0,1) || 'A'}
                                                 </span>
-                                                <span className="text-[11px] truncate max-w-[100px]">{project.user?.name || 'Creator'}</span>
+                                                <span className="text-[11px] truncate max-w-[100px]">
+                                                    {project.user?.username ? `@${project.user.username}` : project.user?.name || 'Creator'}
+                                                </span>
                                             </div>
                                         </div>
                                     </div>
                                 </Link>
-                            ))}
+                            )})}
                         </div>
                     </div>
                 ) : (

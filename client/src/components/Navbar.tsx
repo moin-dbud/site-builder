@@ -110,7 +110,7 @@ const Navbar = () => {
           ) : (
             <>
               <button
-                onClick={() => navigate('/pricing')}
+                onClick={() => navigate('/account/settings?section=billing', { state: { section: 'billing' } })}
                 className="flex items-center gap-2 bg-[#111216] hover:bg-[#181920] px-3.5 py-1.5 text-xs border border-[#22242c] hover:border-indigo-500/40 text-gray-300 hover:text-white rounded-xl transition-all duration-200 font-mono-tech"
               >
                 <ZapIcon className="size-3.5 text-indigo-400 fill-indigo-400/20" />

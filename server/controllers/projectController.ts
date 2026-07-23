@@ -308,7 +308,16 @@ export const getPublishedProjects = async (req: Request, res: Response) => {
 
         const projects = await prisma.websiteProject.findMany({
             where : {isPublished: true},
-            include: {user: true}
+            include: {
+                user: {
+                    select: {
+                        id: true,
+                        name: true,
+                        username: true,
+                    }
+                }
+            },
+            orderBy: { updatedAt: 'desc' }
         })
 
         res.json({projects})
@@ -331,14 +340,23 @@ export const getProjectById = async (req: Request, res: Response) => {
         }
 
         const project = await prisma.websiteProject.findFirst({
-            where : {id: projectId}
+            where : {id: projectId},
+            include: {
+                user: {
+                    select: {
+                        id: true,
+                        name: true,
+                        username: true,
+                    }
+                }
+            }
         })
 
         if (!project || project.isPublished === false || !project?.current_code) {
             return res.status(404).json({message : "Project not found"})
         }
 
-        res.json({code: project.current_code })
+        res.json({code: project.current_code, project })
         
     } catch (error: any) {
         console.log(error.code || error.message);
@@ -346,6 +364,47 @@ export const getProjectById = async (req: Request, res: Response) => {
     }
     
 }
+
+// controller func to get project by username and slug
+export const getProjectByUsernameAndSlug = async (req: Request, res: Response) => {
+    try {
+        const username = typeof req.params.username === 'string' ? req.params.username : '';
+        const slug = typeof req.params.slug === 'string' ? req.params.slug : '';
+        if (!username || !slug) {
+            return res.status(400).json({ message: "Invalid parameters" });
+        }
+
+        const user = await prisma.user.findUnique({
+            where: { username: username.trim().toLowerCase() }
+        });
+
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        const project = await prisma.websiteProject.findFirst({
+            where: { userId: user.id, slug: slug.trim().toLowerCase(), isPublished: true },
+            include: {
+                user: {
+                    select: {
+                        id: true,
+                        name: true,
+                        username: true,
+                    }
+                }
+            }
+        });
+
+        if (!project || !project.current_code) {
+            return res.status(404).json({ message: "Project not found" });
+        }
+
+        res.json({ code: project.current_code, project });
+    } catch (error: any) {
+        console.log(error.code || error.message);
+        res.status(500).json({ message: error.message });
+    }
+};
 
 // controller to save the project
 

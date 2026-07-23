@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import prisma from "../lib/prisma.js";
 import openai from "../config/openai.js";
 import { pickDesignSystem } from '../config/designSystems.js';
+import { sendVerificationOtpEmail } from '../lib/mailer.js';
 
 // get user credits
 export const getUserCredits = async (req: Request, res: Response) => {
@@ -43,6 +44,13 @@ export const createUserProject = async (req: Request, res: Response) => {
 
         if (user.credits < 5) {
             return res.status(403).json({ message: 'Insufficient credits. Add credits to create more projects.' })
+        }
+
+        if (!user.emailVerified) {
+            return res.status(403).json({ 
+                message: "Please verify your email address before creating projects.",
+                requiresEmailVerification: true 
+            })
         }
 
         // create new project
@@ -286,6 +294,43 @@ export const getUserProjects = async (req: Request, res: Response) => {
     }
 }
 
+export const generateUniqueSlug = async (userId: string, name: string, currentProjectId: string): Promise<string> => {
+    let baseSlug = name
+        .toLowerCase()
+        .trim()
+        .replace(/[^a-z0-9\s_-]/g, '')
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-');
+
+    if (!baseSlug || baseSlug === '-') {
+        baseSlug = 'project';
+    }
+
+    if (RESERVED_WORDS.includes(baseSlug)) {
+        baseSlug = `${baseSlug}-site`;
+    }
+
+    let candidateSlug = baseSlug;
+    let counter = 1;
+
+    while (true) {
+        const existing = await prisma.websiteProject.findFirst({
+            where: {
+                userId,
+                slug: candidateSlug,
+                NOT: { id: currentProjectId }
+            }
+        });
+
+        if (!existing) {
+            return candidateSlug;
+        }
+
+        counter++;
+        candidateSlug = `${baseSlug}-${counter}`;
+    }
+};
+
 // controller funct to toggle published project
 export const togglePublish = async (req: Request, res: Response) => {
     try {
@@ -301,25 +346,328 @@ export const togglePublish = async (req: Request, res: Response) => {
 
         const project = await prisma.websiteProject.findUnique({
             where: {id: projectId, userId},
-
         })
 
         if (!project) {
             return res.status(404).json({message: "Project not found"})
         }
 
-        await prisma.websiteProject.update({
-            where: {id: projectId},
-            data: {isPublished: !project.isPublished}
-        })
+        const isPublishing = !project.isPublished;
+        let finalSlug = project.slug;
 
-        res.json({ message: project.isPublished ? 'Project unpublished' : 'Project Published successfully' })
+        if (isPublishing) {
+            const nameToUse = (req.query.name as string) || req.body?.name || project.name;
+            finalSlug = await generateUniqueSlug(userId, nameToUse, project.id);
+        }
+
+        const updatedProject = await prisma.websiteProject.update({
+            where: {id: projectId},
+            data: {
+                isPublished: isPublishing,
+                slug: finalSlug,
+                ...(req.body?.name ? { name: req.body.name } : {})
+            },
+            include: {
+                user: {
+                    select: {
+                        username: true
+                    }
+                }
+            }
+        });
+
+        res.json({
+            message: isPublishing ? 'Project Published successfully' : 'Project unpublished',
+            isPublished: updatedProject.isPublished,
+            slug: updatedProject.slug,
+            publicUrl: updatedProject.user?.username && updatedProject.slug ? `/@${updatedProject.user.username}/${updatedProject.slug}` : null
+        })
 
     } catch (error: any) {
         console.log(error.code || error.message);
         res.status(500).json({ message: error.message })
     }
 }
+
+// Reserved words list
+export const RESERVED_WORDS = [
+    'admin', 'api', 'pricing', 'settings', 'community', 'login', 'signup', 'auth', 'buildo', 'www', 'help', 'support', 'about', 'projects', 'home'
+];
+
+export const validateUsernameFormat = (username: string): { valid: boolean; error?: string } => {
+    const trimmed = username.trim().toLowerCase();
+    if (trimmed.length < 3 || trimmed.length > 20) {
+        return { valid: false, error: 'Username must be 3-20 characters long' };
+    }
+    if (!/^[a-z0-9_-]+$/.test(trimmed)) {
+        return { valid: false, error: 'Only lowercase letters, numbers, hyphens, and underscores allowed' };
+    }
+    if (RESERVED_WORDS.includes(trimmed)) {
+        return { valid: false, error: 'This username is reserved' };
+    }
+    return { valid: true };
+};
+
+// Check username availability
+export const checkUsername = async (req: Request, res: Response) => {
+    try {
+        const username = req.query.username as string;
+        if (!username) {
+            return res.status(400).json({ available: false, message: 'Username is required' });
+        }
+        const validation = validateUsernameFormat(username);
+        if (!validation.valid) {
+            return res.json({ available: false, message: validation.error });
+        }
+
+        const existing = await prisma.user.findUnique({
+            where: { username: username.trim().toLowerCase() }
+        });
+
+        if (existing) {
+            return res.json({ available: false, message: 'Username is already taken' });
+        }
+
+        return res.json({ available: true, message: 'Username is available' });
+    } catch (error: any) {
+        console.log(error.code || error.message);
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// Get public user profile
+export const getUserProfile = async (req: Request, res: Response) => {
+    try {
+        const username = typeof req.params.username === 'string' ? req.params.username : '';
+        if (!username) {
+            return res.status(400).json({ message: 'Username is required' });
+        }
+
+        const user = await prisma.user.findUnique({
+            where: { username: username.trim().toLowerCase() },
+            select: {
+                id: true,
+                name: true,
+                username: true,
+                createdAt: true,
+            }
+        });
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        const projects = await prisma.websiteProject.findMany({
+            where: { userId: user.id, isPublished: true },
+            orderBy: { updatedAt: 'desc' },
+            select: {
+                id: true,
+                name: true,
+                slug: true,
+                initial_prompt: true,
+                current_code: true,
+                isPublished: true,
+                createdAt: true,
+                updatedAt: true,
+            }
+        });
+
+        res.json({ user, projects });
+    } catch (error: any) {
+        console.log(error.code || error.message);
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// Send Email Verification OTP
+export const sendEmailOtp = async (req: Request, res: Response) => {
+    try {
+        const userId = req.userId;
+        if (!userId) {
+            return res.status(401).json({ message: "Unauthorized user" });
+        }
+
+        const user = await prisma.user.findUnique({ where: { id: userId } });
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        if (user.emailVerified) {
+            return res.json({ success: true, message: "Email is already verified" });
+        }
+
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        const expires = new Date(Date.now() + 10 * 60 * 1000); // 10 mins
+
+        await prisma.user.update({
+            where: { id: userId },
+            data: { emailOtp: otp, emailOtpExpires: expires }
+        });
+
+        // Send OTP email via Nodemailer
+        await sendVerificationOtpEmail(user.email, otp, user.name);
+
+        return res.json({ 
+            success: true, 
+            message: `Verification OTP code sent to ${user.email}`
+        });
+    } catch (error: any) {
+        console.log(error.code || error.message);
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// Verify Email OTP Code
+export const verifyEmailOtp = async (req: Request, res: Response) => {
+    try {
+        const userId = req.userId;
+        if (!userId) {
+            return res.status(401).json({ message: "Unauthorized user" });
+        }
+
+        const { otp } = req.body;
+        if (!otp || typeof otp !== 'string') {
+            return res.status(400).json({ message: "OTP code is required" });
+        }
+
+        const user = await prisma.user.findUnique({ where: { id: userId } });
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        if (user.emailVerified) {
+            return res.json({ success: true, message: "Email is already verified" });
+        }
+
+        if (!user.emailOtp || user.emailOtp !== otp.trim()) {
+            return res.status(400).json({ message: "Invalid verification code. Please check and try again." });
+        }
+
+        if (user.emailOtpExpires && user.emailOtpExpires < new Date()) {
+            return res.status(400).json({ message: "Verification code has expired. Please request a new code." });
+        }
+
+        await prisma.user.update({
+            where: { id: userId },
+            data: { 
+                emailVerified: true, 
+                emailOtp: null, 
+                emailOtpExpires: null 
+            }
+        });
+
+        return res.json({ success: true, message: "Email verified successfully!" });
+    } catch (error: any) {
+        console.log(error.code || error.message);
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// Set Username for pre-existing users
+export const setInitialUsername = async (req: Request, res: Response) => {
+    try {
+        const userId = req.userId;
+        if (!userId) {
+            return res.status(401).json({ message: "Unauthorized user" });
+        }
+
+        const { username } = req.body;
+        if (!username || typeof username !== 'string') {
+            return res.status(400).json({ message: "Username is required" });
+        }
+
+        const user = await prisma.user.findUnique({ where: { id: userId } });
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        if (user.username) {
+            return res.status(400).json({ message: "Username has already been set for this account" });
+        }
+
+        const validation = validateUsernameFormat(username);
+        if (!validation.valid) {
+            return res.status(400).json({ message: validation.error });
+        }
+
+        const existing = await prisma.user.findUnique({
+            where: { username: username.trim().toLowerCase() }
+        });
+
+        if (existing) {
+            return res.status(400).json({ message: "Username is already taken" });
+        }
+
+        const updated = await prisma.user.update({
+            where: { id: userId },
+            data: { username: username.trim().toLowerCase() }
+        });
+
+        return res.json({ success: true, message: "Username set successfully!", username: updated.username });
+    } catch (error: any) {
+        console.log(error.code || error.message);
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// Get current user profile status
+export const getCurrentUserStatus = async (req: Request, res: Response) => {
+    try {
+        const userId = req.userId;
+        if (!userId) {
+            return res.status(401).json({ message: "Unauthorized user" });
+        }
+
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+            select: {
+                id: true,
+                name: true,
+                email: true,
+                username: true,
+                emailVerified: true,
+                credits: true,
+            }
+        });
+
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        return res.json({ user });
+    } catch (error: any) {
+        console.log(error.code || error.message);
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// Get user transaction history & credits
+export const getUserTransactions = async (req: Request, res: Response) => {
+    try {
+        const userId = req.userId;
+        if (!userId) {
+            return res.status(401).json({ message: "Unauthorized user" });
+        }
+
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+            select: { credits: true }
+        });
+
+        const transactions = await prisma.transaction.findMany({
+            where: { userId },
+            orderBy: { createdAt: 'desc' }
+        });
+
+        return res.json({
+            credits: user?.credits || 0,
+            transactions
+        });
+    } catch (error: any) {
+        console.log(error.code || error.message);
+        res.status(500).json({ message: error.message });
+    }
+};
 
 // controller to puchase credits    
 export const purchaseCredits = async (req: Request, res: Response) => {

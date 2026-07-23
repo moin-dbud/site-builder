@@ -13,12 +13,15 @@ datasource db {
 model User {
   id            String @id
   email         String
+  username      String?  @unique
   name          String
   totalCreation Int    @default(0)
   credits       Int    @default(20)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   emailVerified Boolean   @default(false)
+  emailOtp      String?
+  emailOtpExpires DateTime?
   
   // Relations
   projects WebsiteProject[]
@@ -32,6 +35,7 @@ model User {
 model WebsiteProject {
   id                    String  @id @default(uuid())
   name                  String
+  slug                  String?
   initial_prompt        String
   current_code          String?
   current_version_index String  @default("")
@@ -47,6 +51,8 @@ model WebsiteProject {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@unique([userId, slug])
 }
 
 enum Role {
