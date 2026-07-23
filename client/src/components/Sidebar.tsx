@@ -56,6 +56,7 @@ const Sidebar = ({ isMenuOpen, project, setProject, isGenerating, setIsGeneratin
                 fetchProject();
             },10000)
             const {data} = await api.post(`/api/project/revision/${project.id}`,{message:input})
+            window.dispatchEvent(new Event('refresh-credits'));
             fetchProject();
             toast.success(data.message);
             setInput('')

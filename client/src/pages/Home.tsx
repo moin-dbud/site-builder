@@ -96,6 +96,7 @@ const Home = () => {
       }
       setLoading(true)
       const { data } = await api.post('/api/user/project', { initial_prompt: input });
+      window.dispatchEvent(new Event('refresh-credits'));
       setLoading(false);
       navigate(`/projects/${data.projectId}`)
     } catch (error: any) {

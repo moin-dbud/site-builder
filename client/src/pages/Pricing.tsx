@@ -101,7 +101,7 @@ const Pricing = () => {
                                         <div className='my-6 pb-6 border-b border-[#1c1e26]'>
                                             <div className="flex items-baseline gap-1">
                                                 <span className='text-4xl sm:text-5xl font-bold tracking-tight text-gray-100'>{plan.price}</span>
-                                                <span className='text-xs font-mono-tech text-indigo-400 font-semibold'>INR</span>
+                                                
                                             </div>
                                             <span className='inline-block text-xs font-mono-tech text-gray-400 mt-1'>
                                                 Includes <strong className="text-gray-200">{plan.credits} credits</strong>

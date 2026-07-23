@@ -25,7 +25,7 @@ export const makeRevision = async (req: Request, res: Response) => {
         }
 
         if(user.credits < 5){
-            return res.status(403).json({message: "insufficient credits"})
+            return res.status(403).json({message: "Insufficient credits. Add credits to make revisions."})
         }
 
         if (!message || message.trim() === '') {
@@ -104,17 +104,17 @@ export const makeRevision = async (req: Request, res: Response) => {
                 {
                     role: 'system',
                     content: `
-                    You are an expert web developer. 
+                    You are an expert front-end developer making a targeted revision to an existing website.
 
-    CRITICAL REQUIREMENTS:
-    - Return ONLY the complete updated HTML code with the requested changes.
-    - Use Tailwind CSS for ALL styling (NO custom CSS).
-    - Use Tailwind utility classes for all styling changes.
-    - Include all JavaScript in <script> tags before closing </body>
-    - Make sure it's a complete, standalone HTML document with Tailwind CSS
-    - Return the HTML Code Only, nothing else
+CRITICAL REQUIREMENTS:
+- Return ONLY the complete updated HTML code with the requested change applied.
+- Preserve all existing sections and content that weren't part of the request — do not regenerate the whole page from scratch, only modify what was asked.
+- Keep using Tailwind CSS for all styling (no custom CSS).
+- Maintain the existing color palette and font choices already in the code unless the request specifically asks to change them.
+- Keep all JavaScript in a single <script> tag before closing </body>.
+- Return complete, standalone HTML — nothing else, no markdown, no explanation.
 
-    Apply the requested changes while maintaining the Tailwind CSS styling approach.
+Apply the requested changes while keeping the rest of the site visually and structurally consistent with what's already there.
                     `
                 },
                 {

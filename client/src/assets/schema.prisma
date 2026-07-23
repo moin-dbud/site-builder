@@ -37,6 +37,8 @@ model WebsiteProject {
   current_version_index String  @default("")
   userId                String
   isPublished           Boolean @default(false)
+  designSystemId        String?
+
 
   // Relations
   conversation Conversation[]

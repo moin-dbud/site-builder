@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import prisma from "../lib/prisma.js";
 import openai from "../config/openai.js";
+import { pickDesignSystem } from '../config/designSystems.js';
 
 // get user credits
 export const getUserCredits = async (req: Request, res: Response) => {
@@ -36,8 +37,12 @@ export const createUserProject = async (req: Request, res: Response) => {
             where: { id: userId }
         })
 
-        if (user && user.credits < 5) {
-            return res.status(403).json({ message: 'add credits to create more projects' })
+        if (!user) {
+            return res.status(401).json({ message: "Unauthorized user" })
+        }
+
+        if (user.credits < 5) {
+            return res.status(403).json({ message: 'Insufficient credits. Add credits to create more projects.' })
         }
 
         // create new project
@@ -71,6 +76,11 @@ export const createUserProject = async (req: Request, res: Response) => {
             data: { credits: { decrement: 5 } }
         })
 
+        const designSystem = pickDesignSystem(initial_prompt);
+        await prisma.websiteProject.update({
+            where: { id: project.id },
+            data: { designSystemId: designSystem.id }
+        });
 
         res.json({ projectId: project.id })
 
@@ -127,30 +137,30 @@ export const createUserProject = async (req: Request, res: Response) => {
                 {
                     role: 'system',
                     content: `
-                    You are an expert web developer. Create a complete, production-ready, single-page website based on this request: "${enhancedPrompt}"
+                    You are an expert front-end developer. Create a complete, production-ready, single-page website based on this request: "${enhancedPrompt}"
 
-    CRITICAL REQUIREMENTS:
-    - You MUST output valid HTML ONLY. 
-    - Use Tailwind CSS for ALL styling
-    - Include this EXACT script in the <head>: <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    - Use Tailwind utility classes extensively for styling, animations, and responsiveness
-    - Make it fully functional and interactive with JavaScript in <script> tag before closing </body>
-    - Use modern, beautiful design with great UX using Tailwind classes
-    - Make it responsive using Tailwind responsive classes (sm:, md:, lg:, xl:)
-    - Use Tailwind animations and transitions (animate-*, transition-*)
-    - Include all necessary meta tags
-    - Use Google Fonts CDN if needed for custom fonts
-    - Use placeholder images from https://placehold.co/600x400
-    - Use Tailwind gradient classes for beautiful backgrounds
-    - Make sure all buttons, cards, and components use Tailwind styling
+OUTPUT RULES:
+- Output valid HTML ONLY, complete and standalone.
+- Include this EXACT script in the <head>: <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+- Use semantic HTML5 elements (<header>, <nav>, <main>, <section>, <footer>) — never unlabeled divs for structural elements.
+- Use https://picsum.photos/seed/{descriptive-keyword}/{width}/{height} for all images (e.g. https://picsum.photos/seed/backpack/400/400). This always returns a real photo and never breaks. Use a different seed keyword per image so photos vary.
+- Write real, contextually relevant copy for every section. No lorem ipsum, no "Company Name" placeholders — use realistic content based on what the user asked for.
+- Follow this design direction: choose ONE cohesive color palette (a primary, a background, and an accent used sparingly for CTAs) and stick to it throughout — don't mix random Tailwind colors section to section.
+- Vary section layout — don't make every section "heading + 3 cards in a row." Mix layout patterns (split image+text, full-width stat bar, alternating columns, etc.) based on what fits the content.
+- Fully responsive using sm:/md:/lg:/xl: classes — test every section mentally against mobile width.
+- Include proper meta tags: title, description, viewport.
+- Use Google Fonts CDN for a heading/body font pairing that fits the site's tone, not the Tailwind default.
 
-    CRITICAL HARD RULES:
-    1. You MUST put ALL output ONLY into message.content.
-    2. You MUST NOT place anything in "reasoning", "analysis", "reasoning_details", or any hidden fields.
-    3. You MUST NOT include internal thoughts, explanations, analysis, comments, or markdown.
-    4. Do NOT include markdown, explanations, notes, or code fences.
+DESIGN SYSTEM TO FOLLOW EXACTLY:
+${JSON.stringify(designSystem, null, 2)}
 
-    The HTML should be complete and ready to render as-is with Tailwind CSS.`
+Use the palette, fonts, spacing, radius, and component patterns above precisely — do not substitute your own colors or fonts. Follow the layoutGuidance closely; it describes what makes this design system distinct from a generic template.
+
+Do not default to "centered heading + subtext + 3-card row" for every section. Vary structure: use split layouts, offset/asymmetric grids, full-bleed sections, and staggered content — informed by the layoutGuidance above.
+
+CRITICAL HARD RULES:
+1. Output ALL content into message.content only — nothing in reasoning/analysis/hidden fields.
+2. No markdown, no code fences, no explanations — HTML only, ready to render as-is.`
                 },
                 {
                     role: 'user',

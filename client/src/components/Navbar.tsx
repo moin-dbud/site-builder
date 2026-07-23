@@ -33,6 +33,16 @@ const Navbar = () => {
     }
   }, [sessions?.user, location.pathname])
 
+  useEffect(() => {
+    const handleRefresh = () => {
+      if (sessions?.user) {
+        getCredits();
+      }
+    };
+    window.addEventListener('refresh-credits', handleRefresh);
+    return () => window.removeEventListener('refresh-credits', handleRefresh);
+  }, [sessions?.user])
+
   const isActive = (path: string) => location.pathname === path;
 
   return (
