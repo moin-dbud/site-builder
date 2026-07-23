@@ -5,6 +5,7 @@ import { authClient } from '@/lib/auth-client';
 import { UserButton } from '@daveyplate/better-auth-ui'
 import api from '@/configs/axios';
 import { toast } from 'sonner';
+import { SparklesIcon, MenuIcon, XIcon, ZapIcon } from 'lucide-react';
 
 const Navbar = () => {
 
@@ -36,47 +37,51 @@ const Navbar = () => {
 
   return (
     <>
-      <nav className="sticky top-0 z-50 flex items-center justify-between w-full py-3.5 px-6 md:px-16 lg:px-24 bg-[#08080a]/90 backdrop-blur-md border-b border-[#22242c]">
-        {/* Brand Logo */}
-        <Link to="/" className="flex items-center gap-2.5 group">
-          <img src={assets.logo} alt="logo" className='w-24' />
+      <nav className="sticky top-0 z-50 flex items-center justify-between w-full h-16 px-6 md:px-12 bg-[#08080a]/80 backdrop-blur-xl border-b border-[#1c1e26] transition-all duration-300">
+        {/* Brand Logo & Identifier */}
+        <Link to="/" className="flex items-center gap-3 group">
+          <img src={assets.logo} alt="Buildo Logo" className="h-7 w-auto group-hover:scale-105 transition-transform" />
         </Link>
 
-        {/* Navigation Links */}
-        <div className="hidden md:flex items-center gap-1 bg-[#111216] border border-[#22242c] p-1 rounded-full text-xs font-medium">
+        {/* Navigation Links - Flat Layout */}
+        <div className="hidden md:flex items-center gap-8 text-sm font-medium">
           <Link
             to="/"
-            className={`px-4 py-1.5 rounded-full transition-all duration-200 ${isActive('/')
-                ? 'bg-indigo-600 text-white shadow-sm'
-                : 'text-gray-400 hover:text-white hover:bg-white/5'
-              }`}
+            className={`transition-colors duration-200 py-1.5 relative ${
+              isActive('/') 
+                ? 'text-white font-semibold after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-indigo-500 after:rounded-full' 
+                : 'text-gray-400 hover:text-gray-200'
+            }`}
           >
             Home
           </Link>
           <Link
             to="/projects"
-            className={`px-4 py-1.5 rounded-full transition-all duration-200 ${isActive('/projects')
-                ? 'bg-indigo-600 text-white shadow-sm'
-                : 'text-gray-400 hover:text-white hover:bg-white/5'
-              }`}
+            className={`transition-colors duration-200 py-1.5 relative ${
+              isActive('/projects') 
+                ? 'text-white font-semibold after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-indigo-500 after:rounded-full' 
+                : 'text-gray-400 hover:text-gray-200'
+            }`}
           >
             My Projects
           </Link>
           <Link
             to="/community"
-            className={`px-4 py-1.5 rounded-full transition-all duration-200 ${isActive('/community')
-                ? 'bg-indigo-600 text-white shadow-sm'
-                : 'text-gray-400 hover:text-white hover:bg-white/5'
-              }`}
+            className={`transition-colors duration-200 py-1.5 relative ${
+              isActive('/community') 
+                ? 'text-white font-semibold after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-indigo-500 after:rounded-full' 
+                : 'text-gray-400 hover:text-gray-200'
+            }`}
           >
             Community
           </Link>
           <Link
             to="/pricing"
-            className={`px-4 py-1.5 rounded-full transition-all duration-200 ${isActive('/pricing')
-                ? 'bg-indigo-600 text-white shadow-sm'
-                : 'text-gray-400 hover:text-white hover:bg-white/5'
-              }`}
+            className={`transition-colors duration-200 py-1.5 relative ${
+              isActive('/pricing') 
+                ? 'text-white font-semibold after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-indigo-500 after:rounded-full' 
+                : 'text-gray-400 hover:text-gray-200'
+            }`}
           >
             Pricing
           </Link>
@@ -87,72 +92,94 @@ const Navbar = () => {
           {!sessions?.user ? (
             <button
               onClick={() => navigate('/auth/signin')}
-              className="px-5 py-1.5 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-500 active:scale-95 transition-all duration-200 rounded-full border border-indigo-500/50 shadow-md shadow-indigo-900/30"
+              className="inline-flex items-center gap-2 px-4 py-2 text-xs sm:text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-500 active:scale-95 transition-all duration-200 rounded-xl border border-indigo-400/30 shadow-lg shadow-indigo-950/50"
             >
-              Get started
+              <span>Get started</span>
+              <SparklesIcon className="size-3.5" />
             </button>
           ) : (
             <>
               <button
                 onClick={() => navigate('/pricing')}
-                className="flex items-center gap-1.5 bg-[#111216] hover:bg-[#171920] px-3.5 py-1.5 text-xs border border-[#22242c] hover:border-indigo-500/40 text-gray-300 hover:text-white rounded-full transition-all duration-200 font-mono-tech"
+                className="flex items-center gap-2 bg-[#111216] hover:bg-[#181920] px-3.5 py-1.5 text-xs border border-[#22242c] hover:border-indigo-500/40 text-gray-300 hover:text-white rounded-xl transition-all duration-200 font-mono-tech"
               >
-                <span className="size-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                <ZapIcon className="size-3.5 text-indigo-400 fill-indigo-400/20" />
                 <span>Credits:</span>
                 <span className="text-indigo-400 font-semibold">{credits}</span>
               </button>
-              <UserButton size='icon' />
+              <UserButton size="icon" />
             </>
           )}
 
           <button
             id="open-menu"
-            className="md:hidden p-2 rounded-lg bg-[#111216] border border-[#22242c] text-gray-300 hover:text-white active:scale-90 transition-all"
+            className="md:hidden p-2 rounded-xl bg-[#111216] border border-[#22242c] text-gray-300 hover:text-white active:scale-95 transition-all"
             onClick={() => setMenuOpen(true)}
+            aria-label="Open Menu"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 5h16" /><path d="M4 12h16" /><path d="M4 19h16" /></svg>
+            <MenuIcon className="size-5" />
           </button>
         </div>
       </nav>
 
       {/* Mobile Drawer Menu */}
       {menuOpen && (
-        <div className="fixed inset-0 z-[100] bg-[#08080a]/95 text-white backdrop-blur-xl flex flex-col items-center justify-center text-base gap-6 md:hidden animate-kinetic-fade">
-          <Link
-            to='/'
-            onClick={() => setMenuOpen(false)}
-            className={`px-6 py-2 rounded-full font-medium transition-all ${isActive('/') ? 'bg-indigo-600 text-white' : 'text-gray-300'}`}
-          >
-            Home
-          </Link>
-          <Link
-            to='/projects'
-            onClick={() => setMenuOpen(false)}
-            className={`px-6 py-2 rounded-full font-medium transition-all ${isActive('/projects') ? 'bg-indigo-600 text-white' : 'text-gray-300'}`}
-          >
-            My Projects
-          </Link>
-          <Link
-            to='/community'
-            onClick={() => setMenuOpen(false)}
-            className={`px-6 py-2 rounded-full font-medium transition-all ${isActive('/community') ? 'bg-indigo-600 text-white' : 'text-gray-300'}`}
-          >
-            Community
-          </Link>
-          <Link
-            to='/pricing'
-            onClick={() => setMenuOpen(false)}
-            className={`px-6 py-2 rounded-full font-medium transition-all ${isActive('/pricing') ? 'bg-indigo-600 text-white' : 'text-gray-300'}`}
-          >
-            Pricing
-          </Link>
+        <div className="fixed inset-0 z-[100] bg-[#08080a]/95 text-white backdrop-blur-2xl flex flex-col justify-between p-6 md:hidden animate-kinetic-fade">
+          <div className="flex items-center justify-between">
+            <Link to="/" onClick={() => setMenuOpen(false)} className="flex items-center gap-2">
+              <img src={assets.logo} alt="logo" className="h-6 w-auto" />
+            </Link>
+            <button
+              className="p-2 rounded-xl bg-[#111216] border border-[#22242c] text-gray-300 hover:text-white transition-all"
+              onClick={() => setMenuOpen(false)}
+            >
+              <XIcon className="size-5" />
+            </button>
+          </div>
 
-          <button
-            className="mt-4 p-3 rounded-full bg-[#111216] border border-[#22242c] hover:bg-[#171920] text-gray-300 hover:text-white transition-all"
-            onClick={() => setMenuOpen(false)}
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
-          </button>
+          <div className="flex flex-col items-center gap-6 my-auto text-lg font-medium">
+            <Link
+              to="/"
+              onClick={() => setMenuOpen(false)}
+              className={`w-full text-center py-2.5 rounded-xl transition-all ${isActive('/') ? 'bg-indigo-600/20 text-indigo-400 border border-indigo-500/30' : 'text-gray-300 hover:text-white'}`}
+            >
+              Home
+            </Link>
+            <Link
+              to="/projects"
+              onClick={() => setMenuOpen(false)}
+              className={`w-full text-center py-2.5 rounded-xl transition-all ${isActive('/projects') ? 'bg-indigo-600/20 text-indigo-400 border border-indigo-500/30' : 'text-gray-300 hover:text-white'}`}
+            >
+              My Projects
+            </Link>
+            <Link
+              to="/community"
+              onClick={() => setMenuOpen(false)}
+              className={`w-full text-center py-2.5 rounded-xl transition-all ${isActive('/community') ? 'bg-indigo-600/20 text-indigo-400 border border-indigo-500/30' : 'text-gray-300 hover:text-white'}`}
+            >
+              Community
+            </Link>
+            <Link
+              to="/pricing"
+              onClick={() => setMenuOpen(false)}
+              className={`w-full text-center py-2.5 rounded-xl transition-all ${isActive('/pricing') ? 'bg-indigo-600/20 text-indigo-400 border border-indigo-500/30' : 'text-gray-300 hover:text-white'}`}
+            >
+              Pricing
+            </Link>
+          </div>
+
+          <div className="pt-4 border-t border-[#1c1e26] text-center">
+            {!sessions?.user ? (
+              <button
+                onClick={() => { setMenuOpen(false); navigate('/auth/signin'); }}
+                className="w-full py-3 text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-500 rounded-xl transition-all shadow-lg shadow-indigo-950/50"
+              >
+                Get Started
+              </button>
+            ) : (
+              <p className="text-xs text-gray-500 font-mono-tech">Signed in as {sessions.user.email}</p>
+            )}
+          </div>
         </div>
       )}
     </>
