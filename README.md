@@ -353,6 +353,6 @@ This project is licensed under the **MIT License** — see the [LICENSE](./LICEN
 
 Built by **Moin Sheikh**
 
-- 🐙 GitHub: [@your-github-handle](https://github.com/your-github-handle) ← *replace with your actual handle*
-- 💼 LinkedIn: [Your Name](https://linkedin.com/in/your-handle) ← *replace with your actual profile URL*
-- 📬 Email: your-email@example.com ← *replace with your actual email*
+- 🐙 GitHub: [@moin-dbud](https://github.com/moin-dbud)
+- 💼 LinkedIn: [@moin-sheikh](https://www.linkedin.com/in/moin-build/)
+- 📬 Email: [hello@moinsheikh.in]
