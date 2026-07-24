@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react"
 import { useParams, useNavigate, Link } from "react-router-dom"
-import { AuthView } from "@daveyplate/better-auth-ui"
-import { signUp } from "@/lib/auth-client"
+import { signIn, signUp } from "@/lib/auth-client"
 import api from "@/configs/axios"
 import { toast } from "sonner"
 import { Loader2Icon, CheckCircle2Icon, XCircleIcon, SparklesIcon } from "lucide-react"
@@ -22,7 +21,7 @@ export default function AuthPage() {
 
     // Debounce username check (~400ms)
     useEffect(() => {
-        if (!username.trim()) {
+        if (!username.trim() || pathname !== "signup") {
             setUsernameStatus(null)
             setUsernameChecking(false)
             return
@@ -41,7 +40,7 @@ export default function AuthPage() {
         }, 400)
 
         return () => clearTimeout(timer)
-    }, [username])
+    }, [username, pathname])
 
     const handleSignUp = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -63,6 +62,28 @@ export default function AuthPage() {
                 toast.error(error.message || "Failed to sign up")
             } else {
                 toast.success("Account created successfully!")
+                navigate("/")
+            }
+        } catch (err: any) {
+            toast.error(err.message || "An unexpected error occurred")
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    const handleSignIn = async (e: React.FormEvent) => {
+        e.preventDefault()
+        setLoading(true)
+        try {
+            const { error } = await signIn.email({
+                email,
+                password,
+            })
+
+            if (error) {
+                toast.error(error.message || "Failed to sign in")
+            } else {
+                toast.success("Signed in successfully!")
                 navigate("/")
             }
         } catch (err: any) {
@@ -176,14 +197,57 @@ export default function AuthPage() {
     }
 
     return (
-        <main className="p-6 flex flex-col justify-center items-center min-h-[80vh] bg-[#08080a]">
-            <div className="w-full max-w-md p-2 rounded-2xl bg-[#111216] border border-[#22242c] shadow-2xl">
-                <AuthView 
-                    pathname={pathname} 
-                    classNames={{ 
-                        base: 'bg-transparent text-white border-none shadow-none font-sans',
-                    }} 
-                />
+        <main className="p-6 flex flex-col justify-center items-center min-h-[85vh] bg-[#08080a] text-white font-sans">
+            <div className="w-full max-w-md p-6 rounded-2xl bg-[#111216] border border-[#22242c] shadow-2xl">
+                <div className="flex flex-col items-center mb-6 text-center">
+                    <div className="p-2.5 rounded-xl bg-indigo-600/10 border border-indigo-500/20 text-indigo-400 mb-3">
+                        <SparklesIcon className="size-6" />
+                    </div>
+                    <h1 className="text-xl font-semibold text-gray-100">Welcome back to Buildo</h1>
+                    <p className="text-xs text-gray-400 mt-1 font-mono-tech">Sign in to continue building your websites</p>
+                </div>
+
+                <form onSubmit={handleSignIn} className="space-y-4">
+                    <div>
+                        <label className="block text-xs font-medium text-gray-300 mb-1.5">Email address</label>
+                        <input 
+                            type="email"
+                            required
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            placeholder="alex@example.com"
+                            className="w-full px-3.5 py-2.5 text-sm bg-[#08080a] border border-[#22242c] focus:border-indigo-500 rounded-xl outline-none transition-colors text-white placeholder:text-gray-600"
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-xs font-medium text-gray-300 mb-1.5">Password</label>
+                        <input 
+                            type="password"
+                            required
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            placeholder="••••••••"
+                            className="w-full px-3.5 py-2.5 text-sm bg-[#08080a] border border-[#22242c] focus:border-indigo-500 rounded-xl outline-none transition-colors text-white placeholder:text-gray-600"
+                        />
+                    </div>
+
+                    <button
+                        type="submit"
+                        disabled={loading}
+                        className="w-full mt-2 py-2.5 px-4 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-semibold rounded-xl transition-all shadow-lg shadow-indigo-950/50 flex items-center justify-center gap-2"
+                    >
+                        {loading && <Loader2Icon className="size-4 animate-spin" />}
+                        <span>Sign in</span>
+                    </button>
+                </form>
+
+                <div className="mt-6 pt-4 border-t border-[#1c1e26] text-center text-xs text-gray-400">
+                    Don't have an account?{" "}
+                    <Link to="/auth/signup" className="text-indigo-400 hover:underline font-medium">
+                        Create account
+                    </Link>
+                </div>
             </div>
         </main>
     )

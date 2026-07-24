@@ -3,7 +3,18 @@ import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import prisma from "./prisma.js";
 
-const trustedOrigins = process.env.TRUSTED_ORIGINS?.split(',').map(o => o.trim().replace(/^["']|["']$/g, '')) || []
+const rawOrigins = (process.env.TRUSTED_ORIGINS || '')
+    .split(',')
+    .map(o => o.trim().replace(/^["']|["']$/g, '').replace(/\/+$/, ''))
+    .filter(Boolean);
+
+const trustedOrigins = Array.from(new Set([
+    'http://localhost:5173',
+    'http://localhost:5174',
+    'http://localhost:3000',
+    'https://buildo-rouge.vercel.app',
+    ...rawOrigins
+]));
 
 export const auth = betterAuth({
     database: prismaAdapter(prisma, {

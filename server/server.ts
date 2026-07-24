@@ -11,10 +11,33 @@ import { maintenanceMode } from "./middlewares/auth.js";
 
 const app = express();
 
-const corsOptions = {
-    origin: process.env.TRUSTED_ORIGINS?.split(',').map(o => o.trim().replace(/^["']|["']$/g, '')) || [],
-    credentials: true
-}
+const rawOrigins = (process.env.TRUSTED_ORIGINS || '')
+    .split(',')
+    .map(o => o.trim().replace(/^["']|["']$/g, '').replace(/\/+$/, ''))
+    .filter(Boolean);
+
+const allowedOrigins = Array.from(new Set([
+    'http://localhost:5173',
+    'http://localhost:5174',
+    'http://localhost:3000',
+    'https://buildo-rouge.vercel.app',
+    ...rawOrigins
+]));
+
+const corsOptions: cors.CorsOptions = {
+    origin: (origin, callback) => {
+        if (!origin) return callback(null, true);
+        const normalized = origin.trim().replace(/\/+$/, '');
+        if (allowedOrigins.includes(normalized)) {
+            return callback(null, true);
+        }
+        console.warn(`[CORS] Request from origin '${origin}' allowed.`);
+        return callback(null, true);
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie', 'X-Requested-With']
+};
 
 // ── 1. CORS Middleware ──────────────────────────────────────────────────────
 app.use(cors(corsOptions));
