@@ -57,7 +57,7 @@ export default function AuthPage() {
                 password,
                 name,
                 username: username.trim().toLowerCase(),
-            })
+            } as any)
 
             if (error) {
                 toast.error(error.message || "Failed to sign up")

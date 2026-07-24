@@ -5,6 +5,7 @@ export interface User {
     imageUrl?: string;
     name?: string;
     image?: string;
+    username?: string;
 }
 
 export interface Message {
@@ -23,6 +24,7 @@ export interface Version {
 export interface Project {
     id: string;
     name: string;
+    slug?: string;
     initial_prompt: string;
     current_code: string;
     createdAt: string;
