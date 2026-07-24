@@ -1,5 +1,6 @@
 import 'dotenv/config'
 import { betterAuth } from "better-auth";
+import { bearer } from "better-auth/plugins";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import prisma from "./prisma.js";
 
@@ -21,11 +22,15 @@ export const auth = betterAuth({
         provider: "postgresql",
     }),
 
+    plugins: [
+        bearer(),
+    ],
+
     emailAndPassword: {
         enabled: true,
     },
     user: {
-        deleteUser: {enabled: true},
+        deleteUser: { enabled: true },
         additionalFields: {
             username: {
                 type: "string",
@@ -34,7 +39,6 @@ export const auth = betterAuth({
             }
         }
     },
-
 
     trustedOrigins,
     baseURL: process.env.BETTER_AUTH_URL!,
@@ -47,10 +51,9 @@ export const auth = betterAuth({
                     httpOnly: true,
                     secure: process.env.NODE_ENV === 'production',
                     sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-                    path: '/',
+                    path: '/'
                 }
             }
         }
     }
-
 });
