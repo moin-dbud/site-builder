@@ -7,11 +7,11 @@ import {
   Code2Icon, 
   TerminalIcon, 
   CpuIcon, 
-  GlobeIcon, 
-  RocketIcon, 
   BriefcaseIcon, 
-  LayoutDashboardIcon, 
-  ShoppingBagIcon, 
+  UtensilsIcon,
+  StoreIcon,
+  UserCheckIcon,
+  CompassIcon,
   Wand2Icon,
   LayersIcon
 } from 'lucide-react';
@@ -20,27 +20,27 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
 const PROMPT_EXAMPLES = [
-  "an app",
-  "a landing page",
-  "a data visualization tool",
-  "an enterprise solution",
-  "a developer portfolio",
-  "an e-commerce storefront"
+  "a cafe website",
+  "a portfolio",
+  "a local shop site",
+  "my personal brand page",
+  "a boutique restaurant site",
+  "a consulting portfolio"
 ];
 
 const SAMPLE_PROMPTS = [
-  "Modern SaaS landing page for an AI analytics platform with dark theme & pricing table",
-  "Developer portfolio showcasing full-stack projects, interactive timeline, and contact modal",
-  "Minimalist agency studio site with hero showcase, client logos, and service cards",
-  "E-commerce storefront for a premium streetwear brand with product grid and cart preview"
+  "Artisan coffee shop website with daily menu, warm organic aesthetic, location & hours",
+  "Creative designer portfolio with project gallery, client testimonials, and contact modal",
+  "Local floral boutique site featuring seasonal collections, store hours, and WhatsApp ordering",
+  "Personal brand page for a business consultant with bio, service tiers, and booking link"
 ];
 
 const BUILD_MODES = [
-  { id: 'website', label: 'Website', icon: GlobeIcon, template: 'Create a modern, responsive website with hero section, features grid, and footer.' },
-  { id: 'landing', label: 'Landing Page', icon: RocketIcon, template: 'Create a high-converting SaaS landing page with dark theme, feature showcase, testimonials, and pricing.' },
-  { id: 'portfolio', label: 'Portfolio', icon: BriefcaseIcon, template: 'Create a developer portfolio featuring an interactive project gallery, tech stack icons, and contact section.' },
-  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboardIcon, template: 'Create an analytics dashboard layout with sidebar navigation, metric cards, data charts, and recent activity list.' },
-  { id: 'ecommerce', label: 'Storefront', icon: ShoppingBagIcon, template: 'Create a modern e-commerce storefront with hero banner, product grid, category filters, and cart preview.' }
+  { id: 'cafe', label: 'Cafe & Restaurant', icon: UtensilsIcon, template: 'Create a warm, welcoming website for an artisan cafe with menu, operating hours, location details, and table booking CTA.' },
+  { id: 'portfolio', label: 'Portfolio', icon: BriefcaseIcon, template: 'Create a sleek personal portfolio featuring a work showcase grid, skills summary, about section, and contact form.' },
+  { id: 'local-shop', label: 'Local Business', icon: StoreIcon, template: 'Create a clean website for a local shop featuring products & services list, store address, opening hours, and WhatsApp chat link.' },
+  { id: 'personal-brand', label: 'Personal Brand', icon: UserCheckIcon, template: 'Create an engaging personal brand website with bio, featured highlights, social proof, and booking inquiry section.' },
+  { id: 'services', label: 'Services & Studio', icon: CompassIcon, template: 'Create a professional services site featuring service packages, client testimonials, FAQ accordion, and consultation request CTA.' }
 ];
 
 const Home = () => {
@@ -59,7 +59,7 @@ const Home = () => {
 
   useEffect(() => {
     if (isFocused || input.trim().length > 0) {
-      setPlaceholderText("Describe your site in detail (e.g. 'Create a modern SaaS landing page with dark theme, pricing table, and testimonials')...");
+      setPlaceholderText("Describe your business or brand (e.g. 'Artisan coffee shop with daily menu, location, and warm organic design')...");
       return;
     }
 
@@ -127,10 +127,10 @@ const Home = () => {
         className="group inline-flex items-center gap-2.5 bg-[#111216]/90 border border-[#22242c] hover:border-indigo-500/50 rounded-full p-1.5 pr-4 text-xs mt-10 sm:mt-14 transition-all duration-300 shadow-xl shadow-black/50 hover:scale-105 backdrop-blur-md z-10"
       >
         <span className="bg-gradient-to-r from-indigo-600 to-indigo-500 text-white text-[10px] font-mono-tech uppercase font-semibold px-2.5 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
-          <SparklesIcon className="size-3" /> V2.4 ENGINE
+          <SparklesIcon className="size-3" /> PRESENCE ENGINE
         </span>
         <span className="text-gray-300 font-medium group-hover:text-white transition-colors">
-          Experience instant AI web synthesis
+          Build websites for small businesses & brands
         </span>
         <ArrowRightIcon className="size-3.5 text-gray-500 group-hover:text-indigo-400 group-hover:translate-x-0.5 transition-all" />
       </a>
@@ -138,13 +138,13 @@ const Home = () => {
       {/* Hero Headline */}
       <div className="mt-8 max-w-4xl text-center z-10">
         <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.1] text-gray-100">
-          What do you want to <br className="hidden sm:inline" />
+          Build beautiful websites for <br className="hidden sm:inline" />
           <span className="bg-gradient-to-r from-indigo-400 via-violet-300 to-cyan-400 bg-clip-text text-transparent">
-            build today?
+            your business & brand
           </span>
         </h1>
         <p className="text-center text-sm sm:text-base max-w-xl mx-auto mt-4 text-gray-400 font-normal leading-relaxed">
-          Prompt, generate, and customize responsive web applications instantly with Buildo’s AI architectural engine.
+          Turn your idea into a stunning, production-ready website for your cafe, portfolio, local shop, or personal brand — powered by Buildo AI.
         </p>
       </div>
 
@@ -166,7 +166,7 @@ const Home = () => {
               onFocus={() => setIsFocused(true)}
               onBlur={() => setIsFocused(false)}
               className="bg-transparent outline-none text-gray-100 placeholder:text-gray-500 resize-none w-full text-base sm:text-lg font-sans leading-relaxed min-h-[110px] relative z-10" 
-              placeholder= {  "Lets build " +placeholderText + (!isFocused && input.length === 0 ? "│" : "")} 
+              placeholder={ "e.g. Let's build " + placeholderText + (!isFocused && input.length === 0 ? "│" : "") } 
               required 
             />
           </div>
@@ -175,7 +175,7 @@ const Home = () => {
           <div className="flex flex-wrap items-center justify-between gap-3 pt-3 mt-1 border-t border-[#1c1e26]">
             <div className="text-[11px] font-mono-tech text-gray-500 hidden sm:flex items-center gap-1.5">
               <Code2Icon className="size-3.5 text-indigo-400" />
-              <span>Press ↵ to generate full layout</span>
+              <span>Press ↵ to generate website layout</span>
             </div>
 
             <button 
@@ -244,8 +244,8 @@ const Home = () => {
           <div className="p-2.5 rounded-xl bg-indigo-600/10 border border-indigo-500/20 text-indigo-400">
             <TerminalIcon className="size-5" />
           </div>
-          <h3 className="text-sm font-semibold text-gray-200">Natural Prompt Synthesis</h3>
-          <p className="text-xs text-gray-400 leading-relaxed">Turn high-level concepts into semantic HTML & Tailwind structure in seconds.</p>
+          <h3 className="text-sm font-semibold text-gray-200">Smart Presence Prompts</h3>
+          <p className="text-xs text-gray-400 leading-relaxed">Turn simple descriptions into tailored marketing sites for your shop, cafe, or brand.</p>
         </div>
 
         <div className="bg-[#111216] border border-[#22242c] p-5 rounded-2xl flex flex-col items-start gap-3 hover:border-cyan-500/30 transition-colors">
@@ -253,7 +253,7 @@ const Home = () => {
             <Code2Icon className="size-5" />
           </div>
           <h3 className="text-sm font-semibold text-gray-200">Live Visual Editor</h3>
-          <p className="text-xs text-gray-400 leading-relaxed">Inspect and tweak text, styles, and classes directly inside the live viewport.</p>
+          <p className="text-xs text-gray-400 leading-relaxed">Inspect and tweak text, images, and layout sections directly inside the live preview.</p>
         </div>
 
         <div className="bg-[#111216] border border-[#22242c] p-5 rounded-2xl flex flex-col items-start gap-3 hover:border-emerald-500/30 transition-colors">
@@ -261,7 +261,7 @@ const Home = () => {
             <CpuIcon className="size-5" />
           </div>
           <h3 className="text-sm font-semibold text-gray-200">Instant Publishing</h3>
-          <p className="text-xs text-gray-400 leading-relaxed">Publish your generated website with one click and share your custom URL live.</p>
+          <p className="text-xs text-gray-400 leading-relaxed">Publish your website with one click and share a live, mobile-friendly link with customers.</p>
         </div>
       </div>
     </section>

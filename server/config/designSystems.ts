@@ -59,7 +59,7 @@ export const designSystems: DesignSystem[] = [
       card: "no border, no shadow — separation via whitespace and a thin 1px divider only",
     },
     layoutGuidance:
-      "Avoid centered symmetric layouts. Use asymmetric grids, left-aligned text blocks, and generous negative space. Minimal color use — the palette should feel almost monochrome with restraint.",
+      "Avoid centered symmetric layouts. Use asymmetric grids, left-aligned text blocks, and generous negative space. Minimal color use — the palette should feel almost monochrome with restraint. For portfolios, agencies, and consulting sites: include a project/work grid, a skills or services summary, client logos or testimonials, and a direct contact CTA.",
   },
   {
     id: "bold-editorial",
@@ -88,7 +88,7 @@ export const designSystems: DesignSystem[] = [
       card: "bordered rectangle, uppercase category label above title, no shadow, sharp corners",
     },
     layoutGuidance:
-      "Type IS the design — headlines should dominate. Use one saturated accent color sparingly against black/white. Break the grid occasionally with an oversized pull-quote or diagonal section divider.",
+      "Type IS the design — headlines should dominate. Use one saturated accent color sparingly against black/white. Break the grid occasionally with an oversized pull-quote or diagonal section divider. For creative brands and editorial sites: include featured story/project spotlights, press mentions, an author/creator bio section, and a newsletter sign-up or contact CTA.",
   },
   {
     id: "warm-organic",
@@ -117,7 +117,7 @@ export const designSystems: DesignSystem[] = [
       card: "soft rounded corners, subtle warm shadow, generous internal padding",
     },
     layoutGuidance:
-      "Everything should feel handcrafted and warm, not corporate. Use rounded shapes, soft shadows, and organic accent elements (blobs, curves) instead of sharp geometric ones.",
+      "Everything should feel handcrafted and warm, not corporate. Use rounded shapes, soft shadows, and organic accent elements (blobs, curves) instead of sharp geometric ones. For cafes, bakeries, food spots, and wellness studios: include a menu or services section with pricing, clear operating hours and location details, customer testimonials, and an instant reservation/call CTA.",
   },
   {
     id: "dark-tech",
@@ -146,7 +146,7 @@ export const designSystems: DesignSystem[] = [
       card: "1px hairline border, dark surface, small monospace label/eyebrow above the title",
     },
     layoutGuidance:
-      "One accent color used sparingly — never gradients or glow. Use monospace font for small technical labels/badges. Favor structured grids over free-form layouts.",
+      "One accent color used sparingly — never gradients or glow. Use monospace font for small technical labels/badges. Favor structured grids over free-form layouts. For tech portfolios and digital consulting sites: include a feature grid, tech stack tags, service summaries, client proof, and a get-in-touch CTA.",
   },
   {
     id: "playful-vibrant",
@@ -175,7 +175,7 @@ export const designSystems: DesignSystem[] = [
       card: "bright surface color (rotate through 2-3 accent tints), thick rounded corners, small illustrative icon",
     },
     layoutGuidance:
-      "Use at least 2-3 accent colors (not just one), rounded blob shapes as background decoration, and playful oversized buttons. Avoid anything that feels corporate or minimal.",
+      "Use at least 2-3 accent colors (not just one), rounded blob shapes as background decoration, and playful oversized buttons. Avoid anything that feels corporate or minimal. For fun local shops, event services, and family activities: include an interactive activity/event schedule, photo gallery, customer reviews, pricing packages, and a vibrant book-now or call CTA.",
   },
   {
     id: "luxury-elegant",
@@ -204,7 +204,7 @@ export const designSystems: DesignSystem[] = [
       card: "thin 1px gold-tinted border, dark surface, uppercase small label, serif title",
     },
     layoutGuidance:
-      "Restraint is the point — one accent color (gold/muted metallic) used extremely sparingly, lots of breathing room, letter-spaced uppercase micro-text, serif headings only.",
+      "Restraint is the point — one accent color (gold/muted metallic) used extremely sparingly, lots of breathing room, letter-spaced uppercase micro-text, serif headings only. For luxury boutiques, high-end venues, and premium personal brands: include a curated showcase grid, brand heritage/about story, private inquiry form, and location/private appointment booking CTA.",
   },
 ];
 

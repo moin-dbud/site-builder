@@ -1,8 +1,24 @@
 import { Request, Response } from "express";
 import prisma from "../lib/prisma.js";
 import openai from "../config/openai.js";
-import { pickDesignSystem } from '../config/designSystems.js';
+import { getSetting, getSettingInt, incrementOpenrouterCounter } from '../lib/settings.js';
 import { sendVerificationOtpEmail } from '../lib/mailer.js';
+
+// Pick a design system from the DB (falls back to static file if DB is empty)
+async function pickDesignSystemFromDB(userPrompt: string) {
+    const systems = await prisma.designSystem.findMany({ where: { isEnabled: true } });
+    if (systems.length === 0) {
+        // Fallback: import from static file if DB hasn't been seeded yet
+        const { pickDesignSystem } = await import('../config/designSystems.js');
+        return pickDesignSystem(userPrompt);
+    }
+    const lower = userPrompt.toLowerCase();
+    const matches = systems.filter(s =>
+        (s.keywords as string[]).some((kw: string) => lower.includes(kw))
+    );
+    const pool = matches.length > 0 ? matches : systems;
+    return pool[Math.floor(Math.random() * pool.length)];
+}
 
 // get user credits
 export const getUserCredits = async (req: Request, res: Response) => {
@@ -42,7 +58,8 @@ export const createUserProject = async (req: Request, res: Response) => {
             return res.status(401).json({ message: "Unauthorized user" })
         }
 
-        if (user.credits < 5) {
+        const creditsPerGeneration = await getSettingInt('creditsPerGeneration');
+        if (user.credits < creditsPerGeneration) {
             return res.status(403).json({ message: 'Insufficient credits. Add credits to create more projects.' })
         }
 
@@ -81,10 +98,10 @@ export const createUserProject = async (req: Request, res: Response) => {
 
         await prisma.user.update({
             where: { id: userId },
-            data: { credits: { decrement: 5 } }
+            data: { credits: { decrement: creditsPerGeneration } }
         })
 
-        const designSystem = pickDesignSystem(initial_prompt);
+        const designSystem = await pickDesignSystemFromDB(initial_prompt);
         await prisma.websiteProject.update({
             where: { id: project.id },
             data: { designSystemId: designSystem.id }
@@ -92,15 +109,27 @@ export const createUserProject = async (req: Request, res: Response) => {
 
         res.json({ projectId: project.id })
 
+        // Track OpenRouter request for dashboard counter
+        await incrementOpenrouterCounter();
+
+        const activeModel = await getSetting('activeModel');
+
         // enhance user prompt
 
         const promptEnhanceResponse = await openai.chat.completions.create({
-            model: 'cohere/north-mini-code:free',
+            model: activeModel,
             messages: [
                 {
                     role: "system",
                     content: `
                     You are a prompt enhancement specialist. Take the user's website request and expand it into a detailed, comprehensive prompt that will help create the best possible website.
+
+                    This tool generates marketing and presence websites for small businesses, local shops, cafes, portfolios, and personal brands — NOT web applications, dashboards, or tools requiring backend logic, user accounts, or databases. If the user's request implies app-like functionality (login systems, payment processing, real-time data, multi-user features), reinterpret it as a marketing/informational site that would help that business or person get discovered and contacted, rather than attempting to describe functionality that can't actually be built as a static site.
+
+                    When enhancing, prioritize:
+                    - A clear value proposition and what the business/person offers
+                    - Sections that drive real outcomes for this type of site: contact info, location/hours (if local business), testimonials/social proof, a clear call-to-action (book, call, message, view menu, view portfolio)
+                    - Tone and visual direction that fits the specific business type
 
                     Enhance this prompt by:
                     1. Adding specific design details (layout, color scheme, typography)
@@ -139,13 +168,24 @@ export const createUserProject = async (req: Request, res: Response) => {
 
 
         // generate website code
+        // Track second OpenRouter request (code generation)
+        await incrementOpenrouterCounter();
         const codeGenerationResponse = await openai.chat.completions.create({
-            model: 'cohere/north-mini-code:free',
+            model: activeModel,
             messages: [
                 {
                     role: 'system',
                     content: `
                     You are an expert front-end developer. Create a complete, production-ready, single-page website based on this request: "${enhancedPrompt}"
+
+This is a MARKETING/PRESENCE website, not a web application. Do not generate: login forms, user dashboards, database-dependent features, multi-step checkout flows, or anything implying server-side logic beyond simple form submission. Every element on the page must be genuinely functional as static HTML/CSS/JS — no fake buttons that look interactive but do nothing.
+
+Appropriate real interactivity for this site type: mobile nav toggle, smooth scroll, image gallery/lightbox, FAQ accordion, contact form with client-side validation (submits via mailto: or a simple form action, not a backend), testimonial carousel, simple filtering (e.g. menu categories, portfolio tags).
+
+Include, where relevant to the business type:
+- A clear, prominent CTA appropriate to the business (Call Now, Book a Table, View Menu, Get in Touch, View Portfolio)
+- If it's a local business (cafe, shop): address, hours, a Google Maps embed placeholder, a WhatsApp click-to-chat link (https://wa.me/{phone}) as a real, working element
+- Structured data: include relevant schema.org JSON-LD (LocalBusiness, Person, or Organization type depending on context) for SEO
 
 OUTPUT RULES:
 - Output valid HTML ONLY, complete and standalone.
@@ -189,7 +229,7 @@ CRITICAL HARD RULES:
         })
         await prisma.user.update({
             where: {id: userId},
-            data: { credits: {increment: 5} }
+            data: { credits: {increment: creditsPerGeneration} }
         })
         return;
         }
@@ -225,15 +265,11 @@ CRITICAL HARD RULES:
             }
         })
 
-        res.json({ versionId: version.id})
-
-        
-
-
     } catch (error: any) {
+        const creditsPerGeneration = await getSettingInt('creditsPerGeneration');
         await prisma.user.update({
             where: {id: userId},
-            data: {credits: {increment: 5}}
+            data: {credits: {increment: creditsPerGeneration}}
         })
         console.log(error.code || error.message);
         if (!res.headersSent) {
@@ -610,7 +646,7 @@ export const setInitialUsername = async (req: Request, res: Response) => {
     }
 };
 
-// Get current user profile status
+// Get current user profile status & unread notifications
 export const getCurrentUserStatus = async (req: Request, res: Response) => {
     try {
         const userId = req.userId;
@@ -634,12 +670,41 @@ export const getCurrentUserStatus = async (req: Request, res: Response) => {
             return res.status(404).json({ message: "User not found" });
         }
 
-        return res.json({ user });
+        // Fetch unread notifications for user
+        const notifications = await prisma.userNotification.findMany({
+            where: { userId, isRead: false },
+            orderBy: { createdAt: 'desc' }
+        });
+
+        // Mark fetched notifications as read
+        if (notifications.length > 0) {
+            await prisma.userNotification.updateMany({
+                where: { userId, isRead: false },
+                data: { isRead: true }
+            });
+        }
+
+        return res.json({ user, notifications });
     } catch (error: any) {
         console.log(error.code || error.message);
         res.status(500).json({ message: error.message });
     }
 };
+
+// Get public credit cost configuration
+export const getCreditsConfig = async (req: Request, res: Response) => {
+    try {
+        const creditsPerGeneration = await getSettingInt('creditsPerGeneration');
+        const creditsPerRevision = await getSettingInt('creditsPerRevision');
+        res.json({
+            creditsPerGeneration: creditsPerGeneration || 5,
+            creditsPerRevision: creditsPerRevision || 5
+        });
+    } catch (error: any) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 
 // Get user transaction history & credits
 export const getUserTransactions = async (req: Request, res: Response) => {

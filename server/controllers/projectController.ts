@@ -1,6 +1,7 @@
 import {Request, Response} from 'express'
 import prisma from '../lib/prisma.js'
 import openai from '../config/openai.js'
+import { getSetting, getSettingInt, incrementOpenrouterCounter } from '../lib/settings.js'
 
 // controller funct to make revision
 
@@ -24,7 +25,8 @@ export const makeRevision = async (req: Request, res: Response) => {
             return res.status(401).json({ message: "Unauthorized user" })
         }
 
-        if(user.credits < 5){
+        const creditsPerRevision = await getSettingInt('creditsPerRevision');
+        if(user.credits < creditsPerRevision){
             return res.status(403).json({message: "Insufficient credits. Add credits to make revisions."})
         }
 
@@ -51,17 +53,28 @@ export const makeRevision = async (req: Request, res: Response) => {
 
         await prisma.user.update({
             where: {id: userId},
-            data: { credits: {decrement: 5} }
+            data: { credits: {decrement: creditsPerRevision} }
         })
+
+        // Track OpenRouter request for dashboard counter
+        await incrementOpenrouterCounter();
+        const activeModel = await getSetting('activeModel');
 
         // enhance user prompt
         const promptEnhanceResponse = await openai.chat.completions.create({
-            model: 'cohere/north-mini-code:free',
+            model: activeModel,
             messages:[
                 {
                     role: 'system',
                     content: `
                    You are a prompt enhancement specialist. The user wants to make changes to their website. Enhance their request to be more specific and actionable for a web developer.
+
+                    This tool generates marketing and presence websites for small businesses, local shops, cafes, portfolios, and personal brands — NOT web applications, dashboards, or tools requiring backend logic, user accounts, or databases. If the user's request implies app-like functionality, reinterpret it as a marketing/informational site feature that would help that business or person get discovered and contacted.
+
+                    When enhancing, prioritize:
+                    - A clear value proposition and what the business/person offers
+                    - Sections that drive real outcomes for this type of site: contact info, location/hours (if local business), testimonials/social proof, a clear call-to-action (book, call, message, view menu, view portfolio)
+                    - Tone and visual direction that fits the specific business type
 
                     Enhance this by:
                     1. Being specific about what elements to change
@@ -97,14 +110,24 @@ export const makeRevision = async (req: Request, res: Response) => {
             }
         })
 
-        // generate website code
+        // Track second OpenRouter request (revision code gen)
+        await incrementOpenrouterCounter();
         const codeGenerationResponse = await openai.chat.completions.create({
-            model: 'cohere/north-mini-code:free',
+            model: activeModel,
             messages: [
                 {
                     role: 'system',
                     content: `
                     You are an expert front-end developer making a targeted revision to an existing website.
+
+This is a MARKETING/PRESENCE website, not a web application. Do not generate: login forms, user dashboards, database-dependent features, multi-step checkout flows, or anything implying server-side logic beyond simple form submission. Every element on the page must be genuinely functional as static HTML/CSS/JS — no fake buttons that look interactive but do nothing.
+
+Appropriate real interactivity for this site type: mobile nav toggle, smooth scroll, image gallery/lightbox, FAQ accordion, contact form with client-side validation (submits via mailto: or a simple form action, not a backend), testimonial carousel, simple filtering (e.g. menu categories, portfolio tags).
+
+Include, where relevant to the business type:
+- A clear, prominent CTA appropriate to the business (Call Now, Book a Table, View Menu, Get in Touch, View Portfolio)
+- If it's a local business (cafe, shop): address, hours, a Google Maps embed placeholder, a WhatsApp click-to-chat link (https://wa.me/{phone}) as a real, working element
+- Structured data: include relevant schema.org JSON-LD (LocalBusiness, Person, or Organization type depending on context) for SEO
 
 CRITICAL REQUIREMENTS:
 - Return ONLY the complete updated HTML code with the requested change applied.
@@ -136,7 +159,7 @@ Apply the requested changes while keeping the rest of the site visually and stru
         })
         await prisma.user.update({
             where: {id: userId},
-            data: { credits: {increment: 5} }
+            data: { credits: {increment: creditsPerRevision} }
         })
         return;
         }
@@ -175,10 +198,10 @@ Apply the requested changes while keeping the rest of the site visually and stru
         res.json({ message: 'Changes made successfully' })
 
     } catch (error: any) {
-        
+        const creditsPerRevision = await getSettingInt('creditsPerRevision');
         await prisma.user.update({
             where: {id: userId},
-            data: { credits: {increment: 5} }
+            data: { credits: {increment: creditsPerRevision} }
         })
 
         console.log(error.code || error.message);
@@ -317,7 +340,10 @@ export const getPublishedProjects = async (req: Request, res: Response) => {
                     }
                 }
             },
-            orderBy: { updatedAt: 'desc' }
+            orderBy: [
+                { featured: 'desc' },
+                { updatedAt: 'desc' }
+            ]
         })
 
         res.json({projects})

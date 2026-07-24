@@ -39,6 +39,15 @@ const Setting = () => {
   const [transactions, setTransactions] = useState<TransactionItem[]>([])
   const [userCredits, setUserCredits] = useState<number>(0)
   const [loadingTx, setLoadingTx] = useState(false)
+  const [creditsCost, setCreditsCost] = useState<number>(5)
+
+  useEffect(() => {
+    api.get('/api/user/credits-config')
+      .then(({ data }) => {
+        if (data?.creditsPerGeneration) setCreditsCost(data.creditsPerGeneration)
+      })
+      .catch(console.error)
+  }, [])
 
   useEffect(() => {
     const sec = (location.state as any)?.section || queryParams.get('section')
@@ -200,7 +209,7 @@ const Setting = () => {
                     <div>
                       <p className="text-xs font-mono-tech text-gray-400 uppercase tracking-wider">Available Credits Balance</p>
                       <h3 className="text-2xl font-bold text-gray-100 mt-0.5">{userCredits} Credits</h3>
-                      <p className="text-[11px] text-gray-500 font-mono-tech mt-1">Each AI generation consumes 5 credits</p>
+                      <p className="text-[11px] text-gray-500 font-mono-tech mt-1">Each AI generation consumes {creditsCost} credits</p>
                     </div>
                   </div>
 
@@ -233,6 +242,7 @@ const Setting = () => {
                       {transactions.map((tx) => {
                         const isCompleted = tx.isPaid || tx.status === 'completed'
                         const isFailed = tx.status === 'failed'
+                        const isAdminAdjust = tx.planId === 'admin_adjustment' || tx.gatewayProvider === 'Admin Adjustment'
                         return (
                           <div key={tx.id} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-[#15171d] transition-colors">
                             <div className="flex items-center gap-3.5">
@@ -248,7 +258,10 @@ const Setting = () => {
                               <div>
                                 <div className="flex items-center gap-2">
                                   <h4 className="text-sm font-semibold text-gray-200">
-                                    +{tx.credits} Credits Pack
+                                    {isAdminAdjust 
+                                      ? `${tx.credits > 0 ? '+' : ''}${tx.credits} Credits (Admin Adjustment)`
+                                      : `+${tx.credits} Credits Pack`
+                                    }
                                   </h4>
                                   <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono-tech font-semibold ${
                                     isCompleted 
@@ -261,7 +274,7 @@ const Setting = () => {
                                   </span>
                                 </div>
                                 <p className="text-xs text-gray-400 font-mono-tech mt-0.5 flex items-center gap-2">
-                                  <span>Order ID: <strong className="text-gray-300">{tx.gatewayOrderId || tx.id.slice(0, 12)}</strong></span>
+                                  <span>Order Ref: <strong className="text-gray-300">{tx.gatewayOrderId || tx.id.slice(0, 12)}</strong></span>
                                   <span>•</span>
                                   <span className="capitalize">{tx.gatewayProvider || 'Cashfree'}</span>
                                 </p>
@@ -269,7 +282,7 @@ const Setting = () => {
                             </div>
 
                             <div className="sm:text-right flex sm:flex-col justify-between sm:justify-center items-end text-xs">
-                              <span className="text-sm font-bold text-gray-100">₹{tx.amount}</span>
+                              <span className="text-sm font-bold text-gray-100">{tx.amount > 0 ? `₹${tx.amount}` : 'Admin Action'}</span>
                               <span className="text-[11px] text-gray-500 font-mono-tech flex items-center gap-1 mt-0.5">
                                 <ClockIcon className="size-3" />
                                 <span>{new Date(tx.createdAt).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>

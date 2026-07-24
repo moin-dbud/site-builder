@@ -30,6 +30,7 @@ export interface Project {
     userId: string;
     user?: User;
     isPublished?: boolean;
+    featured?: boolean;
     versionId?: string;
     conversation: Message[];
     versions: Version[];

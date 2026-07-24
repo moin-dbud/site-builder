@@ -24,12 +24,15 @@ model User {
   emailVerified Boolean   @default(false)
   emailOtp      String?
   emailOtpExpires DateTime?
-  
+  isAdmin       Boolean   @default(false)
+
   // Relations
-  projects WebsiteProject[]
+  projects      WebsiteProject[]
   sessions      Session[]
   accounts      Account[]
-  transactions Transaction[]
+  transactions  Transaction[]
+  auditLogs     AdminAuditLog[]
+  notifications UserNotification[]
 
   @@map("user")
 }
@@ -43,6 +46,7 @@ model WebsiteProject {
   current_version_index String  @default("")
   userId                String
   isPublished           Boolean @default(false)
+  featured              Boolean @default(false)
   designSystemId        String?
 
   // Relations
@@ -147,3 +151,59 @@ model Verification {
   @@index([identifier])
   @@map("verification")
 }
+
+// ─── Admin-specific models ─────────────────────────────────────────────────
+
+// Audit log for every destructive or state-changing admin action.
+// adminUserId references the User who performed the action.
+model AdminAuditLog {
+  id          String   @id @default(uuid())
+  adminUserId String
+  action      String   // e.g. "DELETE_USER", "ADJUST_CREDITS", "UNPUBLISH_PROJECT"
+  targetType  String?  // e.g. "user", "project", "transaction"
+  targetId    String?  // The ID of the affected entity
+  details     Json?    // Additional context (delta, reason, old value, etc.)
+  timestamp   DateTime @default(now())
+
+  // Relations
+  adminUser   User     @relation(fields: [adminUserId], references: [id])
+}
+
+// Key-value store for runtime-configurable system settings.
+// id is the setting key (e.g. "creditsPerGeneration"), value is always stored as a string.
+// NOTE: Set isAdmin = true on the first admin user via a direct DB query:
+//   UPDATE "user" SET "isAdmin" = true WHERE email = 'your@email.com';
+model SystemSetting {
+  id        String   @id  // setting key
+  value     String
+  updatedAt DateTime @updatedAt
+}
+
+// Design system presets stored in DB so the admin panel can edit them at runtime.
+// Migrated from server/config/designSystems.ts — same interface shape.
+model DesignSystem {
+  id                String   @id
+  name              String
+  keywords          Json     // string[]
+  palette           Json     // { primary, secondary, background, surface, text, muted }
+  typography        Json     // { headingFont, bodyFont, googleFontsImport, headingWeight }
+  spacing           String
+  radius            String
+  componentPatterns Json     // { navbar, hero, card }
+  layoutGuidance    String
+  isEnabled         Boolean  @default(true)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+model UserNotification {
+  id        String   @id @default(uuid())
+  userId    String
+  title     String
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+

@@ -63,7 +63,11 @@ const Community = () => {
                                     key={project.id} 
                                     to={projectUrl}
                                     target='_blank'
-                                    className='relative group cursor-pointer bg-[#111216] border border-[#22242c] rounded-2xl overflow-hidden shadow-xl hover:border-cyan-500/50 hover:shadow-cyan-950/20 transition-all duration-300 flex flex-col justify-between'
+                                    className={`relative group cursor-pointer bg-[#111216] border rounded-2xl overflow-hidden shadow-xl transition-all duration-300 flex flex-col justify-between ${
+                                        project.featured 
+                                            ? 'border-amber-500/60 shadow-amber-950/30 bg-gradient-to-b from-[#181613] to-[#111216]' 
+                                            : 'border-[#22242c] hover:border-cyan-500/50 hover:shadow-cyan-950/20'
+                                    }`}
                                 >
                                     {/* Top Browser Header */}
                                     <div className="flex items-center justify-between px-3.5 py-2 bg-[#0c0d10] border-b border-[#1c1e26] text-xs font-mono-tech text-gray-500">
@@ -107,9 +111,15 @@ const Community = () => {
                                                 <h2 className='text-sm font-semibold text-gray-100 line-clamp-1 group-hover:text-cyan-300 transition-colors'>
                                                     {project.name}
                                                 </h2>
-                                                <span className='px-2 py-0.5 text-[10px] font-mono-tech bg-cyan-950/40 border border-cyan-500/30 text-cyan-300 rounded-full shrink-0'>
-                                                    Website
-                                                </span>
+                                                {project.featured ? (
+                                                    <span className='px-2 py-0.5 text-[10px] font-mono-tech bg-amber-950/80 border border-amber-500/50 text-amber-300 rounded-full flex items-center gap-1 shrink-0'>
+                                                        <SparklesIcon className="size-3 text-amber-400" /> Featured by Admin
+                                                    </span>
+                                                ) : (
+                                                    <span className='px-2 py-0.5 text-[10px] font-mono-tech bg-cyan-950/40 border border-cyan-500/30 text-cyan-300 rounded-full shrink-0'>
+                                                        Website
+                                                    </span>
+                                                )}
                                             </div>
                                             <p className='text-xs text-gray-400 mt-1.5 line-clamp-2 leading-relaxed'>
                                                 {project.initial_prompt}

@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { Cashfree, CFEnvironment } from 'cashfree-pg';
 import crypto from 'crypto';
 import prisma from '../lib/prisma.js';
+import { getSetting } from '../lib/settings.js';
 
 // ─── Helper to get configured Cashfree SDK instance ───────────────────────
 // DEPLOY NOTE: Switch CASHFREE_ENV to "production" in your .env and update
@@ -15,9 +16,9 @@ const getCashfreeInstance = () => {
     const secretKey = process.env.CASHFREE_SECRET_KEY || '';
 
     // Set static properties
-    Cashfree.XClientId = appId;
-    Cashfree.XClientSecret = secretKey;
-    Cashfree.XEnvironment = env;
+    (Cashfree as any).XClientId = appId;
+    (Cashfree as any).XClientSecret = secretKey;
+    (Cashfree as any).XEnvironment = env;
 
     // Pass parameters to constructor so instance has credentials set
     return new Cashfree(env, appId, secretKey);
@@ -38,6 +39,12 @@ export const createCashfreeOrder = async (req: Request, res: Response) => {
     try {
         if (!userId) {
             return res.status(401).json({ message: 'Unauthorized user' });
+        }
+
+        // Check if admin has frozen Cashfree transactions
+        const frozen = await getSetting('cashfreeFrozen');
+        if (frozen === 'true') {
+            return res.status(503).json({ message: 'Payment processing is temporarily suspended. Please try again later.' });
         }
 
         const { planId } = req.body;
@@ -109,7 +116,7 @@ export const createCashfreeOrder = async (req: Request, res: Response) => {
 // If pending, it directly checks Cashfree API as a fallback (essential for local dev).
 export const getCashfreeOrderStatus = async (req: Request, res: Response) => {
     try {
-        const { orderId } = req.params;
+        const orderId = req.params.orderId as string;
 
         const transaction = await prisma.transaction.findUnique({
             where: { gatewayOrderId: orderId },

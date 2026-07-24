@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { appPlans } from '../assets/assets';
 import Footer from '../components/Footer';
 import { toast } from 'sonner';
@@ -20,8 +20,19 @@ interface Plan {
 const Pricing = () => {
     const [plans] = useState<Plan[]>(appPlans)
     const [loadingPlanId, setLoadingPlanId] = useState<string | null>(null);
+    const [creditsCost, setCreditsCost] = useState<number>(5);
     const { data: session } = authClient.useSession();
     const navigate = useNavigate();
+
+    useEffect(() => {
+        api.get('/api/user/credits-config')
+            .then(({ data }) => {
+                if (data?.creditsPerGeneration) {
+                    setCreditsCost(data.creditsPerGeneration);
+                }
+            })
+            .catch(console.error);
+    }, []);
 
     const handlePurchase = async (planId: string) => {
         if (!session?.user) {
@@ -71,7 +82,7 @@ const Pricing = () => {
                     </div>
                     <h2 className='text-3xl sm:text-4xl font-semibold tracking-tight text-gray-100'>Choose Your Synthesis Plan</h2>
                     <p className='text-gray-400 text-xs sm:text-sm mt-2.5 leading-relaxed font-mono-tech'>
-                        Scale your website creations effortlessly. 1 Creation or Revision = 5 Credits.
+                        Scale your website creations effortlessly. 1 Creation or Revision = {creditsCost} Credits.
                     </p>
                 </div>
 
@@ -142,7 +153,7 @@ const Pricing = () => {
                 </div>
 
                 <p className='text-center text-xs mt-8 font-mono-tech text-gray-500 max-w-md mx-auto leading-relaxed'>
-                    Project creation and revisions consume 5 credits each. Purchased credits never expire.
+                    Project creation and revisions consume {creditsCost} credits each. Purchased credits never expire.
                 </p>
             </div>
             <Footer />

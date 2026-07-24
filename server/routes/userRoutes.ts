@@ -1,10 +1,11 @@
 import express from 'express';
-import { checkUsername, createUserProject, getCurrentUserStatus, getUserCredits, getUserProject, getUserProjects, getUserProfile, getUserTransactions, purchaseCredits, sendEmailOtp, setInitialUsername, togglePublish, verifyEmailOtp } from '../controllers/userController.js';
+import { checkUsername, createUserProject, getCurrentUserStatus, getCreditsConfig, getUserCredits, getUserProject, getUserProjects, getUserProfile, getUserTransactions, purchaseCredits, sendEmailOtp, setInitialUsername, togglePublish, verifyEmailOtp } from '../controllers/userController.js';
 import { protect } from '../middlewares/auth.js';
 
 const userRouter = express.Router();
 
 userRouter.get('/check-username', checkUsername);
+userRouter.get('/credits-config', getCreditsConfig);
 userRouter.get('/profile/:username', getUserProfile);
 userRouter.get('/me', protect, getCurrentUserStatus);
 userRouter.get('/transactions', protect, getUserTransactions);

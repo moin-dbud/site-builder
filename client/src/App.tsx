@@ -8,7 +8,7 @@ import View from './pages/View'
 import MyProjects from './pages/MyProjects'
 import UserProfile from './pages/UserProfile'
 import Navbar from './components/Navbar'
-import { Toaster } from 'sonner'
+import { Toaster, toast } from 'sonner'
 import AuthPage from './pages/auth/AuthPage.tsx'
 import Setting from './pages/Setting.tsx'
 import PaymentVerify from './pages/PaymentVerify.tsx'
@@ -49,6 +49,14 @@ const App = () => {
         setUserData({
           emailVerified: data.user.emailVerified,
           username: data.user.username,
+        })
+      }
+      if (data?.notifications && Array.isArray(data.notifications)) {
+        data.notifications.forEach((n: { title: string; message: string }) => {
+          toast.info(n.title || 'Notification', {
+            description: n.message,
+            duration: 8000,
+          })
         })
       }
     } catch (err) {
