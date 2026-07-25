@@ -13,6 +13,7 @@ import AuthPage from './pages/auth/AuthPage.tsx'
 import Setting from './pages/Setting.tsx'
 import PaymentVerify from './pages/PaymentVerify.tsx'
 import { useParams } from 'react-router-dom'
+import { Analytics } from '@vercel/analytics/react';
 
 
 import { useState, useEffect } from 'react'
@@ -112,6 +113,7 @@ const App = () => {
         <Route path='/:username' element={<UserProfileRoute />} />
         <Route path='/:username/:slug' element={<ViewRoute />} />
       </Routes>
+      <Analytics />
     </div>
   )
 }
