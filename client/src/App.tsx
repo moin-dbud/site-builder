@@ -36,7 +36,7 @@ const ViewRoute = () => {
 const App = () => {
   const {pathname} = useLocation()
   const { data: session } = authClient.useSession()
-  const [userData, setUserData] = useState<{ emailVerified: boolean; username: string | null } | null>(null)
+  const [userData, setUserData] = useState<{ emailVerified: boolean; username: string | null; profilePublic: boolean } | null>(null)
   // Fetched from /api/public-settings — defaults to true (verification required) until server responds
   const [emailVerificationRequired, setEmailVerificationRequired] = useState(true)
 
@@ -65,6 +65,7 @@ const App = () => {
         setUserData({
           emailVerified: data.user.emailVerified,
           username: data.user.username,
+          profilePublic: data.user.profilePublic ?? true,
         })
       }
       if (data?.notifications && Array.isArray(data.notifications)) {

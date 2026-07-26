@@ -1,5 +1,5 @@
 import express from 'express';
-import { checkUsername, createUserProject, getCurrentUserStatus, getCreditsConfig, getUserCredits, getUserProject, getUserProjects, getUserProfile, getUserTransactions, purchaseCredits, sendEmailOtp, setInitialUsername, togglePublish, verifyEmailOtp } from '../controllers/userController.js';
+import { checkUsername, createUserProject, getCurrentUserStatus, getCreditsConfig, getUserCredits, getUserProject, getUserProjects, getUserProfile, getUserTransactions, purchaseCredits, sendEmailOtp, setInitialUsername, toggleProfilePublic, togglePublish, verifyEmailOtp } from '../controllers/userController.js';
 import { protect } from '../middlewares/auth.js';
 
 const userRouter = express.Router();
@@ -18,5 +18,6 @@ userRouter.get('/project/:projectId',protect, getUserProject)
 userRouter.get('/projects',protect, getUserProjects)
 userRouter.get('/publish-toggle/:projectId',protect, togglePublish)
 userRouter.post('/purchase-credits',protect, purchaseCredits)
+userRouter.patch('/profile-public', protect, toggleProfilePublic)
 
 export default userRouter

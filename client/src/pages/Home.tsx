@@ -13,7 +13,8 @@ import {
   UserCheckIcon,
   CompassIcon,
   Wand2Icon,
-  LayersIcon
+  LayersIcon,
+  GlobeIcon,
 } from 'lucide-react';
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom';
@@ -52,10 +53,28 @@ const Home = () => {
   const [isFocused, setIsFocused] = useState(false);
   const [selectedMode, setSelectedMode] = useState<string | null>(null);
 
+  // Profile public state — fetched from /api/user/me
+  const [profilePublic, setProfilePublic] = useState<boolean | null>(null);
+
   // Typewriter effect state for placeholder
   const [currentExampleIndex, setCurrentExampleIndex] = useState(0);
   const [placeholderText, setPlaceholderText] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // Fetch profile public status when user is logged in
+  useEffect(() => {
+    if (!session?.user) {
+      setProfilePublic(null)
+      return
+    }
+    api.get('/api/user/me')
+      .then(({ data }) => {
+        if (data?.user) {
+          setProfilePublic(data.user.profilePublic ?? true)
+        }
+      })
+      .catch(() => setProfilePublic(null))
+  }, [session?.user?.id])
 
   useEffect(() => {
     if (isFocused || input.trim().length > 0) {
@@ -115,25 +134,59 @@ const Home = () => {
     setInput(mode.template);
   }
 
+  // Show the profile-nudge pill only for logged-in users with a private profile
+  const showProfileNudge = session?.user && profilePublic === false
+
   return (
     <section className="min-h-[calc(100vh-64px)] flex flex-col items-center justify-start text-white pb-24 px-4 sm:px-6 relative overflow-hidden bg-[#08080a]">
       {/* Background Depth Treatments */}
       <div className="absolute top-12 left-1/2 -translate-x-1/2 w-[700px] h-[450px] bg-gradient-to-tr from-indigo-600/15 via-violet-600/10 to-cyan-500/10 rounded-full blur-[140px] pointer-events-none" />
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#171920_1px,transparent_1px),linear-gradient(to_bottom,#171920_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_65%_55%_at_50%_15%,#000_70%,transparent_100%)] opacity-25 pointer-events-none" />
 
-      {/* Top Release Eyebrow Pill */}
-      <a 
-        href="/pricing" 
-        className="group inline-flex items-center gap-2.5 bg-[#111216]/90 border border-[#22242c] hover:border-indigo-500/50 rounded-full p-1.5 pr-4 text-xs mt-10 sm:mt-14 transition-all duration-300 shadow-xl shadow-black/50 hover:scale-105 backdrop-blur-md z-10"
-      >
-        <span className="bg-gradient-to-r from-indigo-600 to-indigo-500 text-white text-[10px] font-mono-tech uppercase font-semibold px-2.5 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
-          <SparklesIcon className="size-3" /> PRESENCE ENGINE
-        </span>
-        <span className="text-gray-300 font-medium group-hover:text-white transition-colors">
-          Build websites for small businesses & brands
-        </span>
-        <ArrowRightIcon className="size-3.5 text-gray-500 group-hover:text-indigo-400 group-hover:translate-x-0.5 transition-all" />
-      </a>
+      {/* Top Eyebrow Pill — profile nudge when profile is private, else default */}
+      {showProfileNudge ? (
+        /* ── Alive profile-nudge pill ── */
+        <button
+          onClick={() => navigate('/account/settings', { state: { section: 'profile', scrollTo: 'profile-public' } })}
+          className="group inline-flex items-center gap-2.5 mt-10 sm:mt-14 z-10
+            bg-[#111216]/95 border border-[#2d303b] rounded-full p-1.5 pr-4 text-xs
+            transition-all duration-300 shadow-lg shadow-black/40 hover:scale-[1.03]
+            hover:border-gray-600 backdrop-blur-md
+            animate-[subtlePulse_3s_ease-in-out_infinite]"
+          style={{
+            boxShadow: '0 0 0 0 rgba(156,163,175,0)',
+            animation: 'subtlePulse 3.5s ease-in-out infinite',
+          }}
+        >
+          <style>{`
+            @keyframes subtlePulse {
+              0%, 100% { box-shadow: 0 4px 24px rgba(0,0,0,0.5), 0 0 0 0 rgba(99,102,241,0.0); border-color: #2d303b; }
+              50%       { box-shadow: 0 4px 32px rgba(0,0,0,0.6), 0 0 0 3px rgba(99,102,241,0.08); border-color: #3d405a; }
+            }
+          `}</style>
+          <span className="bg-[#1c1e2e] border border-[#2d3060] text-indigo-300 text-[10px] font-mono-tech uppercase font-semibold px-2.5 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
+            <GlobeIcon className="size-3" /> YOUR PROFILE
+          </span>
+          <span className="text-gray-400 font-medium group-hover:text-gray-200 transition-colors">
+            Turn on public profile to showcase your projects
+          </span>
+          <ArrowRightIcon className="size-3.5 text-gray-600 group-hover:text-gray-400 group-hover:translate-x-0.5 transition-all" />
+        </button>
+      ) : (
+        /* ── Default pill ── */
+        <a 
+          href="/pricing" 
+          className="group inline-flex items-center gap-2.5 bg-[#111216]/90 border border-[#22242c] hover:border-indigo-500/50 rounded-full p-1.5 pr-4 text-xs mt-10 sm:mt-14 transition-all duration-300 shadow-xl shadow-black/50 hover:scale-105 backdrop-blur-md z-10"
+        >
+          <span className="bg-gradient-to-r from-indigo-600 to-indigo-500 text-white text-[10px] font-mono-tech uppercase font-semibold px-2.5 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
+            <SparklesIcon className="size-3" /> PRESENCE ENGINE
+          </span>
+          <span className="text-gray-300 font-medium group-hover:text-white transition-colors">
+            Build websites for small businesses & brands
+          </span>
+          <ArrowRightIcon className="size-3.5 text-gray-500 group-hover:text-indigo-400 group-hover:translate-x-0.5 transition-all" />
+        </a>
+      )}
 
       {/* Hero Headline */}
       <div className="mt-8 max-w-4xl text-center z-10">

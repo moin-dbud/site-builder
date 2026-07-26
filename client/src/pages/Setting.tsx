@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { AccountSettingsCards, ChangePasswordCard, DeleteAccountCard } from '@daveyplate/better-auth-ui'
-import { UserIcon, KeyRoundIcon, ShieldAlertIcon, SparklesIcon, CheckCircle2Icon, AlertCircleIcon, ShieldCheckIcon, CoinsIcon, ArrowUpRightIcon, Loader2Icon, ClockIcon, ReceiptIcon } from 'lucide-react'
+import { UserIcon, KeyRoundIcon, ShieldAlertIcon, SparklesIcon, CheckCircle2Icon, AlertCircleIcon, ShieldCheckIcon, CoinsIcon, ArrowUpRightIcon, Loader2Icon, ClockIcon, ReceiptIcon, GlobeIcon, EyeOffIcon } from 'lucide-react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import api from '@/configs/axios'
 import { authClient } from '@/lib/auth-client'
+import { toast } from 'sonner'
 
 interface TransactionItem {
   id: string
@@ -33,13 +34,17 @@ const Setting = () => {
   const [activeSection, setActiveSection] = useState(targetSection)
   const { data: session } = authClient.useSession()
 
-  const [userInfo, setUserInfo] = useState<{ emailVerified: boolean; username: string | null } | null>(null)
-  
+  const [userInfo, setUserInfo] = useState<{ emailVerified: boolean; username: string | null; profilePublic: boolean } | null>(null)
+  const [togglingProfile, setTogglingProfile] = useState(false)
+
   // Billing & Transactions state
   const [transactions, setTransactions] = useState<TransactionItem[]>([])
   const [userCredits, setUserCredits] = useState<number>(0)
   const [loadingTx, setLoadingTx] = useState(false)
   const [creditsCost, setCreditsCost] = useState<number>(5)
+
+  // Ref for the public profile toggle (for scroll-into-view from pill)
+  const profileToggleRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     api.get('/api/user/credits-config')
@@ -54,6 +59,13 @@ const Setting = () => {
     if (sec) {
       setActiveSection(sec)
     }
+    // If navigated with scrollTo=profile-public, scroll to the toggle after render
+    const scrollTo = (location.state as any)?.scrollTo || queryParams.get('scrollTo')
+    if (scrollTo === 'profile-public') {
+      setTimeout(() => {
+        profileToggleRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      }, 200)
+    }
   }, [location.search, location.state])
 
   useEffect(() => {
@@ -65,6 +77,7 @@ const Setting = () => {
           setUserInfo({
             emailVerified: data.user.emailVerified,
             username: data.user.username,
+            profilePublic: data.user.profilePublic ?? true,
           })
           setUserCredits(data.user.credits || 0)
         }
@@ -94,6 +107,21 @@ const Setting = () => {
       fetchTransactions()
     }
   }, [activeSection, session?.user?.id])
+
+  const handleToggleProfilePublic = async () => {
+    if (!userInfo) return
+    const newVal = !userInfo.profilePublic
+    setTogglingProfile(true)
+    try {
+      await api.patch('/api/user/profile-public', { profilePublic: newVal })
+      setUserInfo(prev => prev ? { ...prev, profilePublic: newVal } : prev)
+      toast.success(newVal ? 'Profile is now public — your projects are visible!' : 'Profile set to private')
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Failed to update profile visibility')
+    } finally {
+      setTogglingProfile(false)
+    }
+  }
 
   return (
     <div className='w-full min-h-[90vh] bg-[#08080a] text-white font-sans py-10 px-4 md:px-12 lg:px-24'>
@@ -142,6 +170,7 @@ const Setting = () => {
                   <p className="text-xs text-gray-400 font-mono-tech">Update your account display details</p>
                 </div>
 
+                {/* Account Verification + Username */}
                 <div className="p-5 bg-[#111216] border border-[#22242c] rounded-2xl w-full text-white shadow-xl flex flex-col gap-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
@@ -179,6 +208,77 @@ const Setting = () => {
                       Your public profile is available at <span className="text-indigo-400 font-medium">/@{userInfo?.username || (session?.user as any)?.username}</span>
                     </p>
                   )}
+                </div>
+
+                {/* ── Public Profile Toggle ── */}
+                <div
+                  ref={profileToggleRef}
+                  id="profile-public-toggle"
+                  className={`p-5 rounded-2xl w-full text-white shadow-xl flex flex-col gap-4 transition-all duration-300 ${
+                    userInfo?.profilePublic
+                      ? 'bg-[#111216] border border-[#22242c]'
+                      : 'bg-[#111216] border border-[#2d303b]'
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex items-start gap-3">
+                      <div className={`p-2 rounded-xl border shrink-0 transition-colors ${
+                        userInfo?.profilePublic
+                          ? 'bg-emerald-600/10 border-emerald-500/20 text-emerald-400'
+                          : 'bg-[#1c1e26] border-[#2d303b] text-gray-500'
+                      }`}>
+                        {userInfo?.profilePublic
+                          ? <GlobeIcon className="size-4" />
+                          : <EyeOffIcon className="size-4" />
+                        }
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold text-gray-200">Public Profile</p>
+                        <p className="text-xs text-gray-400 mt-0.5 leading-relaxed max-w-sm">
+                          {userInfo?.profilePublic
+                            ? 'Your profile and published projects are visible at your public URL. Anyone can find and view your work.'
+                            : 'Your profile is private. Visitors to your profile URL will see a private profile notice instead of your projects.'
+                          }
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Toggle Switch */}
+                    <button
+                      id="profile-public-switch"
+                      onClick={handleToggleProfilePublic}
+                      disabled={togglingProfile || userInfo === null}
+                      aria-label="Toggle public profile"
+                      className={`relative shrink-0 w-11 h-6 rounded-full border transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#111216] disabled:opacity-60 disabled:cursor-not-allowed ${
+                        userInfo?.profilePublic
+                          ? 'bg-emerald-600 border-emerald-500 focus:ring-emerald-500/40'
+                          : 'bg-[#1c1e26] border-[#2d303b] focus:ring-gray-500/30'
+                      }`}
+                    >
+                      <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow-sm transition-transform duration-300 flex items-center justify-center ${
+                        userInfo?.profilePublic ? 'translate-x-5' : 'translate-x-0'
+                      }`}>
+                        {togglingProfile && <Loader2Icon className="size-3 text-gray-400 animate-spin" />}
+                      </span>
+                    </button>
+                  </div>
+
+                  {/* Status badge */}
+                  <div className="flex items-center gap-2 border-t border-[#1c1e26] pt-3">
+                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-mono-tech font-semibold ${
+                      userInfo?.profilePublic
+                        ? 'bg-emerald-950/80 border border-emerald-500/30 text-emerald-400'
+                        : 'bg-[#1c1e26] border border-[#2d303b] text-gray-500'
+                    }`}>
+                      <span className={`size-1.5 rounded-full ${userInfo?.profilePublic ? 'bg-emerald-400' : 'bg-gray-600'}`} />
+                      {userInfo?.profilePublic ? 'PROFILE PUBLIC' : 'PROFILE PRIVATE'}
+                    </span>
+                    {userInfo?.username && (
+                      <span className="text-[11px] text-gray-600 font-mono-tech">
+                        /@{userInfo.username}
+                      </span>
+                    )}
+                  </div>
                 </div>
 
                 <AccountSettingsCards 

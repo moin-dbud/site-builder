@@ -25,6 +25,7 @@ model User {
   emailOtp      String?
   emailOtpExpires DateTime?
   isAdmin       Boolean   @default(false)
+  profilePublic Boolean   @default(true)
 
   // Relations
   projects      WebsiteProject[]

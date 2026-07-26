@@ -484,13 +484,20 @@ export const getUserProfile = async (req: Request, res: Response) => {
             select: {
                 id: true,
                 name: true,
+                email: true,
                 username: true,
                 createdAt: true,
+                profilePublic: true,
             }
         });
 
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
+        }
+
+        // If profile is private, return minimal info without projects
+        if (!user.profilePublic) {
+            return res.json({ user, projects: [], isPrivate: true });
         }
 
         const projects = await prisma.websiteProject.findMany({
@@ -508,7 +515,7 @@ export const getUserProfile = async (req: Request, res: Response) => {
             }
         });
 
-        res.json({ user, projects });
+        res.json({ user, projects, isPrivate: false });
     } catch (error: any) {
         console.log(error.code || error.message);
         res.status(500).json({ message: error.message });
@@ -664,6 +671,7 @@ export const getCurrentUserStatus = async (req: Request, res: Response) => {
                 username: true,
                 emailVerified: true,
                 credits: true,
+                profilePublic: true,
             }
         });
 
@@ -739,3 +747,29 @@ export const getUserTransactions = async (req: Request, res: Response) => {
 export const purchaseCredits = async (req: Request, res: Response) => {
     
 }
+
+// Toggle profile public/private
+export const toggleProfilePublic = async (req: Request, res: Response) => {
+    try {
+        const userId = req.userId;
+        if (!userId) {
+            return res.status(401).json({ message: "Unauthorized user" });
+        }
+
+        const { profilePublic } = req.body;
+        if (typeof profilePublic !== 'boolean') {
+            return res.status(400).json({ message: "profilePublic must be a boolean" });
+        }
+
+        const updated = await prisma.user.update({
+            where: { id: userId },
+            data: { profilePublic },
+            select: { profilePublic: true }
+        });
+
+        return res.json({ success: true, profilePublic: updated.profilePublic });
+    } catch (error: any) {
+        console.log(error.code || error.message);
+        res.status(500).json({ message: error.message });
+    }
+};
