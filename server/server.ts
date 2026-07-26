@@ -9,6 +9,7 @@ import cashfreeRouter from "./routes/cashfreeRoutes.js";
 import adminRouter from "./routes/adminRoutes.js";
 import { maintenanceMode } from "./middlewares/auth.js";
 import { verifySMTPConnection } from "./lib/mailer.js";
+import { getPublicSettings } from "./controllers/adminController.js";
 
 const app = express();
 
@@ -55,6 +56,9 @@ app.use(express.urlencoded({ extended: true }));
 
 // ── 3. Better Auth Endpoint ────────────────────────────────────────────────
 app.all('/api/auth/{*any}', toNodeHandler(auth));
+
+// ── 3b. Public settings (no auth) ───────────────────────────────────
+app.get('/api/public-settings', getPublicSettings);
 
 // ── 4. Admin Router (Mounted AFTER express.json so req.body is parsed) ─────
 app.use('/api/admin', adminRouter);

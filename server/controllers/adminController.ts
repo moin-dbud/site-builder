@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import prisma from "../lib/prisma.js";
+import { getSetting as getSettingLib } from '../lib/settings.js';
 
 // ─── Shared audit log helper ───────────────────────────────────────────────
 export const logAdminAction = async (
@@ -669,3 +670,38 @@ export const toggleCashfreeFrozen = async (req: Request, res: Response) => {
         res.status(500).json({ message: error.message });
     }
 };
+
+// ─── PATCH /api/admin/danger/email-verification ───────────────────────────
+export const toggleEmailVerification = async (req: Request, res: Response) => {
+    try {
+        const { required } = req.body as { required: boolean };
+        const value = required ? 'true' : 'false';
+
+        await prisma.systemSetting.upsert({
+            where: { id: 'emailVerificationRequired' },
+            update: { value },
+            create: { id: 'emailVerificationRequired', value }
+        });
+
+        await logAdminAction(req.userId!, required ? 'ENABLE_EMAIL_VERIFICATION' : 'DISABLE_EMAIL_VERIFICATION', 'system', undefined, {});
+
+        res.json({
+            emailVerificationRequired: required,
+            message: `Email verification ${required ? 'enabled' : 'disabled'}`
+        });
+    } catch (error: any) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// ─── GET /api/admin/public-settings ───────────────────────────────────────
+// Public (no admin auth) — exposes only safe, client-needed flags
+export const getPublicSettings = async (_req: Request, res: Response) => {
+    try {
+        const emailVerificationRequired = await getSettingLib('emailVerificationRequired');
+        res.json({ emailVerificationRequired: emailVerificationRequired === 'true' });
+    } catch (error: any) {
+        res.status(500).json({ message: error.message });
+    }
+};
+

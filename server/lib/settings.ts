@@ -19,6 +19,7 @@ export const SETTING_DEFAULTS: Record<string, string> = {
     openrouterDailyCap:   '200',
     openrouterRequestsToday: '0',
     openrouterRequestsDate:  '',
+    emailVerificationRequired: 'true',
 };
 
 export const getSetting = async (key: string): Promise<string> => {

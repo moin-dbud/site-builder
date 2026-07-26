@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import api from '@/configs/axios'
 import { toast } from 'sonner'
 import { DangerConfirm } from '@/components/ui/ConfirmDialog'
-import { ShieldAlert, Power, CreditCard, Trash2, Users, Clock, RefreshCw } from 'lucide-react'
+import { ShieldAlert, Power, CreditCard, Trash2, Users, Clock, RefreshCw, Mail } from 'lucide-react'
 
 interface AuditLog {
   id: string; action: string; targetType: string; targetId: string
@@ -13,6 +13,7 @@ interface AuditLog {
 interface SystemStatus {
   maintenanceMode: boolean
   cashfreeFrozen: boolean
+  emailVerificationRequired: boolean
 }
 
 // Danger zone action card component
@@ -104,7 +105,7 @@ function ToggleCard({
 }
 
 export default function DangerZone() {
-  const [status, setStatus] = useState<SystemStatus>({ maintenanceMode: false, cashfreeFrozen: false })
+  const [status, setStatus] = useState<SystemStatus>({ maintenanceMode: false, cashfreeFrozen: false, emailVerificationRequired: true })
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([])
   const [auditLoading, setAuditLoading] = useState(true)
   const [statusLoading, setStatusLoading] = useState(true)
@@ -119,6 +120,7 @@ export default function DangerZone() {
       setStatus({
         maintenanceMode: data.settings.maintenanceMode === 'true',
         cashfreeFrozen: data.settings.cashfreeFrozen === 'true',
+        emailVerificationRequired: data.settings.emailVerificationRequired !== 'false',
       })
     } catch (e) { console.error(e) }
     finally { setStatusLoading(false) }
@@ -154,6 +156,18 @@ export default function DangerZone() {
       await api.patch('/api/admin/danger/freeze-cashfree', { frozen: newVal })
       setStatus(s => ({ ...s, cashfreeFrozen: newVal }))
       toast.success(`Cashfree transactions ${newVal ? 'FROZEN' : 'unfrozen'}`)
+      fetchAuditLog()
+    } catch (e: any) { toast.error(e.response?.data?.message || 'Failed') }
+    finally { setActing(false) }
+  }
+
+  const toggleEmailVerification = async () => {
+    const newVal = !status.emailVerificationRequired
+    setActing(true)
+    try {
+      await api.patch('/api/admin/danger/email-verification', { required: newVal })
+      setStatus(s => ({ ...s, emailVerificationRequired: newVal }))
+      toast.success(`Email verification ${newVal ? 'ENABLED' : 'disabled — new accounts skip OTP'}`)
       fetchAuditLog()
     } catch (e: any) { toast.error(e.response?.data?.message || 'Failed') }
     finally { setActing(false) }
@@ -241,6 +255,17 @@ export default function DangerZone() {
           toggleId="toggle-freeze-btn"
           dangerLabel="Freeze Payments"
           safeLabel="Unfreeze Payments"
+          loading={statusLoading || acting}
+        />
+        <ToggleCard
+          icon={<Mail size={16} color={!status.emailVerificationRequired ? 'var(--danger)' : 'var(--text-muted)'} />}
+          title="Email OTP Verification Required"
+          description="When ON (default), new users must verify their email with a 6-digit OTP before they can use the platform. Turn OFF to skip OTP entirely — accounts are created and immediately active. Use when SMTP is unreliable or during testing."
+          enabled={status.emailVerificationRequired}
+          onToggle={toggleEmailVerification}
+          toggleId="toggle-email-verification-btn"
+          dangerLabel="Disable Verification"
+          safeLabel="Enable Verification"
           loading={statusLoading || acting}
         />
       </div>

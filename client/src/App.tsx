@@ -15,7 +15,6 @@ import PaymentVerify from './pages/PaymentVerify.tsx'
 import { useParams } from 'react-router-dom'
 import { Analytics } from '@vercel/analytics/react';
 
-
 import { useState, useEffect } from 'react'
 import { authClient } from '@/lib/auth-client'
 import api from '@/configs/axios'
@@ -38,6 +37,22 @@ const App = () => {
   const {pathname} = useLocation()
   const { data: session } = authClient.useSession()
   const [userData, setUserData] = useState<{ emailVerified: boolean; username: string | null } | null>(null)
+  // Fetched from /api/public-settings — defaults to true (verification required) until server responds
+  const [emailVerificationRequired, setEmailVerificationRequired] = useState(true)
+
+  // Fetch public settings once on mount so we know if email verification is enabled
+  useEffect(() => {
+    api.get('/api/public-settings')
+      .then(({ data }) => {
+        if (typeof data.emailVerificationRequired === 'boolean') {
+          setEmailVerificationRequired(data.emailVerificationRequired)
+        }
+      })
+      .catch(() => {
+        // Default to true (safe) if request fails
+        setEmailVerificationRequired(true)
+      })
+  }, [])
 
   const fetchUserData = async () => {
     try {
@@ -84,15 +99,16 @@ const App = () => {
       <Toaster />
       {!hideNavbar && <Navbar />}
 
-      {/* Account Gating Modals */}
-      {session?.user && userData && !userData.emailVerified && (
+      {/* Email Verification Modal — only shown when admin has enabled email verification */}
+      {session?.user && userData && emailVerificationRequired && !userData.emailVerified && (
         <EmailVerificationModal 
           email={session.user.email} 
           onVerified={() => fetchUserData()} 
         />
       )}
 
-      {session?.user && userData && userData.emailVerified && !userData.username && (
+      {/* Username Modal — shown after email step (or immediately if verification is disabled) */}
+      {session?.user && userData && (!emailVerificationRequired || userData.emailVerified) && !userData.username && (
         <SetUsernameModal 
           onUsernameSet={() => fetchUserData()} 
         />

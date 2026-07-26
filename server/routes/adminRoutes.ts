@@ -23,6 +23,8 @@ import {
     bulkCleanupUnverified,
     toggleMaintenance,
     toggleCashfreeFrozen,
+    toggleEmailVerification,
+    getPublicSettings,
 } from '../controllers/adminController.js';
 
 const adminRouter = express.Router();
@@ -69,5 +71,6 @@ adminRouter.get('/audit-log', getAuditLog);
 adminRouter.post('/danger/bulk-cleanup', bulkCleanupUnverified);
 adminRouter.patch('/danger/maintenance', toggleMaintenance);
 adminRouter.patch('/danger/freeze-cashfree', toggleCashfreeFrozen);
+adminRouter.patch('/danger/email-verification', toggleEmailVerification);
 
 export default adminRouter;
