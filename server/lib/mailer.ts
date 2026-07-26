@@ -2,6 +2,10 @@ import nodemailer from 'nodemailer'
 
 let transporter: nodemailer.Transporter | null = null
 
+const resetTransporter = () => {
+  transporter = null
+}
+
 const getTransporter = async () => {
   if (transporter) return transporter
 
@@ -52,10 +56,12 @@ const getTransporter = async () => {
 export const sendVerificationOtpEmail = async (toEmail: string, otpCode: string, name: string = 'Creator') => {
   try {
     const mailTransporter = await getTransporter()
-    const fromAddress = process.env.SMTP_FROM || '"Buildo AI" <noreply@buildo.com>'
+    const fromAddress = process.env.SMTP_FROM || 'Buildo AI <buildo.ai.work@gmail.com>'
+    console.log(`[NODEMAILER] Sending from: "${fromAddress}" → to: ${toEmail}`)
 
     const mailOptions = {
       from: fromAddress,
+      replyTo: process.env.SMTP_USER,
       to: toEmail,
       subject: `${otpCode} is your Buildo email verification code`,
       html: `
@@ -94,7 +100,22 @@ export const sendVerificationOtpEmail = async (toEmail: string, otpCode: string,
     return { success: true, messageId: info.messageId, previewUrl: testUrl }
   } catch (error: any) {
     console.error('[NODEMAILER] Error sending OTP email:', error.message)
-    // Return gracefully so flow does not crash
-    return { success: false, error: error.message }
+    console.error('[NODEMAILER] Full error:', error)
+    // Reset transporter so the next call re-initialises with fresh credentials
+    resetTransporter()
+    // Re-throw so the controller can respond with a proper error
+    throw error
+  }
+}
+
+export const verifySMTPConnection = async () => {
+  try {
+    const t = await getTransporter()
+    await t.verify()
+    console.log('[NODEMAILER] ✅ SMTP connection verified successfully')
+  } catch (err: any) {
+    console.error('[NODEMAILER] ❌ SMTP connection FAILED:', err.message)
+    console.error('[NODEMAILER] Check your SMTP_HOST, SMTP_USER, SMTP_PASS environment variables.')
+    console.error('[NODEMAILER] For Gmail: make sure 2FA is ON and you are using an App Password (not your account password).')
   }
 }

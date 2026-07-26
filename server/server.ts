@@ -8,6 +8,7 @@ import projectRouter from "./routes/projectRoutes.js";
 import cashfreeRouter from "./routes/cashfreeRoutes.js";
 import adminRouter from "./routes/adminRoutes.js";
 import { maintenanceMode } from "./middlewares/auth.js";
+import { verifySMTPConnection } from "./lib/mailer.js";
 
 const app = express();
 
@@ -77,4 +78,6 @@ app.use('/api/cashfree', cashfreeRouter);
 
 app.listen(port, () => {
     console.log(`Server is running at http://localhost:${port}`);
+    // Verify SMTP connection on startup
+    verifySMTPConnection().catch(() => {});
 });

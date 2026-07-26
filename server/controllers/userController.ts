@@ -541,15 +541,16 @@ export const sendEmailOtp = async (req: Request, res: Response) => {
         });
 
         // Send OTP email via Nodemailer
-        await sendVerificationOtpEmail(user.email, otp, user.name);
+        const emailResult = await sendVerificationOtpEmail(user.email, otp, user.name);
 
         return res.json({ 
             success: true, 
-            message: `Verification OTP code sent to ${user.email}`
+            message: `Verification OTP code sent to ${user.email}`,
+            previewUrl: emailResult.previewUrl  // expose Ethereal preview URL in dev
         });
     } catch (error: any) {
-        console.log(error.code || error.message);
-        res.status(500).json({ message: error.message });
+        console.error('[sendEmailOtp] Error:', error.code || error.message);
+        res.status(500).json({ message: 'Failed to send OTP email. Please try again later.' });
     }
 };
 
