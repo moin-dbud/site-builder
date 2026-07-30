@@ -15,6 +15,9 @@
   "dependencies": {
     "@prisma/adapter-pg": "^7.9.0",
     "@prisma/client": "^7.9.0",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/node": "^26.1.1",
     "@types/nodemailer": "^8.0.1",
     "@types/pg": "^8.20.0",
     "better-auth": "^1.6.23",
@@ -27,9 +30,6 @@
     "pg": "^8.22.0"
   },
   "devDependencies": {
-    "@types/cors": "^2.8.19",
-    "@types/express": "^5.0.6",
-    "@types/node": "^26.1.1",
     "nodemon": "^3.1.14",
     "prisma": "^7.9.0",
     "ts-node": "^10.9.2",

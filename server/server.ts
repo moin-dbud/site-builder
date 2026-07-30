@@ -27,7 +27,7 @@ const allowedOrigins = Array.from(new Set([
 ]));
 
 const corsOptions: cors.CorsOptions = {
-    origin: (origin, callback) => {
+    origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
         if (!origin) return callback(null, true);
         const normalized = origin.trim().replace(/\/+$/, '');
         if (allowedOrigins.includes(normalized)) {
@@ -47,7 +47,7 @@ app.use(cors(corsOptions));
 // ── 2. Body Parser Middlewares (MUST come BEFORE any route handlers) ───────
 // Raw-body capture for Cashfree webhook signature verification
 app.use('/api/cashfree/webhook', express.json({
-    verify: (req: any, _res, buf) => {
+    verify: (req: express.Request & { rawBody?: string }, _res: express.Response, buf: Buffer) => {
         req.rawBody = buf.toString('utf8');
     }
 }));
