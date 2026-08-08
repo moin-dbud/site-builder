@@ -17,6 +17,16 @@ const trustedOrigins = Array.from(new Set([
     ...rawOrigins
 ]));
 
+const requiredEnv = [
+    'BETTER_AUTH_URL',
+    'BETTER_AUTH_SECRET',
+    'DATABASE_URL'
+];
+const missingEnv = requiredEnv.filter((key) => !process.env[key]);
+if (missingEnv.length > 0) {
+    throw new Error(`Missing required environment variables: ${missingEnv.join(', ')}`);
+}
+
 export const auth = betterAuth({
     database: prismaAdapter(prisma, {
         provider: "postgresql",

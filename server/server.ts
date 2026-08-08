@@ -33,8 +33,8 @@ const corsOptions: cors.CorsOptions = {
         if (allowedOrigins.includes(normalized)) {
             return callback(null, true);
         }
-        console.warn(`[CORS] Request from origin '${origin}' allowed.`);
-        return callback(null, true);
+        console.warn(`[CORS] Request from origin '${origin}' rejected.`);
+        return callback(new Error('Not allowed by CORS'));
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],

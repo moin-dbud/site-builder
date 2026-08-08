@@ -71,6 +71,9 @@ export const createUserProject = async (req: Request, res: Response) => {
         }
 
         // create new project
+        let projectIdForCleanup: string | null = null;
+        let creditsDeducted = false;
+
         const project = await prisma.websiteProject.create({
             data: {
                 name: initial_prompt.length > 50 ?
@@ -80,13 +83,13 @@ export const createUserProject = async (req: Request, res: Response) => {
                 initial_prompt,
             }
         })
+        projectIdForCleanup = project.id;
 
         // update users total creation
         await prisma.user.update({
             where: { id: userId },
             data: { totalCreation: { increment: 1 } }
         })
-
 
         await prisma.conversation.create({
             data: {
@@ -96,18 +99,11 @@ export const createUserProject = async (req: Request, res: Response) => {
             }
         })
 
-        await prisma.user.update({
-            where: { id: userId },
-            data: { credits: { decrement: creditsPerGeneration } }
-        })
-
         const designSystem = await pickDesignSystemFromDB(initial_prompt);
         await prisma.websiteProject.update({
             where: { id: project.id },
             data: { designSystemId: designSystem.id }
         });
-
-        res.json({ projectId: project.id })
 
         // Track OpenRouter request for dashboard counter
         await incrementOpenrouterCounter();
@@ -221,17 +217,13 @@ CRITICAL HARD RULES:
 
         if (!code) {
             await prisma.conversation.create({
-            data: {
-                role: 'assistant',
-                content: "Unable to generate the code, please try again",
-                projectId: project.id
-            }
-        })
-        await prisma.user.update({
-            where: {id: userId},
-            data: { credits: {increment: creditsPerGeneration} }
-        })
-        return;
+                data: {
+                    role: 'assistant',
+                    content: "Unable to generate the code, please try again",
+                    projectId: project.id
+                }
+            })
+            return;
         }
 
         // create version for project
@@ -265,13 +257,22 @@ CRITICAL HARD RULES:
             }
         })
 
-    } catch (error: any) {
-        const creditsPerGeneration = await getSettingInt('creditsPerGeneration');
         await prisma.user.update({
-            where: {id: userId},
-            data: {credits: {increment: creditsPerGeneration}}
+            where: { id: userId },
+            data: { credits: { decrement: creditsPerGeneration } }
         })
+
+    } catch (error: any) {
         console.log(error.code || error.message);
+
+        if (projectIdForCleanup) {
+            await prisma.websiteProject.deleteMany({ where: { id: projectIdForCleanup, userId } });
+            await prisma.user.update({
+                where: { id: userId },
+                data: { totalCreation: { decrement: 1 } }
+            });
+        }
+
         if (!res.headersSent) {
             res.status(500).json({ message: error.message })
         }
@@ -291,7 +292,7 @@ export const getUserProject = async (req: Request, res: Response) => {
             return res.status(400).json({ message: "Invalid project ID" })
         }
 
-        const project = await prisma.websiteProject.findUnique({
+        const project = await prisma.websiteProject.findFirst({
             where: { id: projectId, userId },
             include: {
                 conversation: {
@@ -380,8 +381,8 @@ export const togglePublish = async (req: Request, res: Response) => {
             return res.status(400).json({ message: "Invalid project ID" })
         }
 
-        const project = await prisma.websiteProject.findUnique({
-            where: {id: projectId, userId},
+        const project = await prisma.websiteProject.findFirst({
+            where: { id: projectId, userId },
         })
 
         if (!project) {
@@ -484,7 +485,6 @@ export const getUserProfile = async (req: Request, res: Response) => {
             select: {
                 id: true,
                 name: true,
-                email: true,
                 username: true,
                 createdAt: true,
                 profilePublic: true,
@@ -772,4 +772,4 @@ export const toggleProfilePublic = async (req: Request, res: Response) => {
         console.log(error.code || error.message);
         res.status(500).json({ message: error.message });
     }
-};
+};

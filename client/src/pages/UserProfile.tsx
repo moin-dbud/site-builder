@@ -142,20 +142,8 @@ const UserProfile = () => {
                                 <span className="text-indigo-400 font-medium">@{user.username}</span> hasn't made their profile public yet. Their projects aren't visible.
                             </p>
 
-                            {/* Contact via email */}
-                            <div className="mt-6 flex items-center gap-3 bg-[#0c0d10] border border-[#22242c] rounded-xl px-4 py-3">
-                                <div className="p-1.5 rounded-lg bg-[#1c1e26] border border-[#2d303b]">
-                                    <MailIcon className="size-4 text-gray-400" />
-                                </div>
-                                <div className="text-left">
-                                    <p className="text-[11px] text-gray-500 font-mono-tech uppercase tracking-wider">Contact</p>
-                                    <a
-                                        href={`mailto:${user.email}`}
-                                        className="text-sm text-gray-300 hover:text-white transition-colors font-medium"
-                                    >
-                                        {user.email}
-                                    </a>
-                                </div>
+                                <div className="mt-6 px-4 py-4 rounded-2xl bg-[#0c0d10] border border-[#22242c] text-left text-sm text-gray-400">
+                                The user has chosen to keep their contact details private. Please respect their privacy and do not attempt to reach out directly unless they share their information.
                             </div>
 
                             <button 
@@ -209,7 +197,7 @@ const UserProfile = () => {
                                                     <iframe 
                                                         srcDoc={project.current_code}
                                                         className='absolute top-0 left-0 w-[1200px] h-[800px] origin-top-left pointer-events-none'
-                                                        sandbox='allow-scripts allow-same-origin'
+                                                        sandbox='allow-scripts'
                                                         style={{ transform: 'scale(0.28)' }}
                                                     />
                                                 ) : (

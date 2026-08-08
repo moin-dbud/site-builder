@@ -1,8 +1,33 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { Cashfree, CFEnvironment } from 'cashfree-pg';
 import crypto from 'crypto';
 import prisma from '../lib/prisma.js';
 import { getSetting } from '../lib/settings.js';
+
+type WebhookRateLimitEntry = { count: number; resetAt: number };
+const webhookRateLimits = new Map<string, WebhookRateLimitEntry>();
+const WEBHOOK_RATE_LIMIT_MAX = 40;
+const WEBHOOK_RATE_LIMIT_WINDOW_MS = 60_000;
+
+export const cashfreeWebhookRateLimiter = (req: Request, res: Response, next: NextFunction) => {
+    const key = String(req.headers['x-webhook-signature'] || req.ip || 'unknown');
+    const now = Date.now();
+    const existing = webhookRateLimits.get(key);
+
+    if (!existing || now > existing.resetAt) {
+        webhookRateLimits.set(key, { count: 1, resetAt: now + WEBHOOK_RATE_LIMIT_WINDOW_MS });
+        return next();
+    }
+
+    existing.count += 1;
+    if (existing.count > WEBHOOK_RATE_LIMIT_MAX) {
+        console.warn(`[Cashfree Webhook] Rate limit exceeded for key=${key}`);
+        return res.status(429).send('Too many webhook requests');
+    }
+
+    webhookRateLimits.set(key, existing);
+    return next();
+};
 
 // ─── Helper to get configured Cashfree SDK instance ───────────────────────
 // DEPLOY NOTE: Switch CASHFREE_ENV to "production" in your .env and update
@@ -122,7 +147,7 @@ export const getCashfreeOrderStatus = async (req: Request, res: Response) => {
             where: { gatewayOrderId: orderId },
         });
 
-        if (!transaction) {
+        if (!transaction || transaction.userId !== req.userId) {
             return res.status(404).json({ message: 'Transaction not found' });
         }
 
@@ -177,25 +202,27 @@ export const getCashfreeOrderStatus = async (req: Request, res: Response) => {
 // of (timestamp + rawBody) with the client secret.
 // DEPLOY NOTE: Register this URL in Cashfree dashboard → Developers → Webhooks
 export const cashfreeWebhook = async (req: Request, res: Response) => {
-    // Acknowledge immediately — Cashfree retries if it doesn't get a fast 200
-    res.status(200).send('OK');
-
     try {
         const timestamp = req.headers['x-webhook-timestamp'] as string;
         const receivedSignature = req.headers['x-webhook-signature'] as string;
         const rawBody = (req as any).rawBody as string;
-        const secretKey = process.env.CASHFREE_SECRET_KEY!;
+        const secretKey = process.env.CASHFREE_SECRET_KEY;
+
+        if (!secretKey) {
+            console.error('[Cashfree Webhook] Missing CASHFREE_SECRET_KEY');
+            return res.status(500).send('Cashfree webhook secret not configured');
+        }
 
         if (!timestamp || !receivedSignature || !rawBody) {
             console.error('[Cashfree Webhook] Missing required headers or body');
-            return;
+            return res.status(400).send('Invalid webhook request');
         }
 
         // Replay-attack guard: reject webhooks older than 5 minutes
         const webhookAge = Math.abs(Date.now() - parseInt(timestamp));
         if (webhookAge > 300_000) {
             console.error('[Cashfree Webhook] Timestamp too old — possible replay attack');
-            return;
+            return res.status(400).send('Webhook timestamp expired');
         }
 
         // Cashfree signature = Base64(HMAC-SHA256(timestamp + rawBody, secretKey))
@@ -206,7 +233,7 @@ export const cashfreeWebhook = async (req: Request, res: Response) => {
 
         if (expectedSignature !== receivedSignature) {
             console.error('[Cashfree Webhook] Signature mismatch — request rejected');
-            return;
+            return res.status(401).send('Invalid webhook signature');
         }
 
         const event = req.body;
@@ -218,7 +245,7 @@ export const cashfreeWebhook = async (req: Request, res: Response) => {
 
         if (!orderId) {
             console.error('[Cashfree Webhook] Could not extract order_id from payload');
-            return;
+            return res.status(400).send('Missing order_id in webhook payload');
         }
 
         const transaction = await prisma.transaction.findUnique({
@@ -227,13 +254,7 @@ export const cashfreeWebhook = async (req: Request, res: Response) => {
 
         if (!transaction) {
             console.error(`[Cashfree Webhook] No transaction found for order ${orderId}`);
-            return;
-        }
-
-        // Idempotency guard — don't credit twice
-        if (transaction.status === 'completed') {
-            console.log(`[Cashfree Webhook] Order ${orderId} already completed, skipping`);
-            return;
+            return res.status(404).send('Transaction not found');
         }
 
         // Cashfree sends PAYMENT_SUCCESS_WEBHOOK on success
@@ -242,26 +263,43 @@ export const cashfreeWebhook = async (req: Request, res: Response) => {
             paymentStatus === 'SUCCESS';
 
         if (isSuccess) {
-            await prisma.$transaction([
-                prisma.transaction.update({
-                    where: { gatewayOrderId: orderId },
+            const result = await prisma.$transaction(async (tx) => {
+                const updatedTransaction = await tx.transaction.updateMany({
+                    where: { gatewayOrderId: orderId, status: 'pending' },
                     data: { status: 'completed', isPaid: true },
-                }),
-                prisma.user.update({
+                });
+
+                if (updatedTransaction.count === 0) {
+                    return { credited: false };
+                }
+
+                await tx.user.update({
                     where: { id: transaction.userId },
                     data: { credits: { increment: transaction.credits } },
-                }),
-            ]);
+                });
+
+                return { credited: true };
+            });
+
+            if (!result.credited) {
+                console.log(`[Cashfree Webhook] Order ${orderId} already processed or invalid status, skipping`);
+                return res.status(200).send('OK');
+            }
+
             console.log(`[Cashfree Webhook] ✓ Credited ${transaction.credits} to user ${transaction.userId}`);
         } else {
-            await prisma.transaction.update({
-                where: { gatewayOrderId: orderId },
+            await prisma.transaction.updateMany({
+                where: { gatewayOrderId: orderId, status: 'pending' },
                 data: { status: 'failed' },
             });
             console.log(`[Cashfree Webhook] ✗ Payment failed for order ${orderId}`);
         }
 
+        return res.status(200).send('OK');
     } catch (error: any) {
         console.error('[Cashfree Webhook] Processing error:', error.message);
+        if (!res.headersSent) {
+            return res.status(500).send('Webhook processing error');
+        }
     }
 };

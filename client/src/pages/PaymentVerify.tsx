@@ -37,10 +37,17 @@ const PaymentVerify = () => {
             return;
         }
 
+        const controller = new AbortController();
+        let isUnmounted = false;
+
         const poll = async () => {
             try {
                 pollCount.current += 1;
-                const { data } = await api.get(`/api/cashfree/order-status/${orderId}`);
+                const { data } = await api.get(`/api/cashfree/order-status/${orderId}`, {
+                    signal: controller.signal,
+                });
+
+                if (isUnmounted) return;
 
                 if (data.status === 'completed') {
                     stopPolling();
@@ -68,6 +75,9 @@ const PaymentVerify = () => {
                 }
 
             } catch (error: any) {
+                if (error?.name === 'CanceledError' || error?.code === 'ERR_CANCELED') {
+                    return;
+                }
                 console.error('[PaymentVerify] poll error:', error.message);
                 // Don't stop polling on network errors — keep trying
             }
@@ -77,8 +87,12 @@ const PaymentVerify = () => {
         poll();
         intervalRef.current = setInterval(poll, POLL_INTERVAL_MS);
 
-        return () => stopPolling();
-    }, [orderId]);
+        return () => {
+            isUnmounted = true;
+            controller.abort();
+            stopPolling();
+        };
+    }, [orderId, navigate]);
 
     return (
         <div

@@ -4,6 +4,7 @@ import {
     createCashfreeOrder,
     getCashfreeOrderStatus,
     cashfreeWebhook,
+    cashfreeWebhookRateLimiter,
 } from '../controllers/cashfreeController.js';
 
 const cashfreeRouter = express.Router();
@@ -16,6 +17,6 @@ cashfreeRouter.get('/order-status/:orderId', protect, getCashfreeOrderStatus);
 
 // Public — called by Cashfree servers. Raw body parsing is handled in server.ts
 // DEPLOY NOTE: Register this full URL in Cashfree dashboard → Developers → Webhooks
-cashfreeRouter.post('/webhook', cashfreeWebhook);
+cashfreeRouter.post('/webhook', cashfreeWebhookRateLimiter, cashfreeWebhook);
 
 export default cashfreeRouter;

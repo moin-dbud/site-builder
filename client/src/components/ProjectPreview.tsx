@@ -93,7 +93,8 @@ const ProjectPreview = forwardRef<ProjectPreviewRef, ProjectPreviewProps>(({ pro
                         <iframe
                             ref={iframeRef}
                             srcDoc={injectPreview(project.current_code)}
-                            className="w-full h-full border-none bg-white" 
+                            className="w-full h-full border-none bg-white"
+                            sandbox="allow-scripts"
                         />
                     </div>
 

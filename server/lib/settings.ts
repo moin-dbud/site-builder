@@ -39,27 +39,24 @@ export const getSettingInt = async (key: string): Promise<number> => {
 export const incrementOpenrouterCounter = async (): Promise<void> => {
     try {
         const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
-        const [dateSetting, countSetting] = await Promise.all([
-            prisma.systemSetting.findUnique({ where: { id: 'openrouterRequestsDate' } }),
-            prisma.systemSetting.findUnique({ where: { id: 'openrouterRequestsToday' } }),
-        ]);
 
-        const storedDate = dateSetting?.value ?? '';
-        const storedCount = parseInt(countSetting?.value ?? '0') || 0;
-        const newCount = storedDate === today ? storedCount + 1 : 1;
-
-        await Promise.all([
-            prisma.systemSetting.upsert({
-                where: { id: 'openrouterRequestsToday' },
-                update: { value: String(newCount) },
-                create: { id: 'openrouterRequestsToday', value: String(newCount) }
-            }),
-            prisma.systemSetting.upsert({
-                where: { id: 'openrouterRequestsDate' },
-                update: { value: today },
-                create: { id: 'openrouterRequestsDate', value: today }
-            }),
-        ]);
+        await prisma.$executeRaw`
+            INSERT INTO "SystemSetting" ("id", "value")
+            VALUES
+                ('openrouterRequestsDate', ${today}),
+                ('openrouterRequestsToday', '1')
+            ON CONFLICT ("id") DO UPDATE SET
+                "value" = CASE
+                    WHEN EXCLUDED."id" = 'openrouterRequestsToday' THEN
+                        CASE
+                            WHEN (SELECT "value" FROM "SystemSetting" WHERE "id" = 'openrouterRequestsDate') = ${today}
+                                THEN CAST(CAST("SystemSetting"."value" AS INTEGER) + 1 AS TEXT)
+                            ELSE '1'
+                        END
+                    WHEN EXCLUDED."id" = 'openrouterRequestsDate' THEN ${today}
+                    ELSE "SystemSetting"."value"
+                END;
+        `;
     } catch (err: any) {
         console.error('[incrementOpenrouterCounter] Error:', err.message);
     }

@@ -34,7 +34,7 @@ export const makeRevision = async (req: Request, res: Response) => {
             return res.status(400).json({ message: "Please provide a valid prompt" })
         }
 
-        const currentProject = await prisma.websiteProject.findUnique({
+        const currentProject = await prisma.websiteProject.findFirst({
             where: { id: projectId, userId },
             include: {versions: true}
         })
@@ -279,7 +279,7 @@ export const deleteProject = async (req: Request, res: Response) => {
         }
 
 
-        await prisma.websiteProject.delete({
+        await prisma.websiteProject.deleteMany({
             where : {id: projectId, userId}
         })
 
@@ -366,7 +366,7 @@ export const getProjectById = async (req: Request, res: Response) => {
         }
 
         const project = await prisma.websiteProject.findFirst({
-            where : {id: projectId},
+            where : {id: projectId, isPublished: true},
             include: {
                 user: {
                     select: {
@@ -378,7 +378,7 @@ export const getProjectById = async (req: Request, res: Response) => {
             }
         })
 
-        if (!project || project.isPublished === false || !project?.current_code) {
+        if (!project || !project?.current_code) {
             return res.status(404).json({message : "Project not found"})
         }
 
@@ -453,8 +453,8 @@ export const saveProjectCode = async (req: Request, res: Response) => {
             return res.status(400).json({ message: "Code is required" })
         }
 
-        const project = await prisma.websiteProject.findUnique({
-            where: {id: projectId, userId}
+        const project = await prisma.websiteProject.findFirst({
+            where: { id: projectId, userId },
         })
 
         if (!project) {
