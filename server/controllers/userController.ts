@@ -43,6 +43,8 @@ export const getUserCredits = async (req: Request, res: Response) => {
 // controller func to create new project
 export const createUserProject = async (req: Request, res: Response) => {
     const userId = req.userId;
+    let projectIdForCleanup: string | null = null;
+    let creditsDeducted = false;
     try {
         const { initial_prompt } = req.body;
 
@@ -71,8 +73,6 @@ export const createUserProject = async (req: Request, res: Response) => {
         }
 
         // create new project
-        let projectIdForCleanup: string | null = null;
-        let creditsDeducted = false;
 
         const project = await prisma.websiteProject.create({
             data: {

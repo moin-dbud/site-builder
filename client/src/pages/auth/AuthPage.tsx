@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react"
 import { useParams, useNavigate, Link } from "react-router-dom"
-import { signIn, signUp } from "@/lib/auth-client"
+import { authClient, signIn, signUp } from "@/lib/auth-client"
 import api from "@/configs/axios"
 import { toast } from "sonner"
 import { Loader2Icon, CheckCircle2Icon, XCircleIcon, SparklesIcon } from "lucide-react"
@@ -8,6 +8,24 @@ import { Loader2Icon, CheckCircle2Icon, XCircleIcon, SparklesIcon } from "lucide
 export default function AuthPage() {
     const { pathname } = useParams()
     const navigate = useNavigate()
+    const { data: session, isPending } = authClient.useSession()
+
+    // Handle sign-out route
+    useEffect(() => {
+        if (pathname === "sign-out") {
+            authClient.signOut().then(() => {
+                localStorage.removeItem("bearer_token")
+                navigate("/", { replace: true })
+            })
+        }
+    }, [pathname, navigate])
+
+    // Redirect logged-in users away from auth pages
+    useEffect(() => {
+        if (!isPending && session?.user && pathname !== "sign-out") {
+            navigate("/", { replace: true })
+        }
+    }, [session, isPending, pathname, navigate])
 
     const [name, setName] = useState("")
     const [username, setUsername] = useState("")
@@ -91,6 +109,24 @@ export default function AuthPage() {
         } finally {
             setLoading(false)
         }
+    }
+
+    // Show loader while signing out
+    if (pathname === "sign-out") {
+        return (
+            <main className="flex justify-center items-center min-h-[85vh] bg-[#08080a]">
+                <Loader2Icon className="size-8 animate-spin text-indigo-400" />
+            </main>
+        )
+    }
+
+    // Show loader while checking session / redirecting logged-in user
+    if (isPending || session?.user) {
+        return (
+            <main className="flex justify-center items-center min-h-[85vh] bg-[#08080a]">
+                <Loader2Icon className="size-8 animate-spin text-indigo-400" />
+            </main>
+        )
     }
 
     if (pathname === "signup") {
