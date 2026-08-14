@@ -13,7 +13,7 @@ const getTransporter = async () => {
   const port = parseInt(process.env.SMTP_PORT || '587', 10)
   const user = process.env.SMTP_USER
   const rawPass = process.env.SMTP_PASS || ''
-  const pass = rawPass.replace(/[\s-]/g, '')
+  const pass = rawPass.trim()
 
   if (user && pass) {
     const isGmail = host.includes('gmail') || user.endsWith('@gmail.com')
@@ -73,12 +73,12 @@ export const sendVerificationOtpEmail = async (toEmail: string, otpCode: string,
           <div style="background-color: #111216; padding: 24px; border-radius: 12px; border: 1px solid #22242c; text-align: center;">
             <p style="color: #d1d5db; font-size: 14px; margin-top: 0;">Hi ${name},</p>
             <p style="color: #9ca3af; font-size: 13px; line-height: 1.5;">
-              Use the 6-digit verification code below to verify your email address and unlock full website creation features on Buildo:
+              Use the 4-digit verification code below to verify your email address and unlock full website creation features on Buildo:
             </p>
             <div style="margin: 24px 0; background-color: #08080a; border: 1px border-indigo-500/30; padding: 16px; border-radius: 10px;">
               <span style="font-size: 32px; font-weight: 800; letter-spacing: 8px; color: #818cf8; font-family: monospace;">${otpCode}</span>
             </div>
-            <p style="color: #6b7280; font-size: 12px; margin-bottom: 0;">This code will expire in 10 minutes. If you did not request this code, please ignore this email.</p>
+            <p style="color: #6b7280; font-size: 12px; margin-bottom: 0;">This code will expire in 5 minutes. If you did not request this code, please ignore this email.</p>
           </div>
           <div style="text-align: center; margin-top: 20px; color: #4b5563; font-size: 11px;">
             &copy; ${new Date().getFullYear()} Buildo AI. All rights reserved.

@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef } from 'react'
 import { AccountSettingsCards, ChangePasswordCard, DeleteAccountCard } from '@daveyplate/better-auth-ui'
-import { UserIcon, KeyRoundIcon, ShieldAlertIcon, SparklesIcon, CheckCircle2Icon, AlertCircleIcon, ShieldCheckIcon, CoinsIcon, ArrowUpRightIcon, Loader2Icon, ClockIcon, ReceiptIcon, GlobeIcon, EyeOffIcon } from 'lucide-react'
+import { UserIcon, KeyRoundIcon, ShieldAlertIcon, SparklesIcon, CheckCircle2Icon, AlertCircleIcon, ShieldCheckIcon, CoinsIcon, ArrowUpRightIcon, Loader2Icon, ClockIcon, ReceiptIcon, GlobeIcon, EyeOffIcon, MailIcon } from 'lucide-react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import api from '@/configs/axios'
 import { authClient } from '@/lib/auth-client'
 import { toast } from 'sonner'
+import { EmailVerificationModal } from '@/components/EmailVerificationModal'
 
 interface TransactionItem {
   id: string
@@ -36,6 +37,7 @@ const Setting = () => {
 
   const [userInfo, setUserInfo] = useState<{ emailVerified: boolean; username: string | null; profilePublic: boolean } | null>(null)
   const [togglingProfile, setTogglingProfile] = useState(false)
+  const [showVerifyModal, setShowVerifyModal] = useState(false)
 
   // Billing & Transactions state
   const [transactions, setTransactions] = useState<TransactionItem[]>([])
@@ -183,10 +185,19 @@ const Setting = () => {
                         <span>Email Verified</span>
                       </span>
                     ) : (
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono-tech font-semibold bg-amber-950/80 border border-amber-500/40 text-amber-300 shadow-sm">
-                        <AlertCircleIcon className="size-3.5 text-amber-400" />
-                        <span>Unverified Email</span>
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono-tech font-semibold bg-amber-950/80 border border-amber-500/40 text-amber-300 shadow-sm">
+                          <AlertCircleIcon className="size-3.5 text-amber-400" />
+                          <span>Unverified Email</span>
+                        </span>
+                        <button
+                          onClick={() => setShowVerifyModal(true)}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white transition-all shadow-md shadow-indigo-950/50"
+                        >
+                          <MailIcon className="size-3.5" />
+                          <span>Verify Email</span>
+                        </button>
+                      </div>
                     )}
                   </div>
 
@@ -280,6 +291,21 @@ const Setting = () => {
                     )}
                   </div>
                 </div>
+
+                {/* Email Verification Modal Popup */}
+                {showVerifyModal && session?.user && (
+                  <EmailVerificationModal
+                    email={session.user.email}
+                    onClose={() => setShowVerifyModal(false)}
+                    onVerified={() => {
+                      setShowVerifyModal(false)
+                      // Refresh local state
+                      setUserInfo(prev => prev ? { ...prev, emailVerified: true } : prev)
+                      // Notify App.tsx to refresh its state too
+                      window.dispatchEvent(new Event('email-verified'))
+                    }}
+                  />
+                )}
 
                 <AccountSettingsCards 
                   classNames={{

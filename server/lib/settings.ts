@@ -39,24 +39,36 @@ export const getSettingInt = async (key: string): Promise<number> => {
 export const incrementOpenrouterCounter = async (): Promise<void> => {
     try {
         const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+        const dateSetting = await prisma.systemSetting.findUnique({
+            where: { id: 'openrouterRequestsDate' }
+        });
 
-        await prisma.$executeRaw`
-            INSERT INTO "SystemSetting" ("id", "value")
-            VALUES
-                ('openrouterRequestsDate', ${today}),
-                ('openrouterRequestsToday', '1')
-            ON CONFLICT ("id") DO UPDATE SET
-                "value" = CASE
-                    WHEN EXCLUDED."id" = 'openrouterRequestsToday' THEN
-                        CASE
-                            WHEN (SELECT "value" FROM "SystemSetting" WHERE "id" = 'openrouterRequestsDate') = ${today}
-                                THEN CAST(CAST("SystemSetting"."value" AS INTEGER) + 1 AS TEXT)
-                            ELSE '1'
-                        END
-                    WHEN EXCLUDED."id" = 'openrouterRequestsDate' THEN ${today}
-                    ELSE "SystemSetting"."value"
-                END;
-        `;
+        const isSameDay = dateSetting?.value === today;
+
+        if (!isSameDay) {
+            await prisma.$transaction([
+                prisma.systemSetting.upsert({
+                    where: { id: 'openrouterRequestsDate' },
+                    create: { id: 'openrouterRequestsDate', value: today },
+                    update: { value: today }
+                }),
+                prisma.systemSetting.upsert({
+                    where: { id: 'openrouterRequestsToday' },
+                    create: { id: 'openrouterRequestsToday', value: '1' },
+                    update: { value: '1' }
+                })
+            ]);
+        } else {
+            const currentSetting = await prisma.systemSetting.findUnique({
+                where: { id: 'openrouterRequestsToday' }
+            });
+            const currentCount = parseInt(currentSetting?.value || '0', 10) || 0;
+            await prisma.systemSetting.upsert({
+                where: { id: 'openrouterRequestsToday' },
+                create: { id: 'openrouterRequestsToday', value: '1' },
+                update: { value: (currentCount + 1).toString() }
+            });
+        }
     } catch (err: any) {
         console.error('[incrementOpenrouterCounter] Error:', err.message);
     }

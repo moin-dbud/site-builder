@@ -1,4 +1,4 @@
-import { Routes, Route, useLocation } from 'react-router-dom'
+import { Routes, Route, useLocation, useNavigate } from 'react-router-dom'
 import Home from './pages/Home'
 import Pricing from './pages/Pricing'
 import Community from './pages/Community'
@@ -18,8 +18,8 @@ import { Analytics } from '@vercel/analytics/react';
 import { useState, useEffect } from 'react'
 import { authClient } from '@/lib/auth-client'
 import api from '@/configs/axios'
-import { EmailVerificationModal } from './components/EmailVerificationModal'
 import { SetUsernameModal } from './components/SetUsernameModal'
+import { AlertCircleIcon, XIcon } from 'lucide-react'
 
 const UserProfileRoute = () => {
   const { username } = useParams()
@@ -35,10 +35,12 @@ const ViewRoute = () => {
 
 const App = () => {
   const {pathname} = useLocation()
+  const navigate = useNavigate()
   const { data: session } = authClient.useSession()
   const [userData, setUserData] = useState<{ emailVerified: boolean; username: string | null; profilePublic: boolean } | null>(null)
   // Fetched from /api/public-settings — defaults to true (verification required) until server responds
   const [emailVerificationRequired, setEmailVerificationRequired] = useState(true)
+  const [bannerDismissed, setBannerDismissed] = useState(false)
 
   // Fetch public settings once on mount so we know if email verification is enabled
   useEffect(() => {
@@ -89,23 +91,57 @@ const App = () => {
     }
   }, [session?.user?.id])
 
+  // Listen for custom event from Settings page after successful verification
+  useEffect(() => {
+    const handleVerified = () => fetchUserData()
+    window.addEventListener('email-verified', handleVerified)
+    return () => window.removeEventListener('email-verified', handleVerified)
+  }, [session?.user?.id])
+
   const isUserProjectSlugRoute = pathname.startsWith('/@') && pathname.split('/').filter(Boolean).length > 1
   const hideNavbar = (pathname.startsWith('/projects/') && pathname !== '/projects')
                       || pathname.startsWith('/view/') 
                       || pathname.startsWith('/preview/')
                       || pathname.startsWith('/payment/') 
                       || isUserProjectSlugRoute
+
+  const showUnverifiedBanner = session?.user 
+    && userData 
+    && emailVerificationRequired 
+    && !userData.emailVerified 
+    && !bannerDismissed 
+    && !hideNavbar
+
   return (
     <div>
       <Toaster />
       {!hideNavbar && <Navbar />}
 
-      {/* Email Verification Modal — only shown when admin has enabled email verification */}
-      {session?.user && userData && emailVerificationRequired && !userData.emailVerified && (
-        <EmailVerificationModal 
-          email={session.user.email} 
-          onVerified={() => fetchUserData()} 
-        />
+      {/* Unverified Email Banner */}
+      {showUnverifiedBanner && (
+        <div className="sticky top-16 z-40 bg-amber-950/90 border-b border-amber-500/30 backdrop-blur-sm">
+          <div className="max-w-7xl mx-auto px-4 py-2.5 flex items-center justify-between gap-3">
+            <button
+              onClick={() => navigate('/account/settings', { state: { section: 'profile' } })}
+              className="flex items-center gap-2.5 text-xs text-amber-200 hover:text-amber-100 transition-colors group flex-1 min-w-0"
+            >
+              <AlertCircleIcon className="size-4 text-amber-400 shrink-0" />
+              <span className="font-medium truncate">
+                Your email is not verified.
+                <span className="text-amber-400 group-hover:underline ml-1">
+                  Click here to verify →
+                </span>
+              </span>
+            </button>
+            <button
+              onClick={() => setBannerDismissed(true)}
+              className="p-1 rounded-md text-amber-400/60 hover:text-amber-300 hover:bg-amber-900/50 transition-all shrink-0"
+              aria-label="Dismiss banner"
+            >
+              <XIcon className="size-3.5" />
+            </button>
+          </div>
+        </div>
       )}
 
       {/* Username Modal — shown after email step (or immediately if verification is disabled) */}

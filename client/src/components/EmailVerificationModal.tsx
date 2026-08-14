@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react'
-import { MailIcon, Loader2Icon, RefreshCwIcon, CheckCircle2Icon } from 'lucide-react'
+import { MailIcon, Loader2Icon, RefreshCwIcon, CheckCircle2Icon, XIcon } from 'lucide-react'
 import api from '@/configs/axios'
 import { toast } from 'sonner'
 
 interface EmailVerificationModalProps {
   email: string
   onVerified: () => void
+  onClose?: () => void
 }
 
-export const EmailVerificationModal: React.FC<EmailVerificationModalProps> = ({ email, onVerified }) => {
+export const EmailVerificationModal: React.FC<EmailVerificationModalProps> = ({ email, onVerified, onClose }) => {
   const [otp, setOtp] = useState('')
   const [loading, setLoading] = useState(false)
   const [sendingOtp, setSendingOtp] = useState(false)
@@ -44,8 +45,8 @@ export const EmailVerificationModal: React.FC<EmailVerificationModalProps> = ({ 
 
   const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!otp || otp.trim().length !== 6) {
-      toast.error('Please enter the full 6-digit OTP code')
+    if (!otp || otp.trim().length !== 4) {
+      toast.error('Please enter the full 4-digit OTP code')
       return
     }
 
@@ -66,27 +67,39 @@ export const EmailVerificationModal: React.FC<EmailVerificationModalProps> = ({ 
       <div className="w-full max-w-md bg-[#111216] border border-[#22242c] rounded-2xl p-6 shadow-2xl text-white font-sans relative overflow-hidden animate-in fade-in zoom-in duration-200">
         <div className="absolute top-0 right-0 w-48 h-48 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none" />
 
+        {/* Close button */}
+        {onClose && (
+          <button
+            type="button"
+            onClick={onClose}
+            className="absolute top-4 right-4 z-10 p-1.5 rounded-lg bg-[#1c1e26] border border-[#2d303b] text-gray-400 hover:text-white hover:bg-[#22242c] transition-all"
+            aria-label="Close"
+          >
+            <XIcon className="size-4" />
+          </button>
+        )}
+
         <div className="flex flex-col items-center text-center mb-6">
           <div className="p-3 rounded-2xl bg-indigo-600/10 border border-indigo-500/20 text-indigo-400 mb-3">
             <MailIcon className="size-7" />
           </div>
           <h2 className="text-xl font-bold text-gray-100 tracking-tight">Verify Your Email Address</h2>
           <p className="text-xs text-gray-400 mt-1 font-mono-tech max-w-xs">
-            We sent a 6-digit code to <span className="text-indigo-300 font-medium">{email}</span>
+            We sent a 4-digit code to <span className="text-indigo-300 font-medium">{email}</span>
           </p>
         </div>
 
         <form onSubmit={handleVerify} className="space-y-5">
           <div>
             <label className="block text-xs font-medium text-gray-300 mb-2 text-center">
-              Enter 6-Digit Verification Code
+              Enter 4-Digit Verification Code
             </label>
             <input 
               type="text"
-              maxLength={6}
+              maxLength={4}
               value={otp}
               onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
-              placeholder="123456"
+              placeholder="1234"
               className="w-full text-center tracking-[0.5em] text-xl font-mono-tech py-3 bg-[#08080a] border border-[#22242c] focus:border-indigo-500 rounded-xl outline-none text-white placeholder:text-gray-700 transition-all"
               autoFocus
             />
@@ -94,7 +107,7 @@ export const EmailVerificationModal: React.FC<EmailVerificationModalProps> = ({ 
 
           <button
             type="submit"
-            disabled={loading || otp.length !== 6}
+            disabled={loading || otp.length !== 4}
             className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-semibold rounded-xl transition-all shadow-lg shadow-indigo-950/50 flex items-center justify-center gap-2"
           >
             {loading ? (
@@ -122,6 +135,8 @@ export const EmailVerificationModal: React.FC<EmailVerificationModalProps> = ({ 
             <span>{cooldown > 0 ? `Resend in ${cooldown}s` : 'Resend Code'}</span>
           </button>
         </div>
+
+        <p className="text-[10px] text-gray-600 text-center mt-3 font-mono-tech">Code expires in 5 minutes</p>
       </div>
     </div>
   )
