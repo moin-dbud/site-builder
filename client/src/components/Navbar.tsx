@@ -13,7 +13,6 @@ const Navbar = () => {
   const [credits, setCredits] = useState<number | null>(null)
 
   const { data: session } = authClient.useSession()
-  const isHomePage = location.pathname === '/'
 
   const getCredits = async () => {
     try {
@@ -44,13 +43,7 @@ const Navbar = () => {
 
   return (
     <>
-      <header 
-        className={`${
-          isHomePage
-            ? 'absolute top-0 inset-x-0 z-50 px-6 md:px-12 pt-6 flex items-center justify-between pointer-events-auto'
-            : 'sticky top-0 z-50 w-full px-6 md:px-12 py-3.5 bg-[#08090d]/90 backdrop-blur-xl border-b border-white/10 flex items-center justify-between transition-all duration-300'
-        }`}
-      >
+      <header className="absolute top-0 inset-x-0 z-50 px-6 md:px-12 pt-6 flex items-center justify-between pointer-events-auto transition-all duration-300">
         {/* Brand Logo */}
         <Link to="/" className="flex items-center gap-2.5 group">
           <img
@@ -117,7 +110,7 @@ const Navbar = () => {
                   <span>{credits}</span>
                 </button>
               )}
-              <div className='bg-white/10 backdrop-blur-xl border border-white/40 rounded-full'>
+              <div className="bg-white/10 backdrop-blur-xl border border-white/40 rounded-full">
                 <UserButton size="icon" />
               </div>
             </div>
