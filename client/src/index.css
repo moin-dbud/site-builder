@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+﻿@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Playfair+Display:ital,wght@1,400;1,500;1,600;1,700&display=swap');
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
@@ -7,7 +7,7 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* ─── Kinetic Studio Dark System Tokens ─────────────────────────────── */
+/* â”€â”€â”€ Kinetic Studio Dark System Tokens â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 :root {
   --kinetic-bg: #08080a;
   --kinetic-surface: #111216;
@@ -25,7 +25,7 @@
   --kinetic-rose: #f43f5e;
 }
 
-/* ─── Base Styles ───────────────────────────────────────────────────── */
+/* â”€â”€â”€ Base Styles â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 * {
   font-family: 'Plus Jakarta Sans', 'Geist Variable', sans-serif;
   box-sizing: border-box;
@@ -40,12 +40,12 @@ html, body, #root {
   overflow-x: hidden;
 }
 
-/* ─── Technical Font Class ──────────────────────────────────────────── */
+/* â”€â”€â”€ Technical Font Class â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .font-mono-tech {
   font-family: 'JetBrains Mono', monospace;
 }
 
-/* ─── Custom Kinetic Animations ─────────────────────────────────────── */
+/* â”€â”€â”€ Custom Kinetic Animations â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 @keyframes kineticFade {
   from {
     opacity: 0;
@@ -89,7 +89,7 @@ html, body, #root {
   animation: laserScan 2.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
 
-/* ─── Scrollbar Customization ───────────────────────────────────────── */
+/* â”€â”€â”€ Scrollbar Customization â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
@@ -113,7 +113,7 @@ html, body, #root {
   background: var(--kinetic-border-light);
 }
 
-/* ─── Tailwind Overrides ───────────────────────────────────────────── */
+/* â”€â”€â”€ Tailwind Overrides â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 @layer base {
   button {
     @apply cursor-pointer;
@@ -132,6 +132,7 @@ html, body, #root {
 @theme inline {
   --font-sans: 'Plus Jakarta Sans', 'Geist Variable', sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
+  --font-serif: 'Playfair Display', Georgia, serif;
 }
 
 /* Dark mode default variables */
@@ -155,4 +156,42 @@ html, body, #root {
   --input: #171920;
   --ring: #6366f1;
   --radius: 0.5rem;
+}
+/* === Buildo Landing Utilities === */
+.font-serif-italic {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-style: italic;
+}
+
+/* Section 4 horizontal scroll track */
+.how-we-work-track {
+  display: flex;
+  gap: 1.5rem;
+  will-change: transform;
+}
+
+/* Section 5 — no-scrollbar snap carousel */
+.snap-carousel {
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+.snap-carousel > * {
+  scroll-snap-align: start;
+  flex-shrink: 0;
+}
+
+/* Section 4 glass card glow keyframe */
+@keyframes cardGlow {
+  0%, 100% { opacity: 0.6; }
+  50%       { opacity: 1;   }
+}
+
+/* Ambient scale breathe for SubtleParallaxImage */
+@keyframes ambientBreathe {
+  0%, 100% { transform: scale(1.10);   }
+  50%       { transform: scale(1.125); }
+}
+.animate-ambient-breathe {
+  animation: ambientBreathe var(--breathe-dur, 25s) ease-in-out infinite;
 }

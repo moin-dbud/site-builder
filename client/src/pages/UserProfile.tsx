@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
-import { Loader2Icon, GlobeIcon, ExternalLinkIcon, CalendarIcon, ArrowLeftIcon, SparklesIcon, EyeOffIcon, MailIcon } from 'lucide-react'
+import { Loader2Icon, GlobeIcon, ExternalLinkIcon, CalendarIcon, ArrowLeftIcon, SparklesIcon, EyeOffIcon } from 'lucide-react'
 import api from '@/configs/axios'
 import { toast } from 'sonner'
 import Footer from '../components/Footer'
