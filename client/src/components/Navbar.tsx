@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+﻿import { useState, useEffect } from 'react'
 import { assets } from '../assets/assets'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { authClient } from '@/lib/auth-client'
@@ -107,25 +107,27 @@ const Navbar = () => {
         {/* Right Action / Auth Control */}
         <div className="flex items-center gap-3">
           {session?.user ? (
-            <div className="flex items-center gap-2.5 bg-white/10 backdrop-blur-xl border border-white/20 rounded-full p-1 pl-3 shadow-lg">
+            <div className="flex items-center gap-2 px-1">
               {credits !== null && (
                 <button
                   onClick={() => navigate('/account/settings?section=billing', { state: { section: 'billing' } })}
-                  className="flex items-center gap-1.5 text-xs font-mono-tech text-amber-200 font-semibold px-2.5 py-0.5 rounded-full bg-amber-500/20 border border-amber-400/30 hover:bg-amber-500/30 transition-colors"
+                  className="flex items-center gap-1.5 text-xs font-mono-tech text-amber-200 font-semibold px-2.5 py-1 rounded-full bg-amber-500/20 border border-amber-400/30 hover:bg-amber-500/30 transition-colors"
                 >
                   <ZapIcon className="size-3 text-amber-300" />
-                  <span>{credits} Credits</span>
+                  <span>{credits}</span>
                 </button>
               )}
-              <UserButton />
+              <div className='bg-white/10 backdrop-blur-xl border border-white/40 rounded-full'>
+                <UserButton size="icon" />
+              </div>
             </div>
           ) : (
             <Link
-              to="/pricing"
+              to="/auth/signin"
               className="inline-flex items-center gap-1.5 bg-gradient-to-r from-amber-500 via-orange-500 to-indigo-600 hover:from-amber-400 hover:to-indigo-500 text-white font-semibold text-xs sm:text-sm rounded-full px-5 py-2 transition-all duration-300 shadow-lg shadow-indigo-950/40 hover:scale-[1.04] active:scale-95 border border-white/20"
             >
               <span>Get Started</span>
-              <span className="text-amber-200">✦</span>
+              <span className="text-amber-200">→</span>
             </Link>
           )}
 
@@ -198,11 +200,11 @@ const Navbar = () => {
           <div className="pt-4 border-t border-white/15 text-center">
             {!session?.user ? (
               <Link
-                to="/pricing"
+                to="/auth/signin"
                 onClick={() => setMenuOpen(false)}
                 className="block w-full py-3 text-sm font-semibold text-white bg-gradient-to-r from-amber-500 via-orange-500 to-indigo-600 rounded-full transition-all shadow-lg shadow-indigo-950/50 text-center"
               >
-                Get Started ✦
+                Get Started →
               </Link>
             ) : (
               <p className="text-xs text-gray-400 font-mono-tech">Signed in as {session.user.email}</p>

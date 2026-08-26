@@ -6,6 +6,9 @@ import { authClient } from '@/lib/auth-client'
 import { HeroSection, PROMPT_EXAMPLES, BUILD_MODES } from '@/components/sections/HeroSection'
 import { FromThoughtToWebsiteSection } from '@/components/sections/FromThoughtToWebsiteSection'
 import PreviewSection from '@/components/sections/PreviewSection'
+import HowWeWorkSection from '@/components/sections/HowWeWorkSection'
+import CTASection from '@/components/sections/CTASection'
+import Footer from '@/components/Footer'
 
 const Home = () => {
   const { data: session } = authClient.useSession()
@@ -16,13 +19,21 @@ const Home = () => {
   const [isFocused, setIsFocused] = useState(false)
   const [selectedMode, setSelectedMode] = useState<string | null>(null)
 
-  // Profile public state — fetched from /api/user/me
+  // Profile public state - fetched from /api/user/me
   const [profilePublic, setProfilePublic] = useState<boolean | null>(null)
 
   // Typewriter effect state for placeholder
   const [currentExampleIndex, setCurrentExampleIndex] = useState(0)
   const [placeholderText, setPlaceholderText] = useState('')
   const [isDeleting, setIsDeleting] = useState(false)
+
+  // Always scroll to top (Hero section) on page refresh and mount
+  useEffect(() => {
+    if ('scrollRestoration' in window.history) {
+      window.history.scrollRestoration = 'manual'
+    }
+    window.scrollTo(0, 0)
+  }, [])
 
   // Fetch profile public status when user is logged in
   useEffect(() => {
@@ -113,9 +124,17 @@ const Home = () => {
       <FromThoughtToWebsiteSection />
 
       <PreviewSection />
+
+      {/* 4. How We Work Section */}
+      <HowWeWorkSection />
+
+      {/* 4. CTA Section */}
+      <CTASection />
+
+      {/* 5. Footer */}
+      <Footer />
     </div>
   )
 }
 
 export default Home
-

@@ -1,4 +1,4 @@
-import { Routes, Route, useLocation, useNavigate } from 'react-router-dom'
+﻿import { Routes, Route, useLocation, useNavigate } from 'react-router-dom'
 import Home from './pages/Home'
 import Pricing from './pages/Pricing'
 import Community from './pages/Community'
@@ -34,13 +34,21 @@ const ViewRoute = () => {
 }
 
 const App = () => {
-  const {pathname} = useLocation()
+  const { pathname } = useLocation()
   const navigate = useNavigate()
   const { data: session } = authClient.useSession()
   const [userData, setUserData] = useState<{ emailVerified: boolean; username: string | null; profilePublic: boolean } | null>(null)
   // Fetched from /api/public-settings — defaults to true (verification required) until server responds
   const [emailVerificationRequired, setEmailVerificationRequired] = useState(true)
   const [bannerDismissed, setBannerDismissed] = useState(false)
+
+  // Force scroll to top on refresh and route change
+  useEffect(() => {
+    if ('scrollRestoration' in window.history) {
+      window.history.scrollRestoration = 'manual'
+    }
+    window.scrollTo(0, 0)
+  }, [pathname])
 
   // Fetch public settings once on mount so we know if email verification is enabled
   useEffect(() => {
