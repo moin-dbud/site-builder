@@ -4,510 +4,604 @@
   <img src="https://buildo.moinsheikh.in/assets/logo-Di-aHq8_.svg" alt="Buildo Logo" width="120" />
 </p>
 
-<h1 align="center">Buildo</h1>
+# Buildo
 
-### AI-Powered Website Generator — describe it, and watch it build.
+### Autonomous AI-Powered Full-Stack Website Builder & Design System Platform
 
-[![Live](https://img.shields.io/badge/Live-buildo.moinsheikh.in-6366f1?style=flat-square&logo=vercel&logoColor=white)](https://buildo.moinsheikh.in)
 
-![React](https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react&logoColor=white)
-![TypeScript](https://img.shields.io/badge/TypeScript-6%20/%207-3178C6?style=flat-square&logo=typescript&logoColor=white)
-![Vite](https://img.shields.io/badge/Vite-8-646CFF?style=flat-square&logo=vite&logoColor=white)
-![Tailwind CSS](https://img.shields.io/badge/TailwindCSS-4-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white)
-![Express](https://img.shields.io/badge/Express-5-000000?style=flat-square&logo=express&logoColor=white)
-![Prisma](https://img.shields.io/badge/Prisma-7-2D3748?style=flat-square&logo=prisma&logoColor=white)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Neon-4169E1?style=flat-square&logo=postgresql&logoColor=white)
-![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)
+[![Live Platform](https://img.shields.io/badge/Live-buildo.moinsheikh.in-6366f1?style=for-the-badge&logo=vercel&logoColor=white)](https://buildo.moinsheikh.in)
+[![React 19](https://img.shields.io/badge/React-19.2-61DAFB?style=for-the-badge&logo=react&logoColor=white)](https://react.dev)
+[![TypeScript 6/7](https://img.shields.io/badge/TypeScript-6%20%2F%207-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org)
+[![Vite 8](https://img.shields.io/badge/Vite-8.1-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vite.dev)
+[![Tailwind CSS 4](https://img.shields.io/badge/Tailwind_CSS-4.3-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
+[![Express 5](https://img.shields.io/badge/Express-5.2-000000?style=for-the-badge&logo=express&logoColor=white)](https://expressjs.com)
+[![Prisma 7](https://img.shields.io/badge/Prisma-7.9-2D3748?style=for-the-badge&logo=prisma&logoColor=white)](https://www.prisma.io)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Neon_DB-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)](https://neon.tech)
+[![License MIT](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](./LICENSE)
 
 </div>
 
 ---
 
-## Overview
+## 📋 Table of Contents
 
-Buildo is a full-stack AI website builder. Users describe the site they need — a bakery landing page, a SaaS pricing section, a personal portfolio — and the AI generates complete, standalone HTML/CSS/JavaScript powered by Tailwind CSS and curated design system presets. No templates, no drag-and-drop; just a prompt and a production-ready page.
-
-After generation, users work inside a project editor with a live iframe preview, a sidebar chat for conversational revisions, a code editor for manual tweaks, and full version history with one-click rollback. Projects can be published to public URLs (`/@username/project-slug`) and browsed by anyone in the community feed.
-
-The platform is monetized through a credits system (configurable per-generation and per-revision costs) with Cashfree payment integration. Account management covers email verification via OTP, unique username enforcement, profile privacy controls, billing history, and security settings.
-
-A separate **admin panel** provides platform operators with a management dashboard, user/project/transaction oversight, runtime-configurable system settings, design system CRUD, maintenance mode, payment freeze controls, and a full audit log.
-
----
-
-## Features
-
-### Website Generation
-- **AI-powered generation** — describe any website and receive complete, standalone HTML with Tailwind CSS, Google Fonts, semantic markup, schema.org structured data, and realistic copy
-- **Prompt enhancement** — the AI automatically expands raw prompts into detailed specifications before generating code
-- **Design system variation** — each project is assigned a curated design system (palette, typography, spacing, component patterns) from a library managed in the database
-- **Live preview** — generated sites render in a sandboxed iframe immediately
-- **Conversational revision** — refine specific elements through a sidebar chat; the AI applies changes in context
-- **Full version history** — every AI-generated version is saved; roll back to any previous version with one click
-- **Code editor panel** — view and manually edit raw HTML alongside the live preview
-- **Manual save** — save hand-edited code directly without consuming credits
-
-### Publishing & Community
-- **Public URLs** — publish projects at `/@username/slug`
-- **Community feed** — public gallery of all published projects with author badges, featured projects sorted first
-- **Public user profiles** — each user has a profile page at `/@username` listing their published work
-- **Profile privacy** — users can toggle their profile between public and private
-- **Featured projects** — admins can pin noteworthy projects to the top of the community feed
-
-### Account & Payments
-- **Credits system** — generation and revision costs are configurable via admin settings (default: 5 credits each); new accounts start with 20 free credits
-- **Cashfree payment integration** — order creation, Cashfree Checkout SDK, HMAC-SHA256 webhook verification with replay-attack protection, and a polling-based payment verification page
-- **Credit plans** — Basic (₹499 / 100 credits), Pro (₹1,499 / 400 credits), Enterprise (₹3,999 / 1,000 credits)
-- **Email verification via OTP** — 4-digit code sent via Gmail SMTP (Nodemailer); expires after 5 minutes
-- **Unique username enforcement** — 3–20 chars, lowercase + numbers + hyphens/underscores; reserved system words blocked
-- **User notifications** — in-app toast notifications triggered by admin actions (e.g., credit adjustments)
-- **Account settings** — profile details, email verification status, billing & transaction history, password management, account deletion
-
-### Admin Panel (`admin/`)
-- **Dashboard** — aggregate stats: users (total/verified), projects (total/published), transactions (total/revenue), signups over time, revenue over time, design system usage breakdown, OpenRouter daily request counter
-- **User management** — search, paginated listing, detail view with projects & transactions, credit adjustment (with audit + user notification), session revocation / suspend, delete
-- **Project management** — search, filter (all/published/featured), unpublish, feature/unfeature, delete
-- **Transaction management** — paginated listing with status filter, revenue aggregate
-- **Design system CRUD** — create, edit, enable/disable design systems at runtime (DB-backed; falls back to static presets if DB is empty)
-- **System settings** — key-value store for runtime config: credits per generation/revision, free signup credits, active AI model, OpenRouter daily cap, email verification toggle
-- **Danger zone** — maintenance mode toggle, Cashfree transaction freeze, email verification toggle, bulk cleanup of unverified accounts (>30 days)
-- **Audit log** — immutable, paginated log of every admin action with actor, target, and details
+- [Overview](#-overview)
+- [Key Features](#-key-features)
+  - [Instant Async AI Generation Pipeline](#1-instant-async-ai-generation-pipeline)
+  - [Studio Workspace & Live Editor](#2-studio-workspace--live-editor)
+  - [Publishing & Community Feed](#3-publishing--community-feed)
+  - [Credits Economy & Payments](#4-credits-economy--payments)
+  - [Platform Operator Admin Panel](#5-platform-operator-admin-panel)
+- [System Architecture](#-system-architecture)
+- [Tech Stack](#-tech-stack)
+- [Repository Structure](#-repository-structure)
+- [Database Schema](#-database-schema)
+- [Getting Started](#-getting-started)
+  - [Prerequisites](#prerequisites)
+  - [1. Clone Repository](#1-clone-repository)
+  - [2. Install Dependencies](#2-install-dependencies)
+  - [3. Environment Setup](#3-environment-setup)
+  - [4. Database Migration & Initialization](#4-database-migration--initialization)
+  - [5. Run Development Servers](#5-run-development-servers)
+  - [6. Admin Account Setup](#6-admin-account-setup)
+- [Available Scripts](#-available-scripts)
+- [Key Technical Implementation Highlights](#-key-technical-implementation-highlights)
+- [Deployment](#-deployment)
+- [Contributing](#-contributing)
+- [License](#-license)
+- [Developer](#-developer)
 
 ---
 
-## Tech Stack
+## 🌟 Overview
 
-### Frontend — `client/`
+**Buildo** is an enterprise-grade, full-stack AI website builder and design system platform. Instead of relying on rigid drag-and-drop templates, users describe their product, business, or personal brand in natural language. Buildo autonomously analyzes the prompt, assigns a curated, database-backed design system (color palette, typography pairings, component spacing, component rules), and generates production-ready, single-page HTML websites with inline Tailwind CSS and functional interactivity.
 
-| Technology | Version | Purpose |
-|---|---|---|
-| React | 19 | UI framework |
-| TypeScript | ~6 | Type safety |
-| Vite | 8 | Build tool & dev server |
-| Tailwind CSS | 4 | Utility-first styling |
-| React Router DOM | 7 | Client-side routing |
-| Better Auth (client) | 1.6 | Authentication & session management |
-| `@daveyplate/better-auth-ui` | 3.4 | Pre-built auth UI (sign-in, settings, delete) |
-| Axios | 1.18 | HTTP client |
-| Lucide React | 1.25 | Icon library |
-| Sonner | 2 | Toast notifications |
-| `@cashfreepayments/cashfree-js` | 1.0 | Cashfree Checkout SDK |
-| shadcn/ui + Base UI | — | UI component primitives |
-| `@vercel/analytics` | 2 | Production analytics |
-| `@vercel/speed-insights` | 2 | Core Web Vitals monitoring |
-| `@fontsource-variable/geist` | 5.3 | Geist variable font |
+Built on a modern micro-frontend/decoupled architecture using **React 19**, **TypeScript**, **Express 5**, **Prisma 7**, and **Neon Serverless PostgreSQL**, Buildo features an **asynchronous generation pipeline** that yields sub-300ms workspace navigation, side-by-side live iframe rendering, conversational AI revisions, full version rollback history, a public community showcase, and an integrated **Cashfree payment gateway**.
 
-### Admin Panel — `admin/`
-
-| Technology | Version | Purpose |
-|---|---|---|
-| React | 19 | UI framework |
-| TypeScript | ~6 | Type safety |
-| Vite | 8 | Build tool & dev server |
-| Tailwind CSS | 4 | Styling |
-| React Router DOM | 7 | Client-side routing |
-| Recharts | 3.10 | Dashboard charts (signups, revenue) |
-| Better Auth (client) | 1.6 | Shared auth session with main client |
-| Lucide React | 1.26 | Icons |
-| Sonner | 2 | Toast notifications |
-
-### Backend — `server/`
-
-| Technology | Version | Purpose |
-|---|---|---|
-| Node.js + Express | 5 | HTTP server & routing |
-| TypeScript | 7 | Type safety |
-| Prisma | 7 | ORM, migrations, type-safe queries |
-| `@prisma/adapter-pg` | 7.9 | Native PostgreSQL driver adapter (connection pooling) |
-| PostgreSQL (Neon) | — | Primary database |
-| Better Auth (server) | 1.6 | Authentication, sessions, account management |
-| Nodemailer | 9 | Transactional email (OTP via Gmail SMTP, Ethereal fallback) |
-| `cashfree-pg` | 6 | Payment order creation & webhook verification |
-| `openai` SDK | 6.48 | OpenRouter API client for AI completions |
-| `tsx` + `nodemon` | — | Dev server with hot reload |
-
-### AI
-
-- **Provider:** [OpenRouter](https://openrouter.ai) (`https://openrouter.ai/api/v1`)
-- **Model:** Configurable via admin settings — default `cohere/north-mini-code:free`
-- **Usage:** Two API calls per generation/revision (prompt enhancement + code generation), tracked with a daily request counter and configurable cap
-
-### Payments
-
-- **Gateway:** [Cashfree](https://cashfree.com)
-- **Flow:** Order creation → Cashfree Checkout (JS SDK) → Webhook confirmation (HMAC-SHA256 + replay guard) → Polling-based client verification fallback
-- **Admin controls:** Transaction freeze toggle, per-plan pricing defined server-side
+A standalone **Admin Operator Panel** (`admin/`) equips platform administrators with realtime analytics, user/project moderation, credit management with audit logging, runtime design system CRUD, system setting configuration, and emergency maintenance controls.
 
 ---
 
-## Architecture
+## ✨ Key Features
+
+### 1. Instant Async AI Generation Pipeline
+* **Sub-300ms Workspace Navigation:** Creating a project initializes the database record instantly (`POST /api/user/project`) and returns `{ projectId }` in under 300ms, immediately transitioning the user to their studio workspace without hanging.
+* **Non-Blocking Background Worker:** AI prompt enhancement and double-pass code generation (enhanced prompt + Tailwind CSS single-page HTML) execute asynchronously in background worker functions (`generateProjectCodeInBackground`).
+* **Automated Design System Pairing:** Prompts are algorithmically matched with database-backed design systems containing curated color palettes, Google Fonts imports, spacing variables, and component layout guidelines.
+* **Contextual Copy & Media:** Generates realistic, contextual copy and dynamic high-resolution imagery using Picsum seed URLs — avoiding generic placeholders and lorem ipsum text.
+
+### 2. Studio Workspace & Live Editor
+* **Multi-Device Live Preview:** Sandboxed iframe renderer supporting real-time toggling between Desktop, Tablet, and Mobile viewport modes.
+* **Conversational AI Revisions:** In-context chat sidebar (`/api/project/revision/:projectId`) allowing users to request targeted design/content changes using conversational prompts.
+* **Immutable Version History & Rollback:** Every AI generation and revision creates an immutable `Version` record in PostgreSQL. Users can view diff descriptions and restore any previous version with a single click.
+* **Integrated Code Editor:** Built-in code editor panel displaying raw HTML/CSS alongside the live preview, allowing manual edits and zero-credit saving.
+
+### 3. Publishing & Community Feed
+* **Clean Public URLs:** Publish projects with customized SEO-friendly slugs accessible via clean public routes (`/@username/project-slug`).
+* **Community Showcase:** Public gallery featuring community-created websites with author metadata, searchable project listings, and admin-pinned featured projects.
+* **Public Profiles:** Personalized user profile pages (`/@username`) showcasing published websites. Includes privacy controls to toggle profile visibility between public and private.
+
+### 4. Credits Economy & Payments
+* **Configurable Credit System:** New users automatically receive free signup credits (default: 20). Per-generation and per-revision credit costs are configurable at runtime via admin settings.
+* **Cashfree Payment Gateway Integration:** Server-side order creation (`cashfree-pg` SDK v6), Cashfree Checkout JS integration, HMAC-SHA256 webhook signature verification with replay protection, and client-side status polling.
+* **Flexible Credit Plans:** Basic (₹499 / 100 credits), Pro (₹1,499 / 400 credits), and Enterprise (₹3,999 / 1,000 credits).
+
+### 5. Platform Operator Admin Panel
+* **Realtime Analytics Dashboard:** Interactive Recharts visualizers tracking signup trends, revenue growth, active project distribution, design system usage, and daily OpenRouter API request counts.
+* **User & Project Oversight:** Paginated user management, project unpublishing/moderation, featuring controls, and session revocation.
+* **Credit Adjustments & Audit Logs:** Admin credit adjustments automatically create an immutable `AdminAuditLog` entry and deliver an in-app `UserNotification` to the target user.
+* **Runtime Design System & System Settings Editor:** Live CRUD interface for creating/editing design systems and adjusting platform settings (credits costs, active AI model, OpenRouter request caps, email verification requirement).
+* **Emergency Maintenance & Freeze Controls:** One-click toggles for system-wide maintenance mode, payment freeze, and automated bulk cleanup of unverified accounts.
+
+---
+
+## 🏗 System Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                        Clients                              │
-│  ┌──────────────┐  ┌──────────────┐                         │
-│  │   client/    │  │   admin/     │    (React + Vite)        │
-│  │  :5173       │  │  :5174       │                          │
-│  └──────┬───────┘  └──────┬───────┘                         │
-│         │                 │                                  │
-│         ▼                 ▼                                  │
-│  ┌──────────────────────────────────┐                       │
-│  │        server/ (Express :3000)   │                       │
-│  │  ┌────────────────────────────┐  │                       │
-│  │  │ Better Auth (/api/auth/*)  │  │  Session management   │
-│  │  ├────────────────────────────┤  │                       │
-│  │  │ User Routes (/api/user/*)  │  │  Projects, credits,   │
-│  │  │ Project Routes             │  │  OTP, profiles         │
-│  │  │ Cashfree Routes            │  │  Payments              │
-│  │  ├────────────────────────────┤  │                       │
-│  │  │ Admin Routes (/api/admin/*)│  │  Dashboard, CRUD,     │
-│  │  │   (requireAdmin guard)     │  │  settings, audit log  │
-│  │  ├────────────────────────────┤  │                       │
-│  │  │ Maintenance Mode Middleware│  │  Blocks non-admin API │
-│  │  └────────────────────────────┘  │  when enabled          │
-│  └──────────────┬───────────────────┘                       │
-│                 │                                            │
-│    ┌────────────┼───────────────┐                            │
-│    ▼            ▼               ▼                            │
-│  Neon DB     OpenRouter     Cashfree                         │
-│ (Postgres)    (AI API)     (Payments)                        │
-└─────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────────┐
+│                           Client Ecosystem                              │
+│                                                                         │
+│    ┌───────────────────────────┐     ┌───────────────────────────┐      │
+│    │     client/ (Port 5173)   │     │      admin/ (Port 5174)   │      │
+│    │  (Main User Web Studio)   │     │  (Platform Admin Console) │      │
+│    └─────────────┬─────────────┘     └─────────────┬─────────────┘      │
+└──────────────────┼─────────────────────────────────┼────────────────────┘
+                   │                                 │
+                   └────────────────┬────────────────┘
+                                    │ HTTP / REST API (Axios + Cookies)
+                                    ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│                        Express 5 Server (Port 3000)                     │
+│                                                                         │
+│  ┌──────────────────────────────┐    ┌──────────────────────────────┐  │
+│  │   Better Auth Middleware    │    │  Maintenance Mode Guard      │  │
+│  │   (/api/auth/*)              │    │  (Blocks non-admin API)      │  │
+│  └──────────────┬───────────────┘    └──────────────┬───────────────┘  │
+│                 │                                   │                  │
+│  ┌──────────────┴───────────────────────────────────┴───────────────┐  │
+│  │                       API Route Routers                          │  │
+│  │  - /api/user/*       (User, Credits, OTP, Profiles, Projects)    │  │
+│  │  - /api/project/*    (Revisions, Code Save, Versions, Publish)   │  │
+│  │  - /api/cashfree/*   (Payment Orders, Webhooks, Verification)    │  │
+│  │  - /api/admin/*      (Dashboard, User/Project Mgmt, Audit Log)   │  │
+│  └──────────────┬───────────────────────────────────┬───────────────┘  │
+│                 │                                   │                  │
+│                 │ Instant DB Write                  │ Async Worker     │
+│                 ▼                                   ▼                  │
+│  ┌──────────────────────────────┐    ┌──────────────────────────────┐  │
+│  │    Prisma ORM 7 + PG Pool    │    │   Async Generation Worker    │  │
+│  └──────────────┬───────────────┘    │   (OpenAI / OpenRouter API)  │  │
+└─────────────────┼────────────────────┴──────────────┬───────────────┘
+                  │                                   │
+                  ▼                                   ▼
+┌──────────────────────────────────┐ ┌──────────────────────────────────┐
+│     Neon PostgreSQL Database     │ │         External Services        │
+│ - User / Session / Account       │ │ - OpenRouter (AI Model API)      │
+│ - WebsiteProject / Version       │ │ - Cashfree (Payment Gateway)     │
+│ - Conversation / SystemSetting   │ │ - Gmail SMTP / Resend API        │
+│ - AdminAuditLog / DesignSystem   │ │ - Vercel Analytics / Insights    │
+└──────────────────────────────────┘ └──────────────────────────────────┘
 ```
 
 ---
 
-## Project Structure
+## 🛠 Tech Stack
 
-```
-buildo/
-├── client/                         # React frontend (user-facing)
+### Frontend Client (`client/`)
+| Technology | Version | Description |
+|---|---|---|
+| **React** | 19.2 | Declarative component framework |
+| **TypeScript** | 6.0 | Type safety & developer tooling |
+| **Vite** | 8.1 | Next-generation frontend build server |
+| **Tailwind CSS** | 4.3 | Utility-first styling engine with `@tailwindcss/vite` |
+| **React Router DOM** | 7.11 | Client-side routing with parameter hooks |
+| **Better Auth (client)** | 1.6 | Session client & bearer token management |
+| **`@daveyplate/better-auth-ui`** | 3.4 | Pre-built authentication UI components |
+| **Framer Motion** | 13.1 | Micro-animations and page transitions |
+| **GSAP** | 3.15 | Timeline animation engine |
+| **Axios** | 1.18 | HTTP client configured with credentials & interceptors |
+| **Lucide React** | 1.25 | UI iconography library |
+| **Sonner** | 2.0 | Toast notification manager |
+| **`@cashfreepayments/cashfree-js`** | 1.0 | Cashfree Checkout SDK |
+| **Vercel Analytics & Insights** | 2.0 | Web analytics & Core Web Vitals monitoring |
+
+### Admin Console (`admin/`)
+| Technology | Version | Description |
+|---|---|---|
+| **React** | 19.2 | Operator dashboard UI |
+| **TypeScript** | 6.0 | Strict type definitions |
+| **Vite** | 8.1 | Build tool |
+| **Tailwind CSS** | 4.3 | Dashboard layout & styling |
+| **Recharts** | 3.10 | Data visualization library (revenue, signups, usage) |
+| **Better Auth (client)** | 1.6 | Shared authentication session with main client |
+| **Lucide React** | 1.26 | Icon set |
+| **Sonner** | 2.0 | Admin operation notifications |
+
+### Backend API Server (`server/`)
+| Technology | Version | Description |
+|---|---|---|
+| **Node.js** | 20+ | Server runtime environment |
+| **Express** | 5.2 | HTTP framework with router isolation |
+| **TypeScript** | 7.0 | Backend type safety |
+| **Prisma ORM** | 7.9 | Database ORM, migrations, and type-safe query builder |
+| **`@prisma/adapter-pg`** | 7.9 | Native PostgreSQL adapter with connection pooling |
+| **PostgreSQL (Neon)** | Serverless | Cloud serverless relational database |
+| **Better Auth (server)** | 1.6 | Server-side authentication engine & session storage |
+| **OpenAI Node SDK** | 6.48 | Client SDK connecting to OpenRouter AI models |
+| **Cashfree PG SDK** | 6.0 | Order generation & HMAC-SHA256 signature verification |
+| **Nodemailer / Resend** | 9.0 / API | Dual-mode email delivery (Gmail SMTP / Ethereal / Resend) |
+
+---
+
+## 📁 Repository Structure
+
+```text
+site-builder/
+├── client/                         # Main User React Studio App (Port 5173)
 │   ├── src/
-│   │   ├── pages/
-│   │   │   ├── Home.tsx            # Prompt input & project creation
-│   │   │   ├── Projects.tsx        # Project editor (preview + chat + versions)
-│   │   │   ├── MyProjects.tsx      # User's project dashboard
-│   │   │   ├── Community.tsx       # Public feed of published projects
-│   │   │   ├── UserProfile.tsx     # Public profile (/@username)
-│   │   │   ├── View.tsx            # Public project view (/@username/slug)
-│   │   │   ├── Preview.tsx         # Full-screen preview iframe
-│   │   │   ├── Pricing.tsx         # Credit plan purchase page
-│   │   │   ├── PaymentVerify.tsx   # Post-payment status polling
-│   │   │   ├── Setting.tsx         # Account settings (profile, billing, security)
-│   │   │   └── auth/               # Sign-in / sign-up pages
-│   │   ├── components/
-│   │   │   ├── Navbar.tsx          # Top nav with credits badge
-│   │   │   ├── Sidebar.tsx         # Editor sidebar (chat + version history)
-│   │   │   ├── EditorPanel.tsx     # Code editor panel
-│   │   │   ├── ProjectPreview.tsx  # Iframe preview wrapper
-│   │   │   ├── LoaderSteps.tsx     # Generation progress animation
-│   │   │   ├── EmailVerificationModal.tsx
-│   │   │   ├── SetUsernameModal.tsx
-│   │   │   ├── Footer.tsx
-│   │   │   └── ui/                 # shadcn/ui primitives
-│   │   ├── configs/axios.ts        # Axios instance (base URL + credentials)
-│   │   ├── lib/auth-client.ts      # Better Auth client + bearer token
-│   │   ├── providers.tsx           # Context providers
-│   │   ├── types/                  # Shared TypeScript types
-│   │   ├── assets/                 # Static assets (logo, images)
-│   │   ├── App.tsx                 # Root router + onboarding gates
-│   │   └── main.tsx                # React entry point
-│   ├── vercel.json                 # SPA rewrite rules
+│   │   ├── assets/                 # Static branding assets & illustrations
+│   │   ├── components/             # Reusable UI components & section layouts
+│   │   │   ├── sections/           # Landing page hero, CTA, workflow sections
+│   │   │   ├── EditorPanel.tsx     # Raw HTML code editor panel
+│   │   │   ├── Navbar.tsx          # Top navigation with live credit counters
+│   │   │   ├── ProjectPreview.tsx  # Sandboxed iframe wrapper with device modes
+│   │   │   ├── Sidebar.tsx         # Studio sidebar (AI chat & version history)
+│   │   │   └── SettingsModal.tsx   # Global settings & account overlay
+│   │   ├── configs/                # Axios instance configuration
+│   │   ├── lib/                    # Better Auth client instance
+│   │   ├── pages/                  # Top-level page routes
+│   │   │   ├── Home.tsx            # Prompt input & studio landing page
+│   │   │   ├── Projects.tsx        # Main Studio Editor (preview + chat + code)
+│   │   │   ├── MyProjects.tsx      # User project dashboard
+│   │   │   ├── Community.tsx       # Public showcase of published websites
+│   │   │   ├── UserProfile.tsx     # Public user profile page (/@username)
+│   │   │   ├── View.tsx            # Published website viewer (/@username/slug)
+│   │   │   ├── Pricing.tsx         # Credit top-up plan selection
+│   │   │   └── PaymentVerify.tsx   # Payment verification page
+│   │   ├── types/                  # Shared frontend TypeScript interfaces
+│   │   ├── App.tsx                 # Client routing & onboarding gates
+│   │   └── main.tsx                # Client entry point
+│   ├── vercel.json                 # Vercel deployment & SPA routing rules
 │   └── package.json
 │
-├── admin/                          # React admin panel (separate app)
+├── admin/                          # Platform Operator Admin Console (Port 5174)
 │   ├── src/
-│   │   ├── pages/
-│   │   │   ├── Dashboard.tsx       # Aggregate platform stats + charts
-│   │   │   ├── Users.tsx           # User listing with search
-│   │   │   ├── UserDetail.tsx      # User detail (projects, transactions, credits)
-│   │   │   ├── Community.tsx       # Project moderation (unpublish, feature, delete)
-│   │   │   ├── Transactions.tsx    # Transaction listing with status filter
-│   │   │   ├── DesignSystems.tsx   # Design system CRUD
-│   │   │   ├── Settings.tsx        # Runtime system settings editor
-│   │   │   ├── DangerZone.tsx      # Maintenance, freeze, cleanup controls
-│   │   │   └── Login.tsx           # Admin sign-in
-│   │   ├── components/
-│   │   │   ├── Layout/             # AppShell (sidebar nav + header)
-│   │   │   ├── charts/             # Recharts dashboard visualizations
-│   │   │   └── ui/                 # Shared UI primitives
-│   │   └── lib/auth-client.ts      # Shared Better Auth session
+│   │   ├── components/             # Admin layout shell, charts, and table UI
+│   │   ├── pages/                  # Operator dashboard pages
+│   │   │   ├── Dashboard.tsx       # Realtime platform metrics & Recharts
+│   │   │   ├── Users.tsx           # User directory & credit manager
+│   │   │   ├── UserDetail.tsx      # In-depth user profile, projects, and transactions
+│   │   │   ├── Community.tsx       # Moderation suite (unpublish/feature/delete)
+│   │   │   ├── Transactions.tsx    # Payment transaction history
+│   │   │   ├── DesignSystems.tsx   # Dynamic DB design system CRUD
+│   │   │   ├── Settings.tsx        # Runtime system configuration editor
+│   │   │   └── DangerZone.tsx      # Maintenance mode & cleanup controls
+│   │   ├── App.tsx                 # Admin routes & authentication guard
+│   │   └── main.tsx                # Admin entry point
 │   ├── vercel.json
 │   └── package.json
 │
-└── server/                         # Express backend
-    ├── controllers/
-    │   ├── userController.ts       # User CRUD, credits, OTP, username, generation
-    │   ├── projectController.ts    # Revisions, versions, publish, community
-    │   ├── cashfreeController.ts   # Payment orders, webhook, status polling
-    │   └── adminController.ts      # Dashboard stats, user/project/txn mgmt,
-    │                               #   design systems, settings, audit log,
-    │                               #   maintenance, freeze, cleanup
-    ├── routes/
-    │   ├── userRoutes.ts           # /api/user/*
-    │   ├── projectRoutes.ts        # /api/project/*
-    │   ├── cashfreeRoutes.ts       # /api/cashfree/*
-    │   └── adminRoutes.ts          # /api/admin/* (requireAdmin guard)
-    ├── middlewares/
-    │   └── auth.ts                 # protect, requireAdmin, maintenanceMode
-    ├── lib/
-    │   ├── auth.ts                 # Better Auth server config
-    │   ├── prisma.ts               # Prisma client (pg pool adapter for Neon)
-    │   ├── mailer.ts               # Nodemailer (Gmail SMTP / Ethereal fallback)
-    │   └── settings.ts             # SystemSetting reader + OpenRouter counter
-    ├── config/
-    │   ├── openai.ts               # OpenRouter client instance
-    │   └── designSystems.ts        # Static design system fallback presets
-    ├── prisma/
-    │   ├── schema.prisma           # Database schema
-    │   └── migrations/             # Migration history
-    ├── prisma.config.ts            # Prisma datasource configuration
-    ├── server.ts                   # Express entry point
+└── server/                         # Express 5 Backend API Server (Port 3000)
+    ├── config/                     # OpenRouter client & static design system fallbacks
+    ├── controllers/                # Business logic controllers
+    │   ├── userController.ts       # Async website generation, user CRUD, credits, OTP
+    │   ├── projectController.ts    # AI revisions, version rollbacks, code saves, publish
+    │   ├── cashfreeController.ts   # Cashfree order creation & HMAC webhook verification
+    │   └── adminController.ts      # Analytics, user/project moderation, settings, audit logs
+    ├── email/                      # Email delivery service (Gmail SMTP / Ethereal / Resend)
+    ├── lib/                        # Better Auth, Prisma client adapter, mailer, settings
+    ├── middlewares/                # Auth verification, requireAdmin, maintenance guard
+    ├── prisma/                     # Database schema definition & migration history
+    │   └── schema.prisma
+    ├── routes/                     # Router definitions (/api/user, /api/project, /api/admin)
+    ├── server.ts                   # Express server entry point
     └── package.json
 ```
 
 ---
 
-## Database Schema
+## 🗄 Database Schema
 
-Key models managed by Prisma:
+The relational database schema is managed via **Prisma 7** against PostgreSQL. Below is an overview of the core models:
 
-| Model | Purpose |
-|---|---|
-| `User` | Account data, credits, email verification, admin flag, profile privacy |
-| `WebsiteProject` | Generated sites with prompt, code, slug, publish status, featured flag, design system reference |
-| `Conversation` | Chat history (user/assistant messages per project) |
-| `Version` | Immutable snapshots of generated code per project |
-| `Transaction` | Payment records (gateway ID, status, plan, amount, credits) |
-| `Session` / `Account` / `Verification` | Better Auth internals |
-| `AdminAuditLog` | Immutable log of admin actions (actor, action, target, details) |
-| `SystemSetting` | Runtime key-value config (credits costs, active model, feature flags) |
-| `DesignSystem` | Design presets (palette, typography, spacing, component patterns) |
-| `UserNotification` | In-app notification queue (admin→user credit adjustments, etc.) |
+```mermaid
+erDiagram
+    User ||--o{ WebsiteProject : owns
+    User ||--o{ Transaction : executes
+    User ||--o{ AdminAuditLog : triggers
+    User ||--o{ UserNotification : receives
+    WebsiteProject ||--o{ Conversation : contains
+    WebsiteProject ||--o{ Version : captures
+    
+    User {
+        string id PK
+        string email
+        string username UK
+        string name
+        int credits
+        int totalCreation
+        boolean emailVerified
+        boolean isAdmin
+        boolean profilePublic
+    }
+    WebsiteProject {
+        string id PK
+        string name
+        string slug
+        string initial_prompt
+        string current_code
+        boolean isPublished
+        boolean featured
+        string designSystemId
+    }
+    Conversation {
+        string id PK
+        enum role
+        string content
+        datetime timestamp
+    }
+    Version {
+        string id PK
+        string code
+        string description
+        datetime timestamp
+    }
+    Transaction {
+        string id PK
+        string gatewayOrderId UK
+        string status
+        boolean isPaid
+        float amount
+        int credits
+    }
+    AdminAuditLog {
+        string id PK
+        string adminUserId FK
+        string action
+        string targetType
+        json details
+    }
+    SystemSetting {
+        string id PK
+        string value
+    }
+    DesignSystem {
+        string id PK
+        string name
+        json palette
+        json typography
+        boolean isEnabled
+    }
+```
 
 ---
 
-## Getting Started
+## 🚀 Getting Started
 
 ### Prerequisites
 
-- **Node.js** v20+
-- **npm** v10+
-- **PostgreSQL** — [Neon](https://neon.tech) (free serverless Postgres) is recommended
-- **Gmail** account with an [App Password](https://support.google.com/accounts/answer/185833) for OTP emails (or leave unconfigured to use Ethereal test emails)
-- **OpenRouter** API key — [free tier](https://openrouter.ai/keys) is sufficient
-- **Cashfree** merchant account — sandbox credentials work for local testing
+Ensure you have the following installed on your machine:
+* **Node.js** v20.0.0 or higher
+* **npm** v10.0.0 or higher
+* **PostgreSQL Database** (A free serverless database from [Neon.tech](https://neon.tech) is recommended)
+* **OpenRouter API Key** (Obtain a free/paid key from [OpenRouter.ai](https://openrouter.ai/keys))
+* **Cashfree Payments Account** (Optional for local payments; sandbox mode supported)
 
-### 1. Clone the repository
+---
+
+### 1. Clone Repository
 
 ```bash
 git clone https://github.com/moin-dbud/site-builder.git
 cd site-builder
 ```
 
-### 2. Install dependencies
+---
+
+### 2. Install Dependencies
+
+Install dependencies across all three modules (`server`, `client`, and `admin`):
 
 ```bash
-# Server
+# Install Server Dependencies
 cd server
 npm install
 
-# Client
+# Install Client Dependencies
 cd ../client
 npm install
 
-# Admin (optional — only needed for platform management)
+# Install Admin Dependencies
 cd ../admin
 npm install
+
+cd ..
 ```
 
-### 3. Configure environment variables
+---
 
-#### Server (`server/.env`)
+### 3. Environment Setup
 
-Copy the example and fill in your values:
+#### Server Environment (`server/.env`)
+Copy the provided `.env.example` file in `server/` to `.env`:
 
 ```bash
 cp server/.env.example server/.env
 ```
 
+Configure your parameters safely in `server/.env`:
+
 ```env
 # ── Database ──────────────────────────────────────────────────────────────────
-DATABASE_URL="postgresql://user:password@host/dbname?sslmode=require"
+DATABASE_URL="postgresql://user:password@ep-sample-pooler.region.aws.neon.tech/neondb?sslmode=require"
 
 # ── Better Auth ───────────────────────────────────────────────────────────────
-BETTER_AUTH_SECRET=your-random-secret-string-at-least-32-chars
+BETTER_AUTH_SECRET=your_at_least_32_char_random_secret_string
 BETTER_AUTH_URL=http://localhost:3000
 
 # ── CORS & Trusted Origins ────────────────────────────────────────────────────
 TRUSTED_ORIGINS=http://localhost:5173,http://localhost:5174,http://localhost:3000
 
-# ── Server ────────────────────────────────────────────────────────────────────
+# ── Server Config ─────────────────────────────────────────────────────────────
 NODE_ENV=development
+PORT=3000
 
-# ── AI (OpenRouter) ───────────────────────────────────────────────────────────
-AI_API_KEY=sk-or-v1-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+# ── AI Integration (OpenRouter) ───────────────────────────────────────────────
+AI_API_KEY=sk-or-v1-your_openrouter_api_key_here
 
-# ── Email (Gmail SMTP via Nodemailer) ─────────────────────────────────────────
+# ── Email Delivery (Gmail SMTP or Resend API) ─────────────────────────────────
+RESEND_API_KEY=re_your_resend_api_key_here
+RESEND_FROM="Buildo AI <noreply@yourdomain.com>"
+
 SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
-SMTP_USER=your-gmail-address@gmail.com
-SMTP_PASS=xxxx-xxxx-xxxx-xxxx
-SMTP_FROM="Buildo AI" <your-gmail-address@gmail.com>
+SMTP_USER=your_email@gmail.com
+SMTP_PASS=your_gmail_app_password
+SMTP_FROM="Buildo AI <your_email@gmail.com>"
 
 # ── Cashfree Payments ─────────────────────────────────────────────────────────
-CASHFREE_APP_ID=your-cashfree-app-id
-CASHFREE_SECRET_KEY=your-cashfree-secret-key
+CASHFREE_APP_ID=your_cashfree_app_id
+CASHFREE_SECRET_KEY=your_cashfree_secret_key
 CASHFREE_ENV=sandbox
 
-# ── Frontend URL ──────────────────────────────────────────────────────────────
+# ── Frontend Redirect URL ─────────────────────────────────────────────────────
 FRONTEND_URL=http://localhost:5173
 ```
 
-#### Client (`client/.env`)
+#### Client Environment (`client/.env`)
+Create or edit `client/.env`:
+
+```env
+VITE_BASEURL=http://localhost:3000
+VITE_CASHFREE_ENV=sandbox
+```
+
+#### Admin Environment (`admin/.env`)
+Create or edit `admin/.env`:
 
 ```env
 VITE_BASEURL=http://localhost:3000
 ```
 
-#### Admin (`admin/.env`)
+---
 
-```env
-VITE_BASEURL=http://localhost:3000
-```
+### 4. Database Migration & Initialization
 
-### 4. Set up the database
+Run Prisma migrations from the `server/` directory to construct database tables:
 
 ```bash
 cd server
 
-# Generate the Prisma client
+# Generate Prisma Client
 npx prisma generate
 
-# Run migrations to create all tables
+# Apply Database Migrations
 npx prisma migrate dev --name init
 ```
 
-### 5. Run in development mode
+---
 
-Open separate terminal windows:
+### 5. Run Development Servers
+
+Launch backend and frontend applications in separate terminal windows:
 
 ```bash
-# Terminal 1 — Backend (hot reload)
+# Terminal 1: Express API Backend Server (Port 3000)
 cd server
 npm run server
 
-# Terminal 2 — Frontend
+# Terminal 2: Client Web Studio (Port 5173)
 cd client
 npm run dev
 
-# Terminal 3 — Admin panel (optional)
+# Terminal 3: Platform Admin Panel (Port 5174)
 cd admin
 npm run dev
 ```
 
-| Service | URL |
+| Service | Access URL |
 |---|---|
-| Frontend | `http://localhost:5173` |
-| Admin Panel | `http://localhost:5174` |
-| Backend API | `http://localhost:3000` |
+| **Client Studio App** | `http://localhost:5173` |
+| **Admin Console** | `http://localhost:5174` |
+| **Express Backend API** | `http://localhost:3000` |
 
-### 6. Create the first admin user
+---
 
-After signing up through the client, promote your account to admin via a direct database query:
+### 6. Admin Account Setup
 
-```sql
-UPDATE "user" SET "isAdmin" = true WHERE email = 'your-email@example.com';
+To grant administrator rights to your user account:
+1. Sign up normally through the client app at `http://localhost:5173`.
+2. Promote your user in PostgreSQL via direct SQL query or Prisma Studio:
+   ```sql
+   UPDATE "user" SET "isAdmin" = true WHERE email = 'your-email@domain.com';
+   ```
+3. Log in at `http://localhost:5174` to access the Admin Console.
+
+---
+
+## 📜 Available Scripts
+
+### Server (`server/`)
+| Script | Command | Description |
+|---|---|---|
+| `npm run server` | `nodemon --exec tsx server.ts` | Runs backend server with live reload |
+| `npm start` | `node dist/server.js` | Runs compiled production server |
+| `npm run build` | `npx prisma generate && tsc` | Generates Prisma client and compiles TypeScript |
+
+### Client (`client/`) & Admin (`admin/`)
+| Script | Command | Description |
+|---|---|---|
+| `npm run dev` | `vite` | Starts Vite development server |
+| `npm run build` | `tsc -b && vite build` | Type-checks project and creates production bundle |
+| `npm run lint` | `oxlint` | Runs Oxlint code verification |
+| `npm run preview` | `vite preview` | Previews production build locally |
+
+---
+
+## 💡 Key Technical Implementation Highlights
+
+### 1. Sub-300ms Async Generation Pipeline
+To eliminate UI blocking during multi-step AI completion tasks, project initialization is decoupled from AI generation:
+1. When a user submits a prompt, `createUserProject` creates the database record and returns `{ projectId }` in **< 300ms**.
+2. Client router immediately redirects to `/projects/:projectId`.
+3. Background task `generateProjectCodeInBackground` executes prompt enhancement and HTML generation asynchronously.
+4. Workspace polls `/api/user/project/:projectId` every 3 seconds until `current_code` is populated.
+
+```typescript
+// server/controllers/userController.ts
+export const createUserProject = async (req: Request, res: Response) => {
+    // 1. Instant DB creation
+    const project = await prisma.websiteProject.create({ ... });
+
+    // 2. Immediate HTTP response for fast navigation
+    res.json({ projectId: project.id, message: "Project created successfully" });
+
+    // 3. Asynchronous background execution
+    generateProjectCodeInBackground(project.id, userId, initial_prompt, creditsPerGeneration).catch(console.error);
+};
 ```
 
-Then sign in at `http://localhost:5174`. The admin panel verifies `isAdmin` before granting access.
+### 2. Double-Pass OpenRouter AI Generation
+Buildo executes a two-stage LLM generation pipeline:
+* **Stage 1 (Prompt Enhancement):** Reinterprets user requests as marketing/presence landing pages, expanding visual direction, component requirements, and semantic layout goals.
+* **Stage 2 (Code Generation):** Accepts enhanced specifications and the assigned design system JSON token map, returning standalone HTML5 code with inline Tailwind CSS and working client-side interactivity.
 
 ---
 
-## Available Scripts
+## 🌐 Deployment
 
-### Server
+### Frontend & Admin Deployment (Vercel)
+Both `client/` and `admin/` are configured for SPA deployment on [Vercel](https://vercel.com) using `vercel.json` rewrite rules:
 
-| Script | Command | Description |
-|---|---|---|
-| `npm run server` | `nodemon --exec tsx server.ts` | Start dev server with hot reload |
-| `npm start` | `node dist/server.js` | Start production server |
-| `npm run build` | `npx prisma generate && tsc` | Generate Prisma client + compile TypeScript |
+```json
+{
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}
+```
 
-### Client / Admin
-
-| Script | Command | Description |
-|---|---|---|
-| `npm run dev` | `vite` | Start dev server |
-| `npm run build` | `tsc -b && vite build` | Type-check + production build |
-| `npm run lint` | `oxlint` | Run linter |
-| `npm run preview` | `vite preview` | Preview production build locally |
-
----
-
-## Deployment
-
-The frontend is deployed on **Vercel** at [buildo.moinsheikh.in](https://buildo.moinsheikh.in). Both `client/` and `admin/` include `vercel.json` with SPA rewrite rules.
-
-Before deploying to production, update these environment variables:
-
-| Variable | Production Value |
-|---|---|
-| `NODE_ENV` | `production` |
-| `CASHFREE_ENV` | `production` |
-| `BETTER_AUTH_URL` | `https://your-server.com` |
-| `TRUSTED_ORIGINS` | Your production frontend + admin domains |
-| `FRONTEND_URL` | `https://your-frontend.com` |
-
-Additionally:
-- Register the production webhook URL (`https://your-server.com/api/cashfree/webhook`) in the Cashfree dashboard under **Developers → Webhooks**
-- Set `VITE_BASEURL` to the production server URL in both `client/.env` and `admin/.env`
+### Backend Deployment (Render / Railway / VPS)
+For production backend deployment:
+1. Set `NODE_ENV=production`.
+2. Configure `BETTER_AUTH_URL` and `FRONTEND_URL` to your production domains.
+3. Configure `TRUSTED_ORIGINS` with comma-separated production origins.
+4. Set up Cashfree Production Webhooks pointing to `https://your-api.com/api/cashfree/webhook`.
 
 ---
 
-## Roadmap
+## 🤝 Contributing
 
-- **Richer community filters** — filtering by category, tag, or design style
-- **Export options** — download generated sites as standalone HTML/ZIP
-- **Custom domain mapping** — allow users to map custom domains to published projects
-- **Template library** — pre-built starting points users can customize via AI
-- **Collaborative editing** — real-time multi-user project editing
+Contributions are welcome! To contribute to Buildo:
 
----
-
-## Contributing
-
-Contributions are welcome. If you'd like to improve Buildo:
-
-1. **Fork** the repository and create a branch from `main`:
+1. **Fork** the repository.
+2. Create a feature branch:
    ```bash
-   git checkout -b feature/your-feature-name
+   git checkout -b feature/amazing-feature
    ```
-
-2. **Make your changes.** Keep commits focused and descriptive.
-
-3. **Test your changes** — make sure client, admin, and server all start cleanly and affected flows work as expected.
-
-4. **Open a Pull Request** against `main` with a clear description of what you changed and why.
-
-5. **For large changes or new features**, [open an issue](../../issues) first to discuss the idea.
-
-**Branch naming:**
-- `feature/feature-name` — new features
-- `fix/bug-description` — bug fixes
-- `chore/task-description` — refactoring, tooling, or docs
+3. Commit your changes:
+   ```bash
+   git commit -m 'Add amazing feature'
+   ```
+4. Push to your branch:
+   ```bash
+   git push origin feature/amazing-feature
+   ```
+5. Open a **Pull Request**.
 
 ---
 
-## License
+## 📄 License
 
-This project is licensed under the **MIT License** — see the [LICENSE](./LICENSE) file for details.
+Distributed under the **MIT License**. See [`LICENSE`](./LICENSE) for more details.
 
 ---
 
-## Developer
+## 👨‍💻 Developer
 
-Built by **Moin Sheikh**
-
-- GitHub: [@moin-dbud](https://github.com/moin-dbud)
-- LinkedIn: [@moin-sheikh](https://www.linkedin.com/in/moin-build/)
-- Email: hello@moinsheikh.in
+**Moin Sheikh**
+* **Portfolio / Website:** [buildo.moinsheikh.in](https://buildo.moinsheikh.in)
+* **GitHub:** [@moin-dbud](https://github.com/moin-dbud)
+* **LinkedIn:** [Moin Sheikh](https://www.linkedin.com/in/moin-build/)
+* **Email:** [hello@moinsheikh.in](mailto:hello@moinsheikh.in)
