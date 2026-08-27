@@ -125,11 +125,11 @@ export const FromThoughtToWebsiteSection: React.FC = () => {
     /* Set initial hidden state for elements */
     gsap.set([arrow1Ref.current, arrow2Ref.current], { opacity: 0, x: -10 })
     if (badgeRef.current) {
-      gsap.set(badgeRef.current, { opacity: 0, scale: 0.85, y: 12 })
+      gsap.set(badgeRef.current, { opacity: 0, scale: 0.75, y: 12 })
     }
 
     const ctx = gsap.context(() => {
-      /* ── Reveal Header & Section ── */
+      /* ── Reveal Header & Section Cards Together ── */
       const revealTL = gsap.timeline({
         scrollTrigger: {
           trigger: sectionRef.current,
@@ -144,11 +144,11 @@ export const FromThoughtToWebsiteSection: React.FC = () => {
         { opacity: 1, y: 0, duration: 0.75, ease: 'power2.out' },
       )
 
-      /* Stage 01 panel reveal */
+      /* Stage 01, Stage 02, and Stage 03 panels reveal together on scroll */
       revealTL.fromTo(
-        stage1Ref.current,
+        [stage1Ref.current, stage2Ref.current, stage3Ref.current],
         { opacity: 0, y: 32, scale: 0.97 },
-        { opacity: 1, y: 0, scale: 1, duration: 0.65, ease: 'power2.out' },
+        { opacity: 1, y: 0, scale: 1, duration: 0.65, stagger: 0.15, ease: 'power2.out' },
         '-=0.35',
       )
 
@@ -166,7 +166,7 @@ export const FromThoughtToWebsiteSection: React.FC = () => {
             } else {
               clearInterval(typingInterval)
             }
-          }, 32)
+          }, 30)
         },
       })
 
@@ -179,75 +179,48 @@ export const FromThoughtToWebsiteSection: React.FC = () => {
           gsap.to(arrow1Ref.current, {
             opacity: 1,
             x: 0,
-            duration: 0.55,
+            duration: 0.5,
             ease: 'power2.out',
-            delay: 0.3,
+            delay: 0.25,
           })
         },
       })
 
-      /* ── Stage 02: Processing sequence ── */
+      /* ── Stage 02: Processing sequence & Website Ready trigger ── */
       ScrollTrigger.create({
         trigger: stage2Ref.current,
         start: 'top 75%',
         once: true,
         onEnter: () => {
-          gsap.fromTo(
-            stage2Ref.current,
-            { opacity: 0, y: 32, scale: 0.97 },
-            { opacity: 1, y: 0, scale: 1, duration: 0.65, ease: 'power2.out' },
-          )
-
           let step = 1
           const processInterval = setInterval(() => {
             setActiveProcessingStep(step)
             step++
+
+            /* All steps in Stage 02 have been checked ✓ */
             if (step > PROCESS_STEPS.length + 1) {
               clearInterval(processInterval)
+
+              /* 1. Animate Connector 2 */
+              gsap.to(arrow2Ref.current, {
+                opacity: 1,
+                x: 0,
+                duration: 0.45,
+                ease: 'power2.out',
+              })
+
+              /* 2. Pop Website Ready badge on Stage 03 */
+              if (badgeRef.current) {
+                gsap.to(badgeRef.current, {
+                  opacity: 1,
+                  scale: 1,
+                  y: 0,
+                  duration: 0.55,
+                  ease: 'back.out(1.8)',
+                })
+              }
             }
-          }, 650)
-        },
-      })
-
-      /* ── Connector 2 (Center → Right) reveal ── */
-      ScrollTrigger.create({
-        trigger: stage2Ref.current,
-        start: 'top 62%',
-        once: true,
-        onEnter: () => {
-          gsap.to(arrow2Ref.current, {
-            opacity: 1,
-            x: 0,
-            duration: 0.55,
-            ease: 'power2.out',
-            delay: 0.5,
-          })
-        },
-      })
-
-      /* ── Stage 03: Live Website preview reveal ── */
-      ScrollTrigger.create({
-        trigger: stage3Ref.current,
-        start: 'top 78%',
-        once: true,
-        onEnter: () => {
-          gsap.fromTo(
-            stage3Ref.current,
-            { opacity: 0, y: 24, scale: 0.96 },
-            { opacity: 1, y: 0, scale: 1, duration: 0.7, ease: 'power2.out' },
-          )
-
-          /* Website Ready badge pop */
-          if (badgeRef.current) {
-            gsap.to(badgeRef.current, {
-              opacity: 1,
-              scale: 1,
-              y: 0,
-              duration: 0.55,
-              ease: 'back.out(1.7)',
-              delay: 0.6,
-            })
-          }
+          }, 600)
         },
       })
 
@@ -335,7 +308,7 @@ export const FromThoughtToWebsiteSection: React.FC = () => {
               <span className="w-8 h-8 rounded-full bg-[#FDF6B2] border border-[#FACC15]/80 text-[#8E4B10] text-xs font-mono font-bold flex items-center justify-center shadow-xs">
                 01
               </span>
-              <div className="p-2 rounded-full bg-white border border-slate-200 text-slate-700 shadow-xs">
+              <div className="p-2 rounded-full bg-white/90 backdrop-blur-md border border-slate-200 text-slate-700 shadow-xs">
                 <LightbulbIcon className="size-4 text-slate-700" />
               </div>
               <div>
@@ -345,7 +318,10 @@ export const FromThoughtToWebsiteSection: React.FC = () => {
             </div>
 
             {/* Visual Panel 01 — Environmental Landscape + Frosted Prompt Box */}
-            <div className="relative flex-1 min-h-[320px] rounded-3xl overflow-hidden border border-amber-300/60 shadow-xl shadow-amber-500/10 flex items-center justify-center p-6 group">
+            <div className="relative flex-1 min-h-[320px] rounded-3xl overflow-hidden border border-amber-300/50 bg-[#FAF8F5]/60 backdrop-blur-xl shadow-xl shadow-amber-500/10 flex items-center justify-center p-6 group">
+              {/* Top Glass Highlight Reflection */}
+              <div aria-hidden="true" className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-white/80 to-transparent pointer-events-none z-10" />
+
               {/* Full Environmental Landscape Background */}
               <div className="absolute inset-0 pointer-events-none overflow-hidden">
                 <img
@@ -358,9 +334,9 @@ export const FromThoughtToWebsiteSection: React.FC = () => {
               </div>
 
               {/* Frosted Glass Prompt Container */}
-              <div className="relative z-10 w-full bg-white/70 backdrop-blur-xl border border-white/80 rounded-2xl p-6 shadow-2xl space-y-3 ring-1 ring-amber-400/30">
+              <div className="relative z-10 w-full bg-white/65 backdrop-blur-2xl border border-white/90 rounded-2xl p-6 shadow-2xl space-y-3 ring-1 ring-amber-400/30 shadow-amber-500/10">
                 <div className="flex items-start gap-3">
-                  <div className="p-1 rounded-md bg-amber-500/20 text-[#b89158] shrink-0 mt-0.5">
+                  <div className="p-1.5 rounded-lg bg-amber-500/20 text-[#b89158] shrink-0 mt-0.5 backdrop-blur-md">
                     <SparklesIcon className="size-4 text-amber-600" />
                   </div>
                   <p className="text-sm font-semibold text-[#0f172a] leading-relaxed min-h-[90px]">
@@ -382,7 +358,7 @@ export const FromThoughtToWebsiteSection: React.FC = () => {
             className="hidden md:flex absolute top-[calc(50%+1.5rem)] left-[33%] -translate-y-1/2 z-20 items-center pointer-events-none"
             aria-hidden="true"
           >
-            <div className="flex items-center gap-1.5 bg-white/95 px-3 py-1.5 rounded-full border border-sky-300/80 shadow-md text-sky-500 text-xs font-bold">
+            <div className="flex items-center gap-1.5 bg-white/95 backdrop-blur-md px-3 py-1.5 rounded-full border border-sky-300/80 shadow-md text-sky-500 text-xs font-bold">
               <span className="block w-6 border-t-2 border-dashed border-sky-400/80" />
               <ArrowRightIcon className="size-4" />
             </div>
@@ -411,7 +387,7 @@ export const FromThoughtToWebsiteSection: React.FC = () => {
               <span className="w-8 h-8 rounded-full bg-[#E0F2FE] border border-[#38BDF8]/80 text-[#0369A1] text-xs font-mono font-bold flex items-center justify-center shadow-xs">
                 02
               </span>
-              <div className="p-2 rounded-full bg-white border border-slate-200 text-slate-700 shadow-xs">
+              <div className="p-2 rounded-full bg-white/90 backdrop-blur-md border border-slate-200 text-slate-700 shadow-xs">
                 <Wand2Icon className="size-4 text-slate-700" />
               </div>
               <div>
@@ -420,15 +396,18 @@ export const FromThoughtToWebsiteSection: React.FC = () => {
               </div>
             </div>
 
-            {/* Visual Panel 02 — Processing Rows */}
-            <div className="relative flex-1 min-h-[320px] rounded-3xl border border-sky-300/60 bg-white/80 backdrop-blur-2xl shadow-xl shadow-sky-500/10 p-5 sm:p-6 flex flex-col justify-center gap-3">
+            {/* Visual Panel 02 — Processing Rows with Frosted Glass Container */}
+            <div className="relative flex-1 min-h-[320px] rounded-3xl border border-sky-300/60 bg-white/60 backdrop-blur-2xl shadow-xl shadow-sky-500/15 ring-1 ring-sky-300/30 p-5 sm:p-6 flex flex-col justify-center gap-3 overflow-hidden">
+              {/* Top Glass Highlight Reflection */}
+              <div aria-hidden="true" className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-sky-300/60 to-transparent pointer-events-none z-10" />
+
               {/* Soft atmosphere tint */}
               <div
                 aria-hidden="true"
                 className="absolute inset-0 rounded-3xl pointer-events-none"
                 style={{
                   background:
-                    'radial-gradient(ellipse at 50% 0%, rgba(77,168,232,0.06) 0%, transparent 60%)',
+                    'radial-gradient(ellipse at 50% 0%, rgba(77,168,232,0.10) 0%, transparent 65%)',
                 }}
               />
 
@@ -452,7 +431,7 @@ export const FromThoughtToWebsiteSection: React.FC = () => {
             className="hidden md:flex absolute top-[calc(50%+1.5rem)] left-[66.5%] -translate-y-1/2 z-20 items-center pointer-events-none"
             aria-hidden="true"
           >
-            <div className="flex items-center gap-1.5 bg-white/95 px-3 py-1.5 rounded-full border border-emerald-300/80 shadow-md text-emerald-600 text-xs font-bold">
+            <div className="flex items-center gap-1.5 bg-white/95 backdrop-blur-md px-3 py-1.5 rounded-full border border-emerald-300/80 shadow-md text-emerald-600 text-xs font-bold">
               <span className="block w-6 border-t-2 border-dashed border-emerald-400/80" />
               <ArrowRightIcon className="size-4" />
             </div>
@@ -481,7 +460,7 @@ export const FromThoughtToWebsiteSection: React.FC = () => {
               <span className="w-8 h-8 rounded-full bg-[#DCFCE7] border border-[#4ADE80]/80 text-[#15803D] text-xs font-mono font-bold flex items-center justify-center shadow-xs">
                 03
               </span>
-              <div className="p-2 rounded-full bg-white border border-slate-200 text-slate-700 shadow-xs">
+              <div className="p-2 rounded-full bg-white/90 backdrop-blur-md border border-slate-200 text-slate-700 shadow-xs">
                 <GlobeIcon className="size-4 text-slate-700" />
               </div>
               <div>
@@ -490,21 +469,24 @@ export const FromThoughtToWebsiteSection: React.FC = () => {
               </div>
             </div>
 
-            {/* Visual Panel 03 — Website Preview Mockup */}
-            <div className="relative flex-1 min-h-[320px] rounded-3xl border border-emerald-300/70 bg-[#F7FAF8] shadow-xl shadow-emerald-500/10 p-4 sm:p-5 flex flex-col justify-between overflow-hidden">
+            {/* Visual Panel 03 — Website Preview Mockup with Frosted Glass Container */}
+            <div className="relative flex-1 min-h-[320px] rounded-3xl border border-emerald-300/60 bg-[#F4F9F6]/75 backdrop-blur-2xl shadow-xl shadow-emerald-500/15 ring-1 ring-emerald-300/30 p-4 sm:p-5 flex flex-col justify-between overflow-hidden">
+              {/* Top Glass Highlight Reflection */}
+              <div aria-hidden="true" className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-emerald-300/60 to-transparent pointer-events-none z-10" />
+
               {/* Subtle green glow */}
               <div
                 aria-hidden="true"
                 className="absolute inset-0 pointer-events-none"
                 style={{
                   background:
-                    'radial-gradient(ellipse at 50% 0%, rgba(76,203,145,0.06) 0%, transparent 55%)',
+                    'radial-gradient(ellipse at 50% 0%, rgba(76,203,145,0.08) 0%, transparent 60%)',
                 }}
               />
 
               <div className="relative z-10 flex flex-col gap-3.5">
                 {/* Website Header Bar */}
-                <div className="w-full bg-white rounded-xl p-3 border border-slate-200/80 shadow-xs flex items-center justify-between gap-2">
+                <div className="w-full bg-white/85 backdrop-blur-xl rounded-xl p-3 border border-slate-200/80 shadow-2xs flex items-center justify-between gap-2">
                   <span className="font-extrabold text-xs text-[#0f172a] tracking-wider uppercase">
                     AURORA
                   </span>
@@ -522,7 +504,7 @@ export const FromThoughtToWebsiteSection: React.FC = () => {
                 </div>
 
                 {/* Main Website Hero Card */}
-                <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/80 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div className="bg-white/90 backdrop-blur-xl rounded-2xl p-4 sm:p-5 border border-slate-200/80 shadow-2xs flex flex-col sm:flex-row items-center justify-between gap-4">
                   <div className="space-y-2.5 text-left flex-1 min-w-0">
                     <h4 className="text-lg sm:text-xl font-extrabold text-[#0f172a] leading-tight tracking-tight">
                       Design that moves people.
@@ -555,7 +537,7 @@ export const FromThoughtToWebsiteSection: React.FC = () => {
               {/* Floating Website Ready Badge */}
               <div
                 ref={badgeRef}
-                className="self-end mt-3 bg-white border border-emerald-500/70 text-emerald-900 font-bold text-xs px-3.5 py-1.5 rounded-full shadow-md flex items-center gap-1.5 z-20"
+                className="self-end mt-3 bg-white/95 backdrop-blur-xl border border-emerald-500/70 text-emerald-950 font-bold text-xs px-3.5 py-1.5 rounded-full shadow-lg shadow-emerald-500/10 flex items-center gap-1.5 z-20"
                 style={{ opacity: 0 }}
               >
                 <CheckCircle2Icon className="size-4 text-emerald-500 fill-emerald-50" />
