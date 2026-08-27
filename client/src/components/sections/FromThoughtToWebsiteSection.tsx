@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import {
   SparklesIcon,
   LightbulbIcon,
@@ -10,6 +10,7 @@ import {
   GridIcon,
   LayersIcon,
   CheckCircle2Icon,
+  Wand2Icon,
 } from 'lucide-react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
@@ -19,7 +20,7 @@ gsap.registerPlugin(ScrollTrigger)
 const FULL_PROMPT_TEXT =
   'Create a modern portfolio for a product designer with a clean, minimal style...'
 
-/* ─── Processing steps definition ─────────────────────────────────────── */
+/* ─── AI Processing Steps Definition ─────────────────────────────────────── */
 type StepStatus = 'pending' | 'active' | 'done'
 
 interface ProcessStep {
@@ -40,7 +41,7 @@ function getStepStatus(stepIndex: number, activeStep: number): StepStatus {
   return 'pending'
 }
 
-/* ─── Step Row ─────────────────────────────────────────────────────────── */
+/* ─── Processing Row Component ─────────────────────────────────────────────── */
 const StepRow: React.FC<{
   step: ProcessStep
   status: StepStatus
@@ -53,38 +54,44 @@ const StepRow: React.FC<{
     <div
       className={[
         'flex items-center justify-between p-3.5 rounded-xl border transition-all duration-500',
-        isDone   ? 'bg-white border-sky-200/80 text-gray-800 shadow-sm'                                         : '',
-        isActive ? 'bg-white border-sky-300 text-sky-950 font-semibold shadow-md ring-2 ring-sky-400/20'        : '',
-        !isDone && !isActive ? 'bg-[#F7F5F0]/60 border-gray-200/70 text-gray-400'                              : '',
+        isDone   
+          ? 'bg-white border-slate-200 text-slate-800 shadow-xs' 
+          : '',
+        isActive 
+          ? 'bg-sky-50/70 border-sky-400 text-sky-950 font-bold shadow-md ring-2 ring-sky-400/20' 
+          : '',
+        !isDone && !isActive 
+          ? 'bg-slate-50/60 border-slate-200/70 text-slate-400' 
+          : '',
       ].join(' ')}
     >
       <div className="flex items-center gap-3 text-xs sm:text-sm">
         <Icon
           className={[
-            'size-4 shrink-0',
-            isDone   ? 'text-sky-500'                           : '',
-            isActive ? 'text-sky-500'                           : '',
-            !isDone && !isActive ? 'text-gray-300'             : '',
+            'size-4 shrink-0 transition-colors',
+            isDone   ? 'text-sky-600' : '',
+            isActive ? 'text-sky-600 animate-pulse' : '',
+            !isDone && !isActive ? 'text-slate-300' : '',
           ].join(' ')}
         />
         <span>{step.label}</span>
       </div>
 
-      {/* Right indicator */}
-      {isDone && <CheckIcon className="size-4 text-sky-500 shrink-0" />}
+      {/* Status Indicators */}
+      {isDone && <CheckIcon className="size-4 text-sky-600 shrink-0 stroke-[2.5]" />}
       {isActive && (
-        <span className="w-2.5 h-2.5 rounded-full bg-sky-400 animate-pulse shrink-0" />
+        <span className="size-2.5 rounded-full bg-sky-500 animate-ping shrink-0" />
       )}
       {!isDone && !isActive && (
-        <span className="w-2 h-2 rounded-full bg-gray-300 shrink-0" />
+        <span className="size-2 rounded-full bg-slate-300 shrink-0" />
       )}
     </div>
   )
 }
 
-/* ─── Main Component ───────────────────────────────────────────────────── */
+/* ─── Main Section Component ───────────────────────────────────────────────────── */
 export const FromThoughtToWebsiteSection: React.FC = () => {
-  /* refs */
+  /* Refs */
   const sectionRef = useRef<HTMLElement>(null)
   const headingRef = useRef<HTMLDivElement>(null)
   const stage1Ref  = useRef<HTMLDivElement>(null)
@@ -94,7 +101,7 @@ export const FromThoughtToWebsiteSection: React.FC = () => {
   const arrow2Ref  = useRef<HTMLDivElement>(null)
   const badgeRef   = useRef<HTMLDivElement>(null)
 
-  /* state */
+  /* State */
   const [typedPrompt,         setTypedPrompt]         = useState('')
   const [activeProcessingStep, setActiveProcessingStep] = useState(0)
   const [isReducedMotion,     setIsReducedMotion]     = useState(false)
@@ -104,26 +111,29 @@ export const FromThoughtToWebsiteSection: React.FC = () => {
     const reduced = motionQuery.matches
     setIsReducedMotion(reduced)
 
-    /* ── Reduced motion: show final state immediately ── */
+    /* Reduced motion: render final completed state immediately */
     if (reduced) {
       setTypedPrompt(FULL_PROMPT_TEXT)
       setActiveProcessingStep(PROCESS_STEPS.length + 1)
+      if (badgeRef.current) {
+        badgeRef.current.style.opacity = '1'
+        badgeRef.current.style.transform = 'none'
+      }
       return
     }
 
-    /* ── Set initial hidden states ── */
+    /* Set initial hidden state for elements */
     gsap.set([arrow1Ref.current, arrow2Ref.current], { opacity: 0, x: -10 })
-    gsap.set(badgeRef.current, { opacity: 0, scale: 0.85, y: 12 })
+    if (badgeRef.current) {
+      gsap.set(badgeRef.current, { opacity: 0, scale: 0.85, y: 12 })
+    }
 
     const ctx = gsap.context(() => {
-
-      /* ════════════════════════════════════════════════════════════════
-         PHASE 1-2: Heading + stage headers staggered on scroll entry
-      ════════════════════════════════════════════════════════════════ */
+      /* ── Reveal Header & Section ── */
       const revealTL = gsap.timeline({
         scrollTrigger: {
           trigger: sectionRef.current,
-          start: 'top 72%',
+          start: 'top 75%',
           toggleActions: 'play none none none',
         },
       })
@@ -134,17 +144,15 @@ export const FromThoughtToWebsiteSection: React.FC = () => {
         { opacity: 1, y: 0, duration: 0.75, ease: 'power2.out' },
       )
 
-      /* Stage 01 panel */
+      /* Stage 01 panel reveal */
       revealTL.fromTo(
         stage1Ref.current,
-        { opacity: 0, y: 36, scale: 0.97 },
+        { opacity: 0, y: 32, scale: 0.97 },
         { opacity: 1, y: 0, scale: 1, duration: 0.65, ease: 'power2.out' },
         '-=0.35',
       )
 
-      /* ════════════════════════════════════════════════════════════════
-         PHASE 3: Typing effect — triggered when Stage 01 is in view
-      ════════════════════════════════════════════════════════════════ */
+      /* ── Stage 01: Typing animation ── */
       ScrollTrigger.create({
         trigger: stage1Ref.current,
         start: 'top 78%',
@@ -158,13 +166,11 @@ export const FromThoughtToWebsiteSection: React.FC = () => {
             } else {
               clearInterval(typingInterval)
             }
-          }, 30)
+          }, 32)
         },
       })
 
-      /* ════════════════════════════════════════════════════════════════
-         PHASE 4: Arrow 1 reveal — after Stage 01 has appeared
-      ════════════════════════════════════════════════════════════════ */
+      /* ── Connector 1 (Left → Center) reveal ── */
       ScrollTrigger.create({
         trigger: stage1Ref.current,
         start: 'top 65%',
@@ -180,22 +186,18 @@ export const FromThoughtToWebsiteSection: React.FC = () => {
         },
       })
 
-      /* ════════════════════════════════════════════════════════════════
-         PHASE 5: Stage 02 entrance + processing sequence
-      ════════════════════════════════════════════════════════════════ */
+      /* ── Stage 02: Processing sequence ── */
       ScrollTrigger.create({
         trigger: stage2Ref.current,
         start: 'top 75%',
         once: true,
         onEnter: () => {
-          /* Panel entrance */
           gsap.fromTo(
             stage2Ref.current,
-            { opacity: 0, y: 36, scale: 0.97 },
+            { opacity: 0, y: 32, scale: 0.97 },
             { opacity: 1, y: 0, scale: 1, duration: 0.65, ease: 'power2.out' },
           )
 
-          /* Processing steps — one active at a time, 700ms each */
           let step = 1
           const processInterval = setInterval(() => {
             setActiveProcessingStep(step)
@@ -203,13 +205,11 @@ export const FromThoughtToWebsiteSection: React.FC = () => {
             if (step > PROCESS_STEPS.length + 1) {
               clearInterval(processInterval)
             }
-          }, 700)
+          }, 650)
         },
       })
 
-      /* ════════════════════════════════════════════════════════════════
-         PHASE 6: Arrow 2 reveal
-      ════════════════════════════════════════════════════════════════ */
+      /* ── Connector 2 (Center → Right) reveal ── */
       ScrollTrigger.create({
         trigger: stage2Ref.current,
         start: 'top 62%',
@@ -225,9 +225,7 @@ export const FromThoughtToWebsiteSection: React.FC = () => {
         },
       })
 
-      /* ════════════════════════════════════════════════════════════════
-         PHASE 7: Stage 03 entrance
-      ════════════════════════════════════════════════════════════════ */
+      /* ── Stage 03: Live Website preview reveal ── */
       ScrollTrigger.create({
         trigger: stage3Ref.current,
         start: 'top 78%',
@@ -235,19 +233,21 @@ export const FromThoughtToWebsiteSection: React.FC = () => {
         onEnter: () => {
           gsap.fromTo(
             stage3Ref.current,
-            { opacity: 0, y: 20, scale: 0.96 },
+            { opacity: 0, y: 24, scale: 0.96 },
             { opacity: 1, y: 0, scale: 1, duration: 0.7, ease: 'power2.out' },
           )
 
-          /* PHASE 8: Website Ready badge */
-          gsap.to(badgeRef.current, {
-            opacity: 1,
-            scale: 1,
-            y: 0,
-            duration: 0.55,
-            ease: 'back.out(1.7)',
-            delay: 0.55,
-          })
+          /* Website Ready badge pop */
+          if (badgeRef.current) {
+            gsap.to(badgeRef.current, {
+              opacity: 1,
+              scale: 1,
+              y: 0,
+              duration: 0.55,
+              ease: 'back.out(1.7)',
+              delay: 0.6,
+            })
+          }
         },
       })
 
@@ -259,34 +259,34 @@ export const FromThoughtToWebsiteSection: React.FC = () => {
   return (
     <section
       ref={sectionRef}
-      className="relative w-full pt-20 md:pt-28 pb-10 md:pb-20 px-6 md:px-12 bg-[#F7F5F0] text-gray-900 overflow-hidden"
+      className="relative w-full pt-20 md:pt-28 pb-16 md:pb-24 px-6 md:px-12 bg-[#F8F7F3] text-slate-900 overflow-hidden select-none"
     >
-      {/* ── Very subtle per-region atmospheric gradients ── */}
-      {/* Gold — left (Describe) */}
+      {/* ── Soft Warm Ambient Lighting Gradients ── */}
+      {/* Gold Ambient — Left */}
       <div
         aria-hidden="true"
-        className="absolute top-1/3 left-0 w-[38%] h-[60%] pointer-events-none"
+        className="absolute top-1/3 left-0 w-[40%] h-[60%] pointer-events-none"
         style={{
           background:
-            'radial-gradient(ellipse at 20% 50%, rgba(217,181,108,0.07) 0%, transparent 65%)',
+            'radial-gradient(ellipse at 20% 50%, rgba(233,185,73,0.08) 0%, transparent 65%)',
         }}
       />
-      {/* Cyan — center (Build) */}
+      {/* Soft Blue Ambient — Center */}
       <div
         aria-hidden="true"
-        className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[40%] h-[70%] pointer-events-none"
+        className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[45%] h-[70%] pointer-events-none"
         style={{
           background:
-            'radial-gradient(ellipse at 50% 40%, rgba(98,185,224,0.06) 0%, transparent 65%)',
+            'radial-gradient(ellipse at 50% 40%, rgba(77,168,232,0.08) 0%, transparent 65%)',
         }}
       />
-      {/* Green — right (Live) */}
+      {/* Soft Green Ambient — Right */}
       <div
         aria-hidden="true"
-        className="absolute top-1/3 right-0 w-[38%] h-[60%] pointer-events-none"
+        className="absolute top-1/3 right-0 w-[40%] h-[60%] pointer-events-none"
         style={{
           background:
-            'radial-gradient(ellipse at 80% 50%, rgba(74,186,120,0.06) 0%, transparent 65%)',
+            'radial-gradient(ellipse at 80% 50%, rgba(76,203,145,0.08) 0%, transparent 65%)',
         }}
       />
 
@@ -297,18 +297,23 @@ export const FromThoughtToWebsiteSection: React.FC = () => {
         ════════════════════════════════════════════════════════ */}
         <div
           ref={headingRef}
-          className="text-center max-w-3xl mx-auto space-y-5 mb-20 md:mb-24"
+          className="text-center max-w-3xl mx-auto space-y-4 mb-16 md:mb-20"
           style={{ opacity: 0 }}
         >
-          <h2 className="text-3xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-gray-900 leading-[1.12]">
+          {/* Section 2 Badge */}
+          <div className="inline-flex items-center justify-center px-3 py-1 rounded-full bg-slate-200/60 border border-slate-300/80 text-slate-600 font-mono text-[11px] font-bold uppercase tracking-widest shadow-2xs mb-1">
+            SECTION 2
+          </div>
+
+          <h2 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-[#0f172a] leading-[1.12]">
             From{' '}
-            <span className="text-[#b89158] italic font-serif">thought</span>{' '}
+            <span className="text-[#b89158] italic font-serif-italic font-normal">thought</span>{' '}
             to{' '}
-            <span className="text-[#4b8ebc]">website</span>.
+            <span className="text-[#4DA8E8]">website</span>.
           </h2>
 
-          <p className="text-base sm:text-lg text-gray-500 max-w-xl mx-auto font-normal leading-relaxed">
-            Buildo turns your idea into a beautiful, live website automatically.
+          <p className="text-sm sm:text-base md:text-lg text-slate-600 max-w-xl mx-auto font-normal leading-relaxed">
+            Buildo turns your idea into a beautiful, live website — automatically.
           </p>
         </div>
 
@@ -325,49 +330,43 @@ export const FromThoughtToWebsiteSection: React.FC = () => {
             className="flex flex-col gap-4"
             style={{ opacity: 0 }}
           >
-            {/* Stage header */}
+            {/* Stage Header */}
             <div className="flex items-center gap-3">
-              <span className="w-8 h-8 rounded-full bg-[#fef3c7] border border-[#fbbf24]/60 text-[#92400e] text-xs font-mono font-bold flex items-center justify-center shadow-sm">
+              <span className="w-8 h-8 rounded-full bg-[#FDF6B2] border border-[#FACC15]/80 text-[#8E4B10] text-xs font-mono font-bold flex items-center justify-center shadow-xs">
                 01
               </span>
-              <div className="p-1.5 rounded-full bg-white border border-[#fbbf24]/30 text-amber-500 shadow-sm">
-                <LightbulbIcon className="size-4" />
+              <div className="p-2 rounded-full bg-white border border-slate-200 text-slate-700 shadow-xs">
+                <LightbulbIcon className="size-4 text-slate-700" />
               </div>
               <div>
-                <h3 className="text-base font-bold text-gray-900 leading-tight">Describe</h3>
-                <p className="text-xs text-gray-400">Share your idea in your own words.</p>
+                <h3 className="text-base font-bold text-[#0f172a] leading-tight">Describe</h3>
+                <p className="text-xs text-slate-500">Share your idea in your own words.</p>
               </div>
             </div>
 
-            {/* Visual Panel 01 — Prompt Card */}
-            <div className="relative flex-1 min-h-[300px] rounded-2xl overflow-hidden border border-[#e8c97a]/40 bg-[#fffdf7] shadow-sm flex items-center justify-center p-5">
-              {/* Subtle background texture image */}
-              <div className="absolute inset-0 opacity-[0.18] mix-blend-multiply pointer-events-none">
+            {/* Visual Panel 01 — Environmental Landscape + Frosted Prompt Box */}
+            <div className="relative flex-1 min-h-[320px] rounded-3xl overflow-hidden border border-amber-300/60 shadow-xl shadow-amber-500/10 flex items-center justify-center p-6 group">
+              {/* Full Environmental Landscape Background */}
+              <div className="absolute inset-0 pointer-events-none overflow-hidden">
                 <img
                   src="/background.png"
-                  alt=""
-                  className="w-full h-full object-cover object-left-bottom"
+                  alt="Buildo World"
+                  className="w-full h-full object-cover object-center transform group-hover:scale-105 transition-transform duration-700"
                 />
+                {/* Soft warm lighting overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-black/10 to-transparent" />
               </div>
 
-              {/* Very soft warm vignette */}
-              <div
-                aria-hidden="true"
-                className="absolute inset-0 pointer-events-none"
-                style={{
-                  background:
-                    'radial-gradient(ellipse at 70% 80%, rgba(251,191,36,0.06) 0%, transparent 60%)',
-                }}
-              />
-
-              {/* Prompt glass card */}
-              <div className="relative z-10 w-full bg-white/90 border border-[#e8c97a]/50 rounded-xl p-5 shadow-md ring-1 ring-amber-200/30">
-                <div className="flex items-start gap-2.5">
-                  <SparklesIcon className="size-4 text-amber-500 shrink-0 mt-0.5" />
-                  <p className="text-sm font-medium text-gray-800 leading-relaxed min-h-[88px]">
+              {/* Frosted Glass Prompt Container */}
+              <div className="relative z-10 w-full bg-white/70 backdrop-blur-xl border border-white/80 rounded-2xl p-6 shadow-2xl space-y-3 ring-1 ring-amber-400/30">
+                <div className="flex items-start gap-3">
+                  <div className="p-1 rounded-md bg-amber-500/20 text-[#b89158] shrink-0 mt-0.5">
+                    <SparklesIcon className="size-4 text-amber-600" />
+                  </div>
+                  <p className="text-sm font-semibold text-[#0f172a] leading-relaxed min-h-[90px]">
                     {typedPrompt}
                     {!isReducedMotion && (
-                      <span className="inline-block w-0.5 h-4 ml-0.5 bg-amber-500/80 animate-pulse align-middle" />
+                      <span className="inline-block w-0.5 h-4.5 ml-1 bg-amber-500 animate-pulse align-middle" />
                     )}
                   </p>
                 </div>
@@ -380,12 +379,12 @@ export const FromThoughtToWebsiteSection: React.FC = () => {
           ───────────────────────────────────────────────────── */}
           <div
             ref={arrow1Ref}
-            className="hidden md:flex absolute top-[calc(50%+2rem)] left-[33%] -translate-y-1/2 z-20 items-center pointer-events-none"
+            className="hidden md:flex absolute top-[calc(50%+1.5rem)] left-[33%] -translate-y-1/2 z-20 items-center pointer-events-none"
             aria-hidden="true"
           >
-            <div className="flex items-center gap-1 bg-white/95 px-2.5 py-1 rounded-full border border-sky-200/70 shadow-sm text-sky-400 text-xs">
-              <span className="block w-5 border-b border-dashed border-sky-300" />
-              <ArrowRightIcon className="size-3.5" />
+            <div className="flex items-center gap-1.5 bg-white/95 px-3 py-1.5 rounded-full border border-sky-300/80 shadow-md text-sky-500 text-xs font-bold">
+              <span className="block w-6 border-t-2 border-dashed border-sky-400/80" />
+              <ArrowRightIcon className="size-4" />
             </div>
           </div>
 
@@ -393,9 +392,9 @@ export const FromThoughtToWebsiteSection: React.FC = () => {
               CONNECTING ARROW 1 — Mobile (vertical)
           ───────────────────────────────────────────────────── */}
           <div className="flex md:hidden justify-center" aria-hidden="true">
-            <div className="flex flex-col items-center gap-1 text-sky-300">
-              <span className="block h-5 border-l border-dashed border-sky-300" />
-              <ArrowDownIcon className="size-3.5" />
+            <div className="flex flex-col items-center gap-1 text-sky-500">
+              <span className="block h-6 border-l-2 border-dashed border-sky-400/80" />
+              <ArrowDownIcon className="size-4" />
             </div>
           </div>
 
@@ -407,29 +406,29 @@ export const FromThoughtToWebsiteSection: React.FC = () => {
             className="flex flex-col gap-4"
             style={{ opacity: 0 }}
           >
-            {/* Stage header */}
+            {/* Stage Header */}
             <div className="flex items-center gap-3">
-              <span className="w-8 h-8 rounded-full bg-[#e0f2fe] border border-[#7dd3fc]/60 text-[#0369a1] text-xs font-mono font-bold flex items-center justify-center shadow-sm">
+              <span className="w-8 h-8 rounded-full bg-[#E0F2FE] border border-[#38BDF8]/80 text-[#0369A1] text-xs font-mono font-bold flex items-center justify-center shadow-xs">
                 02
               </span>
-              <div className="p-1.5 rounded-full bg-white border border-sky-200/50 text-sky-500 shadow-sm">
-                <SparklesIcon className="size-4" />
+              <div className="p-2 rounded-full bg-white border border-slate-200 text-slate-700 shadow-xs">
+                <Wand2Icon className="size-4 text-slate-700" />
               </div>
               <div>
-                <h3 className="text-base font-bold text-gray-900 leading-tight">Build</h3>
-                <p className="text-xs text-gray-400">Buildo crafts layout, content, and visuals.</p>
+                <h3 className="text-base font-bold text-[#0f172a] leading-tight">Build</h3>
+                <p className="text-xs text-slate-500">Buildo crafts the layout, content, and visuals.</p>
               </div>
             </div>
 
-            {/* Visual Panel 02 — Processing */}
-            <div className="relative flex-1 min-h-[300px] rounded-2xl border border-sky-200/50 bg-white shadow-sm p-5 flex flex-col justify-center gap-3">
-              {/* Very subtle cyan atmosphere */}
+            {/* Visual Panel 02 — Processing Rows */}
+            <div className="relative flex-1 min-h-[320px] rounded-3xl border border-sky-300/60 bg-white/80 backdrop-blur-2xl shadow-xl shadow-sky-500/10 p-5 sm:p-6 flex flex-col justify-center gap-3">
+              {/* Soft atmosphere tint */}
               <div
                 aria-hidden="true"
-                className="absolute inset-0 rounded-2xl pointer-events-none"
+                className="absolute inset-0 rounded-3xl pointer-events-none"
                 style={{
                   background:
-                    'radial-gradient(ellipse at 50% 0%, rgba(125,211,252,0.07) 0%, transparent 60%)',
+                    'radial-gradient(ellipse at 50% 0%, rgba(77,168,232,0.06) 0%, transparent 60%)',
                 }}
               />
 
@@ -442,14 +441,6 @@ export const FromThoughtToWebsiteSection: React.FC = () => {
                   />
                 ))}
               </div>
-
-              {/* "Buildo AI" label */}
-              <div className="relative z-10 flex items-center gap-2 pt-1 mt-1 border-t border-gray-100">
-                <span className="w-1.5 h-1.5 rounded-full bg-sky-400 animate-pulse" />
-                <span className="text-[10px] text-gray-400 font-mono tracking-wider uppercase">
-                  Buildo AI · Processing
-                </span>
-              </div>
             </div>
           </div>
 
@@ -458,12 +449,12 @@ export const FromThoughtToWebsiteSection: React.FC = () => {
           ───────────────────────────────────────────────────── */}
           <div
             ref={arrow2Ref}
-            className="hidden md:flex absolute top-[calc(50%+2rem)] left-[66.5%] -translate-y-1/2 z-20 items-center pointer-events-none"
+            className="hidden md:flex absolute top-[calc(50%+1.5rem)] left-[66.5%] -translate-y-1/2 z-20 items-center pointer-events-none"
             aria-hidden="true"
           >
-            <div className="flex items-center gap-1 bg-white/95 px-2.5 py-1 rounded-full border border-emerald-200/70 shadow-sm text-emerald-400 text-xs">
-              <span className="block w-5 border-b border-dashed border-emerald-300" />
-              <ArrowRightIcon className="size-3.5" />
+            <div className="flex items-center gap-1.5 bg-white/95 px-3 py-1.5 rounded-full border border-emerald-300/80 shadow-md text-emerald-600 text-xs font-bold">
+              <span className="block w-6 border-t-2 border-dashed border-emerald-400/80" />
+              <ArrowRightIcon className="size-4" />
             </div>
           </div>
 
@@ -471,9 +462,9 @@ export const FromThoughtToWebsiteSection: React.FC = () => {
               CONNECTING ARROW 2 — Mobile (vertical)
           ───────────────────────────────────────────────────── */}
           <div className="flex md:hidden justify-center" aria-hidden="true">
-            <div className="flex flex-col items-center gap-1 text-emerald-300">
-              <span className="block h-5 border-l border-dashed border-emerald-300" />
-              <ArrowDownIcon className="size-3.5" />
+            <div className="flex flex-col items-center gap-1 text-emerald-500">
+              <span className="block h-6 border-l-2 border-dashed border-emerald-400/80" />
+              <ArrowDownIcon className="size-4" />
             </div>
           </div>
 
@@ -485,106 +476,102 @@ export const FromThoughtToWebsiteSection: React.FC = () => {
             className="flex flex-col gap-4"
             style={{ opacity: 0 }}
           >
-            {/* Stage header */}
+            {/* Stage Header */}
             <div className="flex items-center gap-3">
-              <span className="w-8 h-8 rounded-full bg-[#dcfce7] border border-[#86efac]/60 text-[#15803d] text-xs font-mono font-bold flex items-center justify-center shadow-sm">
+              <span className="w-8 h-8 rounded-full bg-[#DCFCE7] border border-[#4ADE80]/80 text-[#15803D] text-xs font-mono font-bold flex items-center justify-center shadow-xs">
                 03
               </span>
-              <div className="p-1.5 rounded-full bg-white border border-emerald-200/50 text-emerald-600 shadow-sm">
-                <GlobeIcon className="size-4" />
+              <div className="p-2 rounded-full bg-white border border-slate-200 text-slate-700 shadow-xs">
+                <GlobeIcon className="size-4 text-slate-700" />
               </div>
               <div>
-                <h3 className="text-base font-bold text-gray-900 leading-tight">Live Website</h3>
-                <p className="text-xs text-gray-400">Ready to edit, customize, and publish.</p>
+                <h3 className="text-base font-bold text-[#0f172a] leading-tight">Live Website</h3>
+                <p className="text-xs text-slate-500">Your website is ready to edit, customize, and publish.</p>
               </div>
             </div>
 
-            {/* Visual Panel 03 — Website Preview */}
-            <div className="relative flex-1 min-h-[300px] rounded-2xl border border-emerald-200/50 bg-white shadow-sm flex flex-col overflow-hidden">
-              {/* Subtle green glow top */}
+            {/* Visual Panel 03 — Website Preview Mockup */}
+            <div className="relative flex-1 min-h-[320px] rounded-3xl border border-emerald-300/70 bg-[#F7FAF8] shadow-xl shadow-emerald-500/10 p-4 sm:p-5 flex flex-col justify-between overflow-hidden">
+              {/* Subtle green glow */}
               <div
                 aria-hidden="true"
                 className="absolute inset-0 pointer-events-none"
                 style={{
                   background:
-                    'radial-gradient(ellipse at 50% 0%, rgba(74,186,120,0.06) 0%, transparent 55%)',
+                    'radial-gradient(ellipse at 50% 0%, rgba(76,203,145,0.06) 0%, transparent 55%)',
                 }}
               />
 
-              <div className="relative z-10 flex flex-col h-full p-4 sm:p-5 gap-3">
-                {/* Browser chrome */}
-                <div className="w-full bg-white rounded-xl p-2.5 border border-gray-200/80 shadow-sm flex items-center justify-between gap-2">
-                  {/* Traffic dots */}
-                  <div className="flex items-center gap-1.5">
-                    <span className="w-2.5 h-2.5 rounded-full bg-red-300/70" />
-                    <span className="w-2.5 h-2.5 rounded-full bg-amber-300/70" />
-                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-400/70" />
-                  </div>
-                  {/* URL bar */}
-                  <div className="flex-1 mx-2 bg-gray-50 border border-gray-200 rounded-md px-2 py-0.5 text-[9px] text-gray-400 font-mono truncate">
-                    aurora-portfolio.buildo.site
-                  </div>
-                  {/* Nav items */}
-                  <div className="hidden sm:flex items-center gap-2 text-[10px] text-gray-500 font-medium">
-                    <span>Home</span>
+              <div className="relative z-10 flex flex-col gap-3.5">
+                {/* Website Header Bar */}
+                <div className="w-full bg-white rounded-xl p-3 border border-slate-200/80 shadow-xs flex items-center justify-between gap-2">
+                  <span className="font-extrabold text-xs text-[#0f172a] tracking-wider uppercase">
+                    AURORA
+                  </span>
+
+                  <div className="hidden sm:flex items-center gap-3 text-[11px] font-medium text-slate-600">
+                    <span className="text-[#0f172a] font-bold">Home</span>
+                    <span>About</span>
                     <span>Work</span>
                     <span>Contact</span>
                   </div>
+
+                  <button className="bg-[#0f172a] text-white text-[10px] font-bold px-3 py-1 rounded-full border border-slate-800 shadow-2xs">
+                    Work With Me
+                  </button>
                 </div>
 
-                {/* Website hero preview */}
-                <div className="flex-1 bg-gray-50/80 rounded-xl p-4 border border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-3 min-h-0">
-                  <div className="space-y-2 text-left max-w-[200px]">
-                    <div className="text-[9px] font-mono uppercase tracking-widest text-gray-400">
-                      Aurora Studio
-                    </div>
-                    <h4 className="text-base sm:text-lg font-bold text-gray-900 leading-tight">
+                {/* Main Website Hero Card */}
+                <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/80 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4">
+                  <div className="space-y-2.5 text-left flex-1 min-w-0">
+                    <h4 className="text-lg sm:text-xl font-extrabold text-[#0f172a] leading-tight tracking-tight">
                       Design that moves people.
                     </h4>
-                    <p className="text-[10px] text-gray-500 leading-relaxed">
-                      Beautiful, functional digital experiences for ambitious brands.
+                    <p className="text-xs text-slate-500 leading-relaxed font-normal">
+                      I create beautiful, functional digital experiences for ambitious brands.
                     </p>
-                    <div className="flex items-center gap-2 pt-0.5">
-                      <span className="text-[9px] font-semibold bg-gray-900 text-white px-2.5 py-1 rounded-md">
+
+                    <div className="flex items-center gap-2 pt-1">
+                      <span className="text-[11px] font-bold bg-[#0f172a] text-white px-3 py-1.5 rounded-lg shadow-2xs">
                         View Work
                       </span>
-                      <span className="text-[9px] font-medium text-gray-600 bg-white border border-gray-200 px-2 py-1 rounded-md">
-                        About
+                      <span className="text-[11px] font-semibold text-slate-700 bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-lg shadow-2xs">
+                        About Me
                       </span>
                     </div>
                   </div>
 
-                  <div className="w-24 h-24 rounded-xl overflow-hidden shadow border border-gray-200 shrink-0">
+                  {/* Warm Interior Chair Photo */}
+                  <div className="w-full sm:w-32 h-28 sm:h-32 rounded-xl overflow-hidden shadow-xs border border-slate-200/80 shrink-0">
                     <img
-                      src="/background.png"
-                      alt="Generated website preview"
+                      src="/aurora-preview.jpg"
+                      alt="AURORA Design Studio"
                       className="w-full h-full object-cover object-center"
                     />
                   </div>
                 </div>
               </div>
 
-              {/* Website Ready badge */}
+              {/* Floating Website Ready Badge */}
               <div
                 ref={badgeRef}
-                className="absolute bottom-4 right-4 z-20 bg-white border border-emerald-400/60 text-emerald-800 text-[11px] font-semibold px-3.5 py-1.5 rounded-full shadow-md flex items-center gap-1.5"
+                className="self-end mt-3 bg-white border border-emerald-500/70 text-emerald-900 font-bold text-xs px-3.5 py-1.5 rounded-full shadow-md flex items-center gap-1.5 z-20"
                 style={{ opacity: 0 }}
               >
-                <CheckCircle2Icon className="size-3.5 text-emerald-500 fill-emerald-50" />
+                <CheckCircle2Icon className="size-4 text-emerald-500 fill-emerald-50" />
                 <span>Website Ready</span>
               </div>
             </div>
           </div>
 
         </div>
-        {/* end grid */}
+        {/* End grid */}
 
       </div>
-      {/* end max-w container */}
+      {/* End container */}
 
     </section>
   )
 }
 
 export default FromThoughtToWebsiteSection
-
