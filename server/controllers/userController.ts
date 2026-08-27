@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import prisma from "../lib/prisma.js";
 import openai from "../config/openai.js";
 import { getSetting, getSettingInt, incrementOpenrouterCounter } from '../lib/settings.js';
-import { sendVerificationOtpEmail } from '../lib/mailer.js';
+import { emailService } from '../email/emailService.js';
 
 // Pick a design system from the DB (falls back to static file if DB is empty)
 async function pickDesignSystemFromDB(userPrompt: string) {
@@ -547,8 +547,8 @@ export const sendEmailOtp = async (req: Request, res: Response) => {
             data: { emailOtp: otp, emailOtpExpires: expires }
         });
 
-        // Send OTP email via Nodemailer
-        const emailResult = await sendVerificationOtpEmail(user.email, otp, user.name);
+        // Send OTP email via centralized emailService
+        const emailResult = await emailService.sendVerificationOtpEmail(user.email, otp, user.name);
 
         return res.json({ 
             success: true, 

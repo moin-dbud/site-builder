@@ -3,7 +3,7 @@ import { betterAuth } from "better-auth";
 import { bearer } from "better-auth/plugins";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import prisma from "./prisma.js";
-import { sendPasswordResetEmail } from "./mailer.js";
+import { emailService } from "../email/emailService.js";
 
 const rawOrigins = (process.env.TRUSTED_ORIGINS || '')
     .split(',')
@@ -33,6 +33,19 @@ export const auth = betterAuth({
         provider: "postgresql",
     }),
 
+    databaseHooks: {
+        user: {
+            create: {
+                after: async (user) => {
+                    // Send welcome email as a non-blocking side-effect upon registration
+                    emailService.sendWelcomeEmail(user.email, user.name || 'Creator').catch((err) => {
+                        console.error('[BETTER-AUTH] Welcome email delivery failed:', err?.message || err)
+                    })
+                }
+            }
+        }
+    },
+
     plugins: [
         bearer(),
     ],
@@ -42,17 +55,8 @@ export const auth = betterAuth({
         resetPasswordTokenExpiresIn: 3600, // 1 hour token lifetime
         revokeSessionsOnPasswordReset: true,
         sendResetPassword: async ({ user, url, token }, request) => {
-            console.log(`[BETTER-AUTH] Password reset requested for ${user.email}`)
-            try {
-                await sendPasswordResetEmail(user.email, url, user.name || 'Creator')
-            } catch (err: any) {
-                console.error('[BETTER-AUTH] Email delivery failed, logging fallback dev link:', err?.message || err)
-            }
-            console.log(`\n==========================================`)
-            console.log(`[BUILD O PASSWORD RESET LINK]`)
-            console.log(`To User: ${user.email}`)
-            console.log(`Reset URL: ${url}`)
-            console.log(`==========================================\n`)
+            console.log(`[BETTER-AUTH] Password reset requested for user: ${user.email}`)
+            await emailService.sendPasswordResetEmail(user.email, url, user.name || 'Creator')
         },
     },
     user: {
