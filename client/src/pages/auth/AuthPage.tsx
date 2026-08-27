@@ -1,9 +1,10 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useParams, useNavigate, Link } from "react-router-dom"
 import { authClient, signIn, signUp } from "@/lib/auth-client"
 import api from "@/configs/axios"
 import { toast } from "sonner"
-import { Loader2Icon, CheckCircle2Icon, XCircleIcon, SparklesIcon } from "lucide-react"
+import { Loader2Icon, CheckCircle2Icon, XCircleIcon, SparklesIcon, ArrowRightIcon } from "lucide-react"
+import { assets } from "@/assets/assets"
 
 export default function AuthPage() {
     const { pathname } = useParams()
@@ -36,6 +37,53 @@ export default function AuthPage() {
     // Username check state
     const [usernameChecking, setUsernameChecking] = useState(false)
     const [usernameStatus, setUsernameStatus] = useState<{ available: boolean; message: string } | null>(null)
+
+    // Parallax logic for split-screen background
+    const [mouseOffset, setMouseOffset] = useState({ x: 0, y: 0 })
+    const targetOffset = useRef({ x: 0, y: 0 })
+    const animationFrameId = useRef<number | null>(null)
+    const [isReducedMotion, setIsReducedMotion] = useState(false)
+
+    useEffect(() => {
+        const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
+        setIsReducedMotion(motionQuery.matches)
+
+        if (motionQuery.matches) return
+
+        const factorX = 12
+        const factorY = 8
+
+        const handleMouseMove = (e: MouseEvent) => {
+            const { innerWidth, innerHeight } = window
+            const x = ((e.clientX / innerWidth) - 0.5) * factorX
+            const y = ((e.clientY / innerHeight) - 0.5) * factorY
+            targetOffset.current = { x, y }
+        }
+
+        window.addEventListener('mousemove', handleMouseMove)
+
+        const animate = () => {
+            setMouseOffset(prev => {
+                const dx = targetOffset.current.x - prev.x
+                const dy = targetOffset.current.y - prev.y
+                if (Math.abs(dx) < 0.01 && Math.abs(dy) < 0.01) {
+                    return targetOffset.current
+                }
+                return {
+                    x: prev.x + dx * 0.05,
+                    y: prev.y + dy * 0.05
+                }
+            })
+            animationFrameId.current = requestAnimationFrame(animate)
+        }
+
+        animationFrameId.current = requestAnimationFrame(animate)
+
+        return () => {
+            window.removeEventListener('mousemove', handleMouseMove)
+            if (animationFrameId.current) cancelAnimationFrame(animationFrameId.current)
+        }
+    }, [])
 
     // Debounce username check (~400ms)
     useEffect(() => {
@@ -114,8 +162,9 @@ export default function AuthPage() {
     // Show loader while signing out
     if (pathname === "sign-out") {
         return (
-            <main className="flex justify-center items-center min-h-[85vh] bg-[#08080a]">
-                <Loader2Icon className="size-8 animate-spin text-indigo-400" />
+            <main className="flex flex-col justify-center items-center min-h-screen bg-[#F7F5F0] text-[#1a1a2e]">
+                <Loader2Icon className="size-8 animate-spin text-indigo-600 mb-2" />
+                <span className="text-xs font-mono tracking-wider text-gray-500">SIGNING_OUT...</span>
             </main>
         )
     }
@@ -123,166 +172,269 @@ export default function AuthPage() {
     // Show loader while checking session / redirecting logged-in user
     if (isPending || session?.user) {
         return (
-            <main className="flex justify-center items-center min-h-[85vh] bg-[#08080a]">
-                <Loader2Icon className="size-8 animate-spin text-indigo-400" />
+            <main className="flex flex-col justify-center items-center min-h-screen bg-[#F7F5F0] text-[#1a1a2e]">
+                <Loader2Icon className="size-8 animate-spin text-indigo-600 mb-2" />
+                <span className="text-xs font-mono tracking-wider text-gray-500">INITIALIZING_SESSION...</span>
             </main>
         )
     }
 
-    if (pathname === "signup") {
-        return (
-            <main className="p-6 flex flex-col justify-center items-center min-h-[85vh] bg-[#08080a] text-white font-sans">
-                <div className="w-full max-w-md p-6 rounded-2xl bg-[#111216] border border-[#22242c] shadow-2xl">
-                    <div className="flex flex-col items-center mb-6 text-center">
-                        <div className="p-2.5 rounded-xl bg-indigo-600/10 border border-indigo-500/20 text-indigo-400 mb-3">
-                            <SparklesIcon className="size-6" />
-                        </div>
-                        <h1 className="text-xl font-semibold text-gray-100">Create your Buildo account</h1>
-                        <p className="text-xs text-gray-400 mt-1 font-mono-tech">Join creators building AI-powered websites</p>
-                    </div>
-
-                    <form onSubmit={handleSignUp} className="space-y-4">
-                        <div>
-                            <label className="block text-xs font-medium text-gray-300 mb-1.5">Full Name</label>
-                            <input 
-                                type="text"
-                                required
-                                value={name}
-                                onChange={(e) => setName(e.target.value)}
-                                placeholder="Alex Mercer"
-                                className="w-full px-3.5 py-2.5 text-sm bg-[#08080a] border border-[#22242c] focus:border-indigo-500 rounded-xl outline-none transition-colors text-white placeholder:text-gray-600"
-                            />
-                        </div>
-
-                        <div>
-                            <div className="flex justify-between items-center mb-1.5">
-                                <label className="block text-xs font-medium text-gray-300">Username</label>
-                                <span className="text-[10px] text-gray-500 font-mono-tech">Permanent once set</span>
-                            </div>
-                            <div className="relative">
-                                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 text-sm font-mono-tech">@</span>
-                                <input 
-                                    type="text"
-                                    required
-                                    value={username}
-                                    onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/\s+/g, ''))}
-                                    placeholder="alexmercer"
-                                    className="w-full pl-8 pr-10 py-2.5 text-sm bg-[#08080a] border border-[#22242c] focus:border-indigo-500 rounded-xl outline-none transition-colors text-white placeholder:text-gray-600 font-mono-tech"
-                                />
-                                <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center">
-                                    {usernameChecking && <Loader2Icon className="size-4 animate-spin text-indigo-400" />}
-                                    {!usernameChecking && usernameStatus && usernameStatus.available && (
-                                        <CheckCircle2Icon className="size-4 text-emerald-400" />
-                                    )}
-                                    {!usernameChecking && usernameStatus && !usernameStatus.available && (
-                                        <XCircleIcon className="size-4 text-rose-400" />
-                                    )}
-                                </div>
-                            </div>
-                            {usernameStatus && (
-                                <p className={`text-[11px] mt-1.5 font-mono-tech ${usernameStatus.available ? "text-emerald-400" : "text-rose-400"}`}>
-                                    {usernameStatus.available ? "✓ Username is available" : `✕ ${usernameStatus.message}`}
-                                </p>
-                            )}
-                        </div>
-
-                        <div>
-                            <label className="block text-xs font-medium text-gray-300 mb-1.5">Email address</label>
-                            <input 
-                                type="email"
-                                required
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                placeholder="alex@example.com"
-                                className="w-full px-3.5 py-2.5 text-sm bg-[#08080a] border border-[#22242c] focus:border-indigo-500 rounded-xl outline-none transition-colors text-white placeholder:text-gray-600"
-                            />
-                        </div>
-
-                        <div>
-                            <label className="block text-xs font-medium text-gray-300 mb-1.5">Password</label>
-                            <input 
-                                type="password"
-                                required
-                                minLength={8}
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                placeholder="••••••••"
-                                className="w-full px-3.5 py-2.5 text-sm bg-[#08080a] border border-[#22242c] focus:border-indigo-500 rounded-xl outline-none transition-colors text-white placeholder:text-gray-600"
-                            />
-                        </div>
-
-                        <button
-                            type="submit"
-                            disabled={loading || usernameChecking || (usernameStatus !== null && !usernameStatus.available)}
-                            className="w-full mt-2 py-2.5 px-4 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-semibold rounded-xl transition-all shadow-lg shadow-indigo-950/50 flex items-center justify-center gap-2"
-                        >
-                            {loading && <Loader2Icon className="size-4 animate-spin" />}
-                            <span>Create account</span>
-                        </button>
-                    </form>
-
-                    <div className="mt-6 pt-4 border-t border-[#1c1e26] text-center text-xs text-gray-400">
-                        Already have an account?{" "}
-                        <Link to="/auth/signin" className="text-indigo-400 hover:underline font-medium">
-                            Sign in
-                        </Link>
-                    </div>
-                </div>
-            </main>
-        )
-    }
+    const isSignUp = pathname === "signup"
 
     return (
-        <main className="p-6 flex flex-col justify-center items-center min-h-[85vh] bg-[#08080a] text-white font-sans">
-            <div className="w-full max-w-md p-6 rounded-2xl bg-[#111216] border border-[#22242c] shadow-2xl">
-                <div className="flex flex-col items-center mb-6 text-center">
-                    <div className="p-2.5 rounded-xl bg-indigo-600/10 border border-indigo-500/20 text-indigo-400 mb-3">
-                        <SparklesIcon className="size-6" />
-                    </div>
-                    <h1 className="text-xl font-semibold text-gray-100">Welcome back to Buildo</h1>
-                    <p className="text-xs text-gray-400 mt-1 font-mono-tech">Sign in to continue building your websites</p>
+        <main className="min-h-screen w-full bg-[#F7F5F0] flex overflow-hidden font-sans text-[#1a1a2e]">
+            {/* ── Left Cinematic Visual Panel (Desktop Only) ── */}
+            <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-[#0a0c10]">
+                {/* Background Environmental Image with Subtle Parallax */}
+                <div
+                    className="absolute -inset-4 w-[calc(100%+2rem)] h-[calc(100%+2rem)] transition-transform duration-700 ease-out"
+                    style={{
+                        transform: !isReducedMotion
+                            ? `translate3d(${mouseOffset.x}px, ${mouseOffset.y}px, 0)`
+                            : 'none',
+                    }}
+                >
+                    <img
+                        src="/background.png"
+                        alt="Buildo World"
+                        className="w-full h-full object-cover animate-slow-ambient-zoom opacity-90"
+                    />
                 </div>
 
-                <form onSubmit={handleSignIn} className="space-y-4">
-                    <div>
-                        <label className="block text-xs font-medium text-gray-300 mb-1.5">Email address</label>
-                        <input 
-                            type="email"
-                            required
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            placeholder="alex@example.com"
-                            className="w-full px-3.5 py-2.5 text-sm bg-[#08080a] border border-[#22242c] focus:border-indigo-500 rounded-xl outline-none transition-colors text-white placeholder:text-gray-600"
+                {/* Overlays */}
+                <div className="absolute inset-0 bg-gradient-to-tr from-[#08090d]/90 via-[#08090d]/60 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#08090d] via-transparent to-transparent" />
+
+                {/* Content Overlay */}
+                <div className="relative z-10 w-full p-12 flex flex-col justify-between text-white">
+                    <Link to="/" className="inline-flex items-center gap-2.5 group">
+                        <img
+                            src={assets.logo}
+                            alt="Buildo Logo"
+                            className="h-8 w-auto drop-shadow group-hover:scale-105 transition-transform"
                         />
-                    </div>
-
-                    <div>
-                        <label className="block text-xs font-medium text-gray-300 mb-1.5">Password</label>
-                        <input 
-                            type="password"
-                            required
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            placeholder="••••••••"
-                            className="w-full px-3.5 py-2.5 text-sm bg-[#08080a] border border-[#22242c] focus:border-indigo-500 rounded-xl outline-none transition-colors text-white placeholder:text-gray-600"
-                        />
-                    </div>
-
-                    <button
-                        type="submit"
-                        disabled={loading}
-                        className="w-full mt-2 py-2.5 px-4 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-semibold rounded-xl transition-all shadow-lg shadow-indigo-950/50 flex items-center justify-center gap-2"
-                    >
-                        {loading && <Loader2Icon className="size-4 animate-spin" />}
-                        <span>Sign in</span>
-                    </button>
-                </form>
-
-                <div className="mt-6 pt-4 border-t border-[#1c1e26] text-center text-xs text-gray-400">
-                    Don't have an account?{" "}
-                    <Link to="/auth/signup" className="text-indigo-400 hover:underline font-medium">
-                        Create account
                     </Link>
+
+                    <div className="max-w-md space-y-4 mb-8">
+                        <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/20 rounded-full px-3.5 py-1 text-xs text-amber-200 font-medium">
+                            <SparklesIcon className="size-3.5 text-amber-300" />
+                            <span>AI Web Studio</span>
+                        </div>
+                        <h2 className="text-4xl sm:text-5xl font-bold tracking-tight leading-tight">
+                            Build websites at the <br />
+                            <span className="font-serif-italic text-amber-200">speed of thought.</span>
+                        </h2>
+                        <p className="text-sm text-gray-300 leading-relaxed font-normal">
+                            Describe your idea. Buildo turns it into a responsive, live website ready to publish.
+                        </p>
+                    </div>
+
+                    <div className="text-xs text-gray-400 font-mono tracking-wider">
+                        © 2026 Buildo Inc. All rights reserved.
+                    </div>
+                </div>
+            </div>
+
+            {/* ── Right Form Container Panel ── */}
+            <div className="w-full lg:w-1/2 flex flex-col justify-between p-6 sm:p-12 md:p-16 relative z-10 bg-[#F7F5F0] overflow-y-auto">
+                {/* Mobile Top Brand Header */}
+                <div className="flex lg:hidden items-center justify-between mb-8">
+                    <Link to="/" className="flex items-center gap-2">
+                        <img src={assets.logo} alt="Buildo Logo" className="h-7 w-auto" />
+                    </Link>
+                    <Link to="/" className="text-xs font-medium text-gray-500 hover:text-gray-900 transition-colors">
+                        ← Back to Home
+                    </Link>
+                </div>
+
+                {/* Desktop Back Link */}
+                <div className="hidden lg:flex justify-end mb-4">
+                    <Link to="/" className="text-xs font-semibold text-gray-500 hover:text-gray-900 transition-colors flex items-center gap-1">
+                        ← Back to Home
+                    </Link>
+                </div>
+
+                {/* Form Card Area */}
+                <div className="w-full max-w-md mx-auto my-auto py-4">
+                    {/* Header */}
+                    <div className="mb-8 space-y-2">
+                        <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-[#1a1a2e]">
+                            {isSignUp ? (
+                                <>
+                                    Create your <span className="font-serif-italic text-[#b89158]">Buildo</span> account
+                                </>
+                            ) : (
+                                <>
+                                    Welcome back to <span className="font-serif-italic text-[#b89158]">Buildo</span>
+                                </>
+                            )}
+                        </h1>
+                        <p className="text-xs sm:text-sm text-gray-600 font-normal leading-relaxed">
+                            {isSignUp
+                                ? "Turn your ideas into live websites with AI."
+                                : "Sign in to continue building and managing your websites."}
+                        </p>
+                    </div>
+
+                    {/* Auth Form */}
+                    {isSignUp ? (
+                        <form onSubmit={handleSignUp} className="space-y-4">
+                            <div>
+                                <label className="block text-xs font-semibold text-gray-700 mb-1.5">Full Name</label>
+                                <input
+                                    type="text"
+                                    required
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
+                                    placeholder="Alex Mercer"
+                                    className="w-full px-4 py-3 text-sm bg-white border border-[#E5E0D5] focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20 rounded-2xl outline-none transition-all text-[#1a1a2e] placeholder:text-gray-400 shadow-sm"
+                                />
+                            </div>
+
+                            <div>
+                                <div className="flex justify-between items-center mb-1.5">
+                                    <label className="block text-xs font-semibold text-gray-700">Username</label>
+                                    <span className="text-[10px] text-gray-500 font-mono">Permanent once set</span>
+                                </div>
+                                <div className="relative">
+                                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-mono">@</span>
+                                    <input
+                                        type="text"
+                                        required
+                                        value={username}
+                                        onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/\s+/g, ''))}
+                                        placeholder="alexmercer"
+                                        className="w-full pl-9 pr-10 py-3 text-sm bg-white border border-[#E5E0D5] focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20 rounded-2xl outline-none transition-all text-[#1a1a2e] placeholder:text-gray-400 font-mono shadow-sm"
+                                    />
+                                    <div className="absolute right-3.5 top-1/2 -translate-y-1/2 flex items-center">
+                                        {usernameChecking && <Loader2Icon className="size-4 animate-spin text-indigo-600" />}
+                                        {!usernameChecking && usernameStatus && usernameStatus.available && (
+                                            <CheckCircle2Icon className="size-4 text-emerald-600" />
+                                        )}
+                                        {!usernameChecking && usernameStatus && !usernameStatus.available && (
+                                            <XCircleIcon className="size-4 text-rose-500" />
+                                        )}
+                                    </div>
+                                </div>
+                                {usernameStatus && (
+                                    <p className={`text-[11px] mt-1.5 font-mono ${usernameStatus.available ? "text-emerald-700" : "text-rose-600"}`}>
+                                        {usernameStatus.available ? "✓ Username is available" : `✕ ${usernameStatus.message}`}
+                                    </p>
+                                )}
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-semibold text-gray-700 mb-1.5">Email address</label>
+                                <input
+                                    type="email"
+                                    required
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    placeholder="alex@example.com"
+                                    className="w-full px-4 py-3 text-sm bg-white border border-[#E5E0D5] focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20 rounded-2xl outline-none transition-all text-[#1a1a2e] placeholder:text-gray-400 shadow-sm"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-semibold text-gray-700 mb-1.5">Password</label>
+                                <input
+                                    type="password"
+                                    required
+                                    minLength={8}
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    placeholder="••••••••"
+                                    className="w-full px-4 py-3 text-sm bg-white border border-[#E5E0D5] focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20 rounded-2xl outline-none transition-all text-[#1a1a2e] placeholder:text-gray-400 shadow-sm"
+                                />
+                            </div>
+
+                            <button
+                                type="submit"
+                                disabled={loading || usernameChecking || (usernameStatus !== null && !usernameStatus.available)}
+                                className="w-full mt-3 py-3.5 px-5 bg-[#1a1a2e] hover:bg-black disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-semibold rounded-2xl transition-all shadow-lg hover:scale-[1.01] active:scale-95 flex items-center justify-center gap-2"
+                            >
+                                {loading ? (
+                                    <>
+                                        <Loader2Icon className="size-4 animate-spin text-white" />
+                                        <span>Creating account...</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <span>Create account</span>
+                                        <ArrowRightIcon className="size-4" />
+                                    </>
+                                )}
+                            </button>
+                        </form>
+                    ) : (
+                        <form onSubmit={handleSignIn} className="space-y-4">
+                            <div>
+                                <label className="block text-xs font-semibold text-gray-700 mb-1.5">Email address</label>
+                                <input
+                                    type="email"
+                                    required
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    placeholder="alex@example.com"
+                                    className="w-full px-4 py-3 text-sm bg-white border border-[#E5E0D5] focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20 rounded-2xl outline-none transition-all text-[#1a1a2e] placeholder:text-gray-400 shadow-sm"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-semibold text-gray-700 mb-1.5">Password</label>
+                                <input
+                                    type="password"
+                                    required
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    placeholder="••••••••"
+                                    className="w-full px-4 py-3 text-sm bg-white border border-[#E5E0D5] focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20 rounded-2xl outline-none transition-all text-[#1a1a2e] placeholder:text-gray-400 shadow-sm"
+                                />
+                            </div>
+
+                            <button
+                                type="submit"
+                                disabled={loading}
+                                className="w-full mt-3 py-3.5 px-5 bg-[#1a1a2e] hover:bg-black disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-semibold rounded-2xl transition-all shadow-lg hover:scale-[1.01] active:scale-95 flex items-center justify-center gap-2"
+                            >
+                                {loading ? (
+                                    <>
+                                        <Loader2Icon className="size-4 animate-spin text-white" />
+                                        <span>Signing in...</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <span>Sign in</span>
+                                        <ArrowRightIcon className="size-4" />
+                                    </>
+                                )}
+                            </button>
+                        </form>
+                    )}
+
+                    {/* Switch Auth Mode Footnote */}
+                    <div className="mt-8 pt-6 border-t border-[#E5E0D5] text-center text-xs text-gray-600 font-medium">
+                        {isSignUp ? (
+                            <>
+                                Already have an account?{" "}
+                                <Link to="/auth/signin" className="text-indigo-700 hover:text-indigo-900 font-semibold underline underline-offset-2">
+                                    Sign in
+                                </Link>
+                            </>
+                        ) : (
+                            <>
+                                Don't have an account yet?{" "}
+                                <Link to="/auth/signup" className="text-indigo-700 hover:text-indigo-900 font-semibold underline underline-offset-2">
+                                    Create account
+                                </Link>
+                            </>
+                        )}
+                    </div>
+                </div>
+
+                {/* Footer note */}
+                <div className="text-center text-[11px] text-gray-400 pt-4 font-mono">
+                    Protected by Buildo Auth & Edge Security
                 </div>
             </div>
         </main>

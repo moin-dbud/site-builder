@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { appPlans } from '../assets/assets'
 import { CheckIcon, ZapIcon, Loader2Icon, SparklesIcon, ArrowRightIcon } from 'lucide-react'
 import api from '@/configs/axios'
@@ -154,22 +154,15 @@ const Pricing: React.FC = () => {
           <img 
             src="/price.png" 
             alt="Buildo Pricing World"
-            className="w-full h-full object-cover animate-[slowAmbientZoom_16s_ease-in-out_infinite_alternate]"
+            className="w-full h-full object-cover animate-slow-ambient-zoom"
           />
         </div>
-
-        {/* Ambient CSS Keyframe Animation: Scale 1.00 -> 1.035 over 16 seconds */}
-        <style>{`
-          @keyframes slowAmbientZoom {
-            0% { transform: scale(1.00); }
-            100% { transform: scale(1.035); }
-          }
-        `}</style>
       </div>
 
-      {/* Soft atmospheric overlays */}
-      <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-b from-sky-900/10 via-transparent to-sky-950/20 pointer-events-none z-0" />
-      <div aria-hidden="true" className="absolute top-0 inset-x-0 h-36 bg-gradient-to-b from-[#08090d]/70 to-transparent pointer-events-none z-0" />
+      {/* Stronger overlays — pricing cards need maximum readability */}
+      <div aria-hidden="true" className="absolute inset-0 bg-[#08090d]/55 pointer-events-none z-0" />
+      <div aria-hidden="true" className="absolute top-0 inset-x-0 h-40 bg-gradient-to-b from-[#08090d]/80 to-transparent pointer-events-none z-0" />
+      <div aria-hidden="true" className="absolute bottom-0 inset-x-0 h-40 bg-gradient-to-t from-[#08090d]/55 to-transparent pointer-events-none z-0" />
 
       {/* Main Content Area */}
       <div className="relative z-10 w-full max-w-6xl mx-auto px-4 sm:px-6 md:px-8">
@@ -221,8 +214,8 @@ const Pricing: React.FC = () => {
                 whileHover={{ y: -6, transition: { duration: 0.22 } }}
                 className={`relative rounded-3xl p-6 sm:p-8 flex flex-col justify-between text-gray-900 transition-all duration-300 backdrop-blur-2xl border shadow-2xl shadow-sky-950/10 ${
                   highlighted
-                    ? 'bg-white/60 border-white/80 ring-2 ring-indigo-500/30'
-                    : 'bg-white/45 border-white/60 hover:bg-white/55'
+                    ? 'bg-white/85 border-white/90 ring-2 ring-indigo-500/50 shadow-indigo-500/10'
+                    : 'bg-white/72 border-white/70 hover:bg-white/80'
                 }`}
               >
                 <div>
@@ -300,9 +293,11 @@ const Pricing: React.FC = () => {
           })}
         </div>
 
-        <p className="text-center text-xs font-medium text-white/80 max-w-md mx-auto pb-16 leading-relaxed">
-          Project creation and revisions consume {creditsCost} credits each. Purchased credits never expire.
-        </p>
+        <div className="flex justify-center pb-16">
+          <p className="text-center text-xs font-medium text-gray-700 max-w-md leading-relaxed bg-white/60 backdrop-blur-md border border-white/60 rounded-full px-5 py-2.5 shadow-sm">
+            Project creation and revisions consume {creditsCost} credits each. Purchased credits never expire.
+          </p>
+        </div>
 
       </div>
     </div>

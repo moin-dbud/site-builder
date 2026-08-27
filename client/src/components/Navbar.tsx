@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { assets } from '../assets/assets'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { authClient } from '@/lib/auth-client'
@@ -11,8 +11,25 @@ const Navbar = () => {
   const navigate = useNavigate()
   const location = useLocation()
   const [credits, setCredits] = useState<number | null>(null)
+  const [scrolled, setScrolled] = useState(false)
 
   const { data: session } = authClient.useSession()
+
+  // Detect whether we are on the home page
+  const isHome = location.pathname === '/'
+
+  // Scroll listener — marks navbar as "scrolled" after 60px
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 60)
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    setScrolled(window.scrollY > 60)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
+  // On route change, reset scroll state immediately
+  useEffect(() => {
+    setScrolled(window.scrollY > 60)
+  }, [location.pathname])
 
   const getCredits = async () => {
     try {
@@ -41,9 +58,23 @@ const Navbar = () => {
 
   const isActive = (path: string) => location.pathname === path
 
+  // ── Contextual nav pill styling ──────────────────────────────────────────────
+  // Home + at top (y < 60px): fully glass / white text — over cinematic hero
+  // Home + scrolled OR any other page: dark semi-opaque — readable over ivory sections
+  const isAtHeroTop = isHome && !scrolled
+  const navPillClass = isAtHeroTop
+    ? 'bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl shadow-black/20'
+    : 'bg-[#0e0f14]/80 backdrop-blur-xl border border-white/10 shadow-xl shadow-black/40'
+  const navLinkActive = isAtHeroTop
+    ? 'bg-white/20 text-white font-semibold shadow-sm'
+    : 'bg-white/15 text-white font-semibold shadow-sm'
+  const navLinkInactive = isAtHeroTop
+    ? 'text-white/80 hover:text-white hover:bg-white/10'
+    : 'text-gray-300 hover:text-white hover:bg-white/10'
+
   return (
     <>
-      <header className="absolute top-0 inset-x-0 z-50 px-6 md:px-12 pt-6 flex items-center justify-between pointer-events-auto transition-all duration-300">
+      <header className="fixed top-0 inset-x-0 z-50 px-6 md:px-12 pt-6 flex items-center justify-between pointer-events-auto transition-all duration-300">
         {/* Brand Logo */}
         <Link to="/" className="flex items-center gap-2.5 group">
           <img
@@ -54,13 +85,14 @@ const Navbar = () => {
         </Link>
 
         {/* Center Floating Glass Nav Pill */}
-        <nav className="hidden md:flex items-center gap-1 bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl shadow-black/20 rounded-full px-4 py-1.5 text-xs sm:text-sm font-medium">
+        <nav
+          className={`hidden md:flex items-center gap-1 ${navPillClass} rounded-full px-4 py-1.5 text-xs sm:text-sm font-medium transition-all duration-500`}
+          aria-label="Main navigation"
+        >
           <Link
             to="/"
             className={`px-3.5 py-1.5 rounded-full transition-all duration-200 ${
-              isActive('/')
-                ? 'bg-white/20 text-white font-semibold shadow-sm'
-                : 'text-white/80 hover:text-white hover:bg-white/10'
+              isActive('/') ? navLinkActive : navLinkInactive
             }`}
           >
             Home
@@ -68,9 +100,7 @@ const Navbar = () => {
           <Link
             to="/projects"
             className={`px-3.5 py-1.5 rounded-full transition-all duration-200 ${
-              isActive('/projects')
-                ? 'bg-white/20 text-white font-semibold shadow-sm'
-                : 'text-white/80 hover:text-white hover:bg-white/10'
+              isActive('/projects') ? navLinkActive : navLinkInactive
             }`}
           >
             My Projects
@@ -78,9 +108,7 @@ const Navbar = () => {
           <Link
             to="/community"
             className={`px-3.5 py-1.5 rounded-full transition-all duration-200 ${
-              isActive('/community')
-                ? 'bg-white/20 text-white font-semibold shadow-sm'
-                : 'text-white/80 hover:text-white hover:bg-white/10'
+              isActive('/community') ? navLinkActive : navLinkInactive
             }`}
           >
             Community
@@ -88,9 +116,7 @@ const Navbar = () => {
           <Link
             to="/pricing"
             className={`px-3.5 py-1.5 rounded-full transition-all duration-200 ${
-              isActive('/pricing')
-                ? 'bg-white/20 text-white font-semibold shadow-sm'
-                : 'text-white/80 hover:text-white hover:bg-white/10'
+              isActive('/pricing') ? navLinkActive : navLinkInactive
             }`}
           >
             Pricing
@@ -146,12 +172,13 @@ const Navbar = () => {
             <button
               className="p-2 rounded-full bg-white/10 border border-white/20 text-gray-300 hover:text-white transition-all"
               onClick={() => setMenuOpen(false)}
+              aria-label="Close menu"
             >
               <XIcon className="size-5" />
             </button>
           </div>
 
-          <div className="flex flex-col items-center gap-5 my-auto text-lg font-medium">
+          <nav className="flex flex-col items-center gap-5 my-auto text-lg font-medium" aria-label="Mobile navigation">
             <Link
               to="/"
               onClick={() => setMenuOpen(false)}
@@ -188,7 +215,7 @@ const Navbar = () => {
             >
               Pricing
             </Link>
-          </div>
+          </nav>
 
           <div className="pt-4 border-t border-white/15 text-center">
             {!session?.user ? (

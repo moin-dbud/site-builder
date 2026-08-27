@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import type { Project } from '../types'
 import {
   ExternalLinkIcon,
@@ -129,21 +129,15 @@ const MyProjects: React.FC = () => {
           <img
             src="/price.png"
             alt="Buildo Projects World"
-            className="w-full h-full object-cover animate-[slowAmbientZoom_16s_ease-in-out_infinite_alternate]"
+            className="w-full h-full object-cover animate-slow-ambient-zoom"
           />
         </div>
-
-        <style>{`
-          @keyframes slowAmbientZoom {
-            0% { transform: scale(1.00); }
-            100% { transform: scale(1.035); }
-          }
-        `}</style>
       </div>
 
-      {/* Atmospheric Overlays */}
-      <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-b from-sky-900/10 via-transparent to-sky-950/20 pointer-events-none z-0" />
-      <div aria-hidden="true" className="absolute top-0 inset-x-0 h-36 bg-gradient-to-b from-[#08090d]/70 to-transparent pointer-events-none z-0" />
+      {/* Stronger overlays — projects are the focus, background recedes */}
+      <div aria-hidden="true" className="absolute inset-0 bg-[#08090d]/55 pointer-events-none z-0" />
+      <div aria-hidden="true" className="absolute top-0 inset-x-0 h-40 bg-gradient-to-b from-[#08090d]/80 to-transparent pointer-events-none z-0" />
+      <div aria-hidden="true" className="absolute bottom-0 inset-x-0 h-40 bg-gradient-to-t from-[#08090d]/65 to-transparent pointer-events-none z-0" />
 
       {/* Main Content Area */}
       <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 md:px-8">

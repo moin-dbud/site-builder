@@ -1,4 +1,4 @@
-﻿import React from 'react'
+import React from 'react'
 import { motion } from 'framer-motion'
 import {
   LightbulbIcon,
@@ -85,7 +85,7 @@ export const HowWeWorkSection: React.FC = () => {
             transition={{ duration: 0.5 }}
             className="inline-flex items-center gap-2 bg-white/80 backdrop-blur-md border border-gray-200 px-3.5 py-1 rounded-full text-xs font-mono tracking-widest text-[#b89158] uppercase font-semibold shadow-sm"
           >
-            HOW WE WORK
+            WHAT YOU CAN DO
           </motion.div>
 
           <motion.h2
@@ -95,8 +95,8 @@ export const HowWeWorkSection: React.FC = () => {
             transition={{ duration: 0.65, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
             className="text-3xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-gray-900 leading-[1.12]"
           >
-            From prompt to live site in{' '}
-            <span className="font-serif-italic text-[#4b8ebc]">four simple steps.</span>
+            Everything you need to{' '}
+            <span className="font-serif-italic text-[#4b8ebc]">build, refine, and launch.</span>
           </motion.h2>
 
           <motion.p
@@ -106,7 +106,7 @@ export const HowWeWorkSection: React.FC = () => {
             transition={{ duration: 0.55, delay: 0.2 }}
             className="text-base sm:text-lg text-gray-500 max-w-xl mx-auto leading-relaxed"
           >
-            Buildo combines generative AI with an intuitive live workspace so anyone can build, customize, and publish a website in seconds.
+            From first prompt to fully published website — Buildo gives you the tools to describe, build, refine, and scale without writing a single line of code.
           </motion.p>
         </div>
 

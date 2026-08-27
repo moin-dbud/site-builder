@@ -1,4 +1,4 @@
-﻿@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Playfair+Display:ital,wght@1,400;1,500;1,600;1,700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Playfair+Display:ital,wght@1,400;1,500;1,600;1,700&display=swap');
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
@@ -40,6 +40,16 @@ html, body, #root {
   overflow-x: hidden;
 }
 
+/* â”€â”€â”€ Reduced Motion â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 /* â”€â”€â”€ Technical Font Class â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .font-mono-tech {
   font-family: 'JetBrains Mono', monospace;
@@ -77,6 +87,12 @@ html, body, #root {
   }
 }
 
+@keyframes slowAmbientZoom {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
 .animate-kinetic-fade {
   animation: kineticFade 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
@@ -87,6 +103,10 @@ html, body, #root {
 
 .animate-laser-scan {
   animation: laserScan 2.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+.animate-slow-ambient-zoom {
+  animation: slowAmbientZoom 15s ease-in-out infinite;
 }
 
 /* â”€â”€â”€ Scrollbar Customization â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
@@ -194,4 +214,41 @@ html, body, #root {
 }
 .animate-ambient-breathe {
   animation: ambientBreathe var(--breathe-dur, 25s) ease-in-out infinite;
+}
+
+/* ─── Better Auth UI Card Overrides in Light / Settings Context ─────────────── */
+.better-auth-ui input,
+.better-auth-ui textarea {
+  color: #0f172a !important;
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+}
+
+.better-auth-ui input:focus,
+.better-auth-ui textarea:focus {
+  border-color: #4f46e5 !important;
+  outline: 2px solid rgba(79, 70, 229, 0.2) !important;
+}
+
+.better-auth-ui label {
+  color: #1e293b !important;
+  font-weight: 600 !important;
+  font-size: 0.75rem !important;
+}
+
+.better-auth-ui p,
+.better-auth-ui span {
+  color: #475569;
+}
+
+.better-auth-ui button[type="submit"] {
+  background-color: #0f172a !important;
+  color: #ffffff !important;
+  border: 1px solid #1e293b !important;
+  font-weight: 600 !important;
+  border-radius: 0.75rem !important;
+}
+
+.better-auth-ui button[type="submit"]:hover {
+  background-color: #020617 !important;
 }

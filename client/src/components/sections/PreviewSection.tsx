@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import {
   ChevronDownIcon,
@@ -90,34 +90,28 @@ const PreviewSection: React.FC = () => {
         background: 'linear-gradient(135deg, #c9a45c 0%, #e8d5a8 25%, #d4c29a 40%, #a8c8d8 60%, #7fb5cc 80%, #4b8ebc 100%)',
       }}
     >
-      {/* Organic hazy cloud shapes with subtle floating animation */}
-      <motion.div
+      {/* Static atmospheric highlight overlays — no floating animation */}
+      <div
         aria-hidden="true"
-        animate={isReducedMotion ? {} : { y: [-15, 15, -15], scale: [1, 1.05, 1] }}
-        transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut' }}
-        className="absolute top-[-10%] left-[-8%] w-[55%] h-[70%] rounded-full pointer-events-none"
+        className="absolute top-[-8%] left-[-6%] w-[50%] h-[65%] rounded-full pointer-events-none"
         style={{
-          background: 'radial-gradient(ellipse at center, rgba(255,255,255,0.22) 0%, transparent 70%)',
+          background: 'radial-gradient(ellipse at center, rgba(255,255,255,0.18) 0%, transparent 68%)',
           filter: 'blur(60px)',
         }}
       />
-      <motion.div
+      <div
         aria-hidden="true"
-        animate={isReducedMotion ? {} : { y: [15, -15, 15], scale: [1, 1.07, 1] }}
-        transition={{ duration: 14, repeat: Infinity, ease: 'easeInOut' }}
-        className="absolute top-[15%] right-[-5%] w-[45%] h-[60%] rounded-full pointer-events-none"
+        className="absolute top-[10%] right-[-4%] w-[42%] h-[58%] rounded-full pointer-events-none"
         style={{
-          background: 'radial-gradient(ellipse at center, rgba(255,255,255,0.18) 0%, transparent 70%)',
+          background: 'radial-gradient(ellipse at center, rgba(255,255,255,0.14) 0%, transparent 68%)',
           filter: 'blur(50px)',
         }}
       />
-      <motion.div
+      <div
         aria-hidden="true"
-        animate={isReducedMotion ? {} : { x: [-10, 10, -10], scale: [1, 1.04, 1] }}
-        transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
-        className="absolute bottom-[-15%] left-[20%] w-[50%] h-[55%] rounded-full pointer-events-none"
+        className="absolute bottom-[-12%] left-[18%] w-[48%] h-[52%] rounded-full pointer-events-none"
         style={{
-          background: 'radial-gradient(ellipse at center, rgba(255,255,255,0.15) 0%, transparent 65%)',
+          background: 'radial-gradient(ellipse at center, rgba(255,255,255,0.11) 0%, transparent 62%)',
           filter: 'blur(70px)',
         }}
       />

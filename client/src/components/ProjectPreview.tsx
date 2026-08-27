@@ -13,7 +13,6 @@ interface ProjectPreviewProps {
 
 export interface ProjectPreviewRef {
     getCode: () => string | undefined;
-
 }
 
 const ProjectPreview = forwardRef<ProjectPreviewRef, ProjectPreviewProps>(({ project, isGenerating, device = 'desktop', showEditorPanel = true }, ref) => {
@@ -33,7 +32,7 @@ const ProjectPreview = forwardRef<ProjectPreviewRef, ProjectPreviewProps>(({ pro
             const doc = iframeRef.current?.contentDocument;
             if (!doc) return undefined      
 
-            // remove our selection class atrributes and styles before returning 
+            // remove our selection class attributes and styles before returning 
             doc.querySelectorAll('.ai-selected-element,[data-ai-selected]').forEach(el=>{
                 el.classList.remove('ai-selected-element');
                 el.removeAttribute('data-ai-selected');
@@ -85,11 +84,11 @@ const ProjectPreview = forwardRef<ProjectPreviewRef, ProjectPreviewProps>(({ pro
     }
 
     return (
-        <div className="relative bg-[#08080a] h-full rounded-2xl overflow-hidden border border-[#22242c] shadow-2xl flex flex-col justify-center items-center">
+        <div className="relative bg-[#F4F2EC] h-full rounded-2xl overflow-hidden border border-[#E6E2D8] shadow-sm flex flex-col justify-center items-center">
             {project.current_code ? (
                 <div className="relative w-full h-full flex flex-col items-center justify-center p-2 sm:p-4">
-                    {/* Viewport Frame */}
-                    <div className={`h-full ${resolutions[device]} transition-all duration-300 ease-in-out bg-white rounded-xl overflow-hidden shadow-2xl border border-[#22242c] relative`}>
+                    {/* Clean Studio Viewport Frame */}
+                    <div className={`h-full ${resolutions[device]} transition-all duration-300 ease-in-out bg-white rounded-2xl overflow-hidden shadow-xl border border-[#E5E0D5] relative`}>
                         <iframe
                             ref={iframeRef}
                             srcDoc={injectPreview(project.current_code)}
