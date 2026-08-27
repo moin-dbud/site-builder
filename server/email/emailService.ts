@@ -72,6 +72,65 @@ export const emailService = {
     let attempts = 0
     const maxAttempts = 2
 
+    // Priority 1: Check HTTPS API providers (Resend / Brevo) - Port 443 is never blocked on cloud hosts (Render, Vercel, AWS)
+    if (process.env.RESEND_API_KEY) {
+      try {
+        const fromEmail = process.env.RESEND_FROM || process.env.SMTP_FROM || 'Buildo AI <onboarding@resend.dev>'
+        const res = await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            from: fromEmail,
+            to: [recipient],
+            subject: options.subject,
+            html: options.html,
+            text: options.text
+          })
+        })
+        const data = await res.json() as any
+        if (res.ok && data.id) {
+          console.log(`[EMAIL-SERVICE] ✅ Sent "${options.subject}" via Resend API → to: ${maskedRecipient} (ID: ${data.id})`)
+          return { success: true, messageId: data.id }
+        } else {
+          console.error(`[EMAIL-SERVICE] ❌ Resend API delivery failed:`, data?.message || data)
+        }
+      } catch (err: any) {
+        console.error(`[EMAIL-SERVICE] ❌ Resend API fetch failed:`, err?.message || err)
+      }
+    }
+
+    if (process.env.BREVO_API_KEY) {
+      try {
+        const res = await fetch('https://api.brevo.com/v3/smtp/email', {
+          method: 'POST',
+          headers: {
+            'api-key': process.env.BREVO_API_KEY,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            sender: { name: 'Buildo AI', email: process.env.GMAIL_USER || process.env.SMTP_USER || 'buildo.ai.work@gmail.com' },
+            to: [{ email: recipient }],
+            subject: options.subject,
+            htmlContent: options.html,
+            textContent: options.text
+          })
+        })
+        const data = await res.json() as any
+        if (res.ok && data.messageId) {
+          console.log(`[EMAIL-SERVICE] ✅ Sent "${options.subject}" via Brevo API → to: ${maskedRecipient} (MessageID: ${data.messageId})`)
+          return { success: true, messageId: data.messageId }
+        } else {
+          console.error(`[EMAIL-SERVICE] ❌ Brevo API delivery failed:`, data?.message || data)
+        }
+      } catch (err: any) {
+        console.error(`[EMAIL-SERVICE] ❌ Brevo API fetch failed:`, err?.message || err)
+      }
+    }
+
+    // Priority 2: Standard SMTP via Nodemailer
     while (attempts < maxAttempts) {
       attempts++
       try {
@@ -95,6 +154,7 @@ export const emailService = {
         resetTransporter()
 
         if (attempts >= maxAttempts) {
+          console.error(`[EMAIL-SERVICE] 🚨 Direct SMTP port blocked on cloud host (Render/AWS). Please set RESEND_API_KEY or BREVO_API_KEY in Render environment variables for HTTPS email delivery.`)
           return {
             success: false,
             error: err?.message || 'Email delivery failed after retries.'
