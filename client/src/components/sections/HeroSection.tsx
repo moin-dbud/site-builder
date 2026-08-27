@@ -1,5 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
+import api from '@/configs/axios'
+import { authClient } from '@/lib/auth-client'
 import { 
   Loader2Icon, 
   SparklesIcon, 
@@ -34,20 +37,20 @@ export const BUILD_MODES = [
 interface HeroSectionProps {
   input: string;
   setInput: (val: string) => void;
-  loading: boolean;
+  loading?: boolean;
   isFocused: boolean;
   setIsFocused: (val: boolean) => void;
   selectedMode: string | null;
   placeholderText: string;
   showProfileNudge: boolean;
-  onSubmitHandler: (e: React.FormEvent) => void;
+  onSubmitHandler?: (e: React.FormEvent) => void;
   handleSelectMode: (mode: typeof BUILD_MODES[0]) => void;
 }
 
 export const HeroSection: React.FC<HeroSectionProps> = ({
   input,
   setInput,
-  loading,
+  loading: externalLoading,
   isFocused,
   setIsFocused,
   selectedMode,
@@ -57,6 +60,32 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
   handleSelectMode,
 }) => {
   const navigate = useNavigate()
+  const { data: session } = authClient.useSession()
+  const [internalLoading, setInternalLoading] = useState(false)
+  const loading = externalLoading ?? internalLoading
+
+  const handleFormSubmit = async (e?: React.FormEvent | React.MouseEvent) => {
+    if (e) e.preventDefault()
+    if (onSubmitHandler) {
+      return onSubmitHandler(e as React.FormEvent)
+    }
+    try {
+      if (!session?.user) {
+        return toast.error('You must be logged in to create a project')
+      } else if (!input.trim()) {
+        return toast.error('Please enter a message')
+      }
+      setInternalLoading(true)
+      const { data } = await api.post('/api/user/project', { initial_prompt: input })
+      window.dispatchEvent(new Event('refresh-credits'))
+      setInternalLoading(false)
+      navigate(`/projects/${data.projectId}`)
+    } catch (error: any) {
+      setInternalLoading(false)
+      toast.error(error.response?.data?.message || error.message)
+      console.log(error)
+    }
+  }
 
   // Refined Mouse Parallax Logic
   // Desktop: ±12–18px max movement
@@ -196,7 +225,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
         {/* ─── 3. Refined Transparent Glass Command Dock ─── */}
         <div className="w-full max-w-2xl sm:max-w-3xl mt-8 sm:mt-10">
           <form
-            onSubmit={onSubmitHandler}
+            onSubmit={handleFormSubmit}
             className={`bg-white/[0.06] backdrop-blur-xl rounded-2xl sm:rounded-3xl p-4 sm:p-6 border transition-all duration-300 shadow-2xl shadow-black/40 relative group ${
               isFocused
                 ? 'border-white/40 ring-4 ring-indigo-500/20 shadow-[0_0_50px_rgba(99,102,241,0.25)]'
@@ -224,7 +253,8 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
               </div>
 
               <button
-                disabled={loading || !input.trim()}
+                type="submit"
+                disabled={loading}
                 className="ml-auto inline-flex items-center gap-2 bg-gradient-to-r from-indigo-600 via-violet-600 to-indigo-500 hover:from-indigo-500 hover:to-violet-500 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none text-white font-semibold text-xs sm:text-sm rounded-xl px-5 py-2.5 transition-all duration-200 shadow-lg shadow-indigo-950/50 border border-white/20"
               >
                 {!loading ? (

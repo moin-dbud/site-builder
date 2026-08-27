@@ -124,7 +124,7 @@ const Projects = () => {
 
   useEffect(() => {
     if (project && !project.current_code) {
-      const intervalId = setInterval(fetchProject, 10000)
+      const intervalId = setInterval(fetchProject, 3000)
       return () => clearInterval(intervalId)
     }
   }, [project])

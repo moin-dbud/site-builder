@@ -96,7 +96,7 @@ const MyProjects: React.FC = () => {
     try {
       const confirmDelete = window.confirm('Are you sure you want to delete this project?')
       if (!confirmDelete) return
-      const { data } = await api.delete(`/api/project/delete/${id}`)
+      const { data } = await api.delete(`/api/project/${id}`)
       toast.success(data.message)
       setProjects(prev => prev.filter(p => p.id !== id))
     } catch (error: any) {

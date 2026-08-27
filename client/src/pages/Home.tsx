@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import api from '@/configs/axios'
@@ -15,7 +15,6 @@ const Home = () => {
   const navigate = useNavigate()
 
   const [input, setInput] = useState('')
-  const [loading, setLoading] = useState(false)
   const [isFocused, setIsFocused] = useState(false)
   const [selectedMode, setSelectedMode] = useState<string | null>(null)
 
@@ -78,26 +77,6 @@ const Home = () => {
     return () => clearTimeout(timeout)
   }, [placeholderText, isDeleting, currentExampleIndex, isFocused, input])
 
-  const onSubmitHandler = async (e: React.FormEvent) => {
-    e.preventDefault()
-    try {
-      if (!session?.user) {
-        return toast.error('You must be logged in to create a project')
-      } else if (!input.trim()) {
-        return toast.error('Please enter a message')
-      }
-      setLoading(true)
-      const { data } = await api.post('/api/user/project', { initial_prompt: input })
-      window.dispatchEvent(new Event('refresh-credits'))
-      setLoading(false)
-      navigate(`/projects/${data.projectId}`)
-    } catch (error: any) {
-      setLoading(false)
-      toast.error(error.response?.data?.message || error.message)
-      console.log(error)
-    }
-  }
-
   const handleSelectMode = (mode: typeof BUILD_MODES[0]) => {
     setSelectedMode(mode.id)
     setInput(mode.template)
@@ -111,13 +90,11 @@ const Home = () => {
       <HeroSection
         input={input}
         setInput={setInput}
-        loading={loading}
         isFocused={isFocused}
         setIsFocused={setIsFocused}
         selectedMode={selectedMode}
         placeholderText={placeholderText}
         showProfileNudge={Boolean(showProfileNudge)}
-        onSubmitHandler={onSubmitHandler}
         handleSelectMode={handleSelectMode}
       />
 
