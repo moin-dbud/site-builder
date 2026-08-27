@@ -1,6 +1,4 @@
-import React, { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { toast } from 'sonner'
+﻿import { useState, useEffect } from 'react'
 import api from '@/configs/axios'
 import { authClient } from '@/lib/auth-client'
 import { HeroSection, PROMPT_EXAMPLES, BUILD_MODES } from '@/components/sections/HeroSection'
@@ -12,7 +10,6 @@ import Footer from '@/components/Footer'
 
 const Home = () => {
   const { data: session } = authClient.useSession()
-  const navigate = useNavigate()
 
   const [input, setInput] = useState('')
   const [isFocused, setIsFocused] = useState(false)
