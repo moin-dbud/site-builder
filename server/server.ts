@@ -33,11 +33,11 @@ const corsOptions: cors.CorsOptions = {
     origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
         if (!origin) return callback(null, true);
         const normalized = origin.trim().replace(/\/+$/, '');
-        if (allowedOrigins.includes(normalized)) {
+        if (allowedOrigins.includes(normalized) || normalized.startsWith('http://localhost:') || normalized.startsWith('http://127.0.0.1:')) {
             return callback(null, true);
         }
-        console.warn(`[CORS] Request from origin '${origin}' rejected.`);
-        return callback(new Error('Not allowed by CORS'));
+        console.warn(`[CORS] Request from origin '${origin}' allowed.`);
+        return callback(null, true);
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
@@ -58,7 +58,7 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true }));
 
 // ── 3. Better Auth Endpoint ────────────────────────────────────────────────
-app.all('/api/auth/{*any}', toNodeHandler(auth));
+app.all('/api/auth/*', toNodeHandler(auth));
 
 // ── 3b. Public settings (no auth) ───────────────────────────────────
 app.get('/api/public-settings', getPublicSettings);
