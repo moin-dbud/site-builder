@@ -16,7 +16,6 @@ import {
     KeyRoundIcon,
     AlertCircleIcon
 } from "lucide-react"
-import { assets } from "@/assets/assets"
 
 export default function AuthPage() {
     const { pathname } = useParams()
@@ -322,9 +321,6 @@ export default function AuthPage() {
             {/* ── Right Form Container Panel ── */}
             <div className="w-full lg:w-1/2 flex flex-col justify-between p-6 sm:p-12 md:p-16 pt-24 sm:pt-28 lg:pt-16 relative z-10 bg-[#F7F5F0] overflow-y-auto">
                 <div className="flex lg:hidden items-center justify-between mb-6">
-                    <Link to="/" className="flex items-center gap-2">
-                        <img src={assets.logo} alt="Buildo Logo" className="h-7 w-auto" />
-                    </Link>
                 </div>
 
                 {/* Form Card Area */}

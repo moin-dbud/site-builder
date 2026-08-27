@@ -1,4 +1,10 @@
 import "dotenv/config";
+import dns from "dns";
+
+if (dns.setDefaultResultOrder) {
+    dns.setDefaultResultOrder('ipv4first');
+}
+
 import express, { Request, Response } from 'express';
 import cors from "cors";
 import { toNodeHandler } from "better-auth/node"
