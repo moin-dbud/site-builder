@@ -248,7 +248,7 @@ const Pricing: React.FC = () => {
                     </div>
 
                     <p className="text-xs text-gray-800 font-semibold mt-2">
-                      Includes <strong className="text-gray-900 font-extrabold">{plan.credits.toLocaleString()} credits</strong>
+                      Includes <strong className="text-gray-900 font-extrabold">{plan.credits.toLocaleString()} credits</strong> ({Math.floor(plan.credits / creditsCost)} creations/revisions)
                     </p>
                   </div>
 

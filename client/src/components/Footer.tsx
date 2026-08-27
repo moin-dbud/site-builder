@@ -1,4 +1,4 @@
-﻿import React from 'react'
+import React from 'react'
 import { motion } from 'framer-motion'
 
 const SocialIcons = [
@@ -75,7 +75,7 @@ export const Footer: React.FC = () => {
             </div>
 
             <p className="text-sm text-gray-500 max-w-sm leading-relaxed font-normal">
-              Build production ready applications by chatting with AI.
+              Build beautiful, responsive websites at the speed of thought.
             </p>
 
             {/* Social Icons Row */}

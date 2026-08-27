@@ -3,7 +3,7 @@ import { useParams, useNavigate, Link } from "react-router-dom"
 import { authClient, signIn, signUp } from "@/lib/auth-client"
 import api from "@/configs/axios"
 import { toast } from "sonner"
-import { Loader2Icon, CheckCircle2Icon, XCircleIcon, SparklesIcon, ArrowRightIcon } from "lucide-react"
+import { Loader2Icon, CheckCircle2Icon, XCircleIcon, SparklesIcon, ArrowRightIcon, EyeIcon, EyeOffIcon } from "lucide-react"
 import { assets } from "@/assets/assets"
 
 export default function AuthPage() {
@@ -32,6 +32,7 @@ export default function AuthPage() {
     const [username, setUsername] = useState("")
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
+    const [showPassword, setShowPassword] = useState(false)
     const [loading, setLoading] = useState(false)
 
     // Username check state
@@ -326,16 +327,28 @@ export default function AuthPage() {
                             </div>
 
                             <div>
-                                <label className="block text-xs font-semibold text-gray-700 mb-1.5">Password</label>
-                                <input
-                                    type="password"
-                                    required
-                                    minLength={8}
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    placeholder="••••••••"
-                                    className="w-full px-4 py-3 text-sm bg-white border border-[#E5E0D5] focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20 rounded-2xl outline-none transition-all text-[#1a1a2e] placeholder:text-gray-400 shadow-sm"
-                                />
+                                <label htmlFor="auth-signup-password" className="block text-xs font-semibold text-gray-700 mb-1.5">Password</label>
+                                <div className="relative">
+                                    <input
+                                        id="auth-signup-password"
+                                        type={showPassword ? "text" : "password"}
+                                        required
+                                        minLength={8}
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                        placeholder="Minimum 8 characters"
+                                        aria-label="Password"
+                                        className="w-full pl-4 pr-11 py-3 text-sm bg-white border border-[#E5E0D5] focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20 rounded-2xl outline-none transition-all text-[#1a1a2e] placeholder:text-gray-400 shadow-sm"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        aria-label={showPassword ? "Hide password" : "Show password"}
+                                        className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-700 transition-colors rounded-lg"
+                                    >
+                                        {showPassword ? <EyeOffIcon className="size-4" /> : <EyeIcon className="size-4" />}
+                                    </button>
+                                </div>
                             </div>
 
                             <button
@@ -371,15 +384,39 @@ export default function AuthPage() {
                             </div>
 
                             <div>
-                                <label className="block text-xs font-semibold text-gray-700 mb-1.5">Password</label>
-                                <input
-                                    type="password"
-                                    required
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    placeholder="••••••••"
-                                    className="w-full px-4 py-3 text-sm bg-white border border-[#E5E0D5] focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20 rounded-2xl outline-none transition-all text-[#1a1a2e] placeholder:text-gray-400 shadow-sm"
-                                />
+                                <div className="flex justify-between items-center mb-1.5">
+                                    <label htmlFor="auth-password-input" className="block text-xs font-semibold text-gray-700">Password</label>
+                                    {!isSignUp && (
+                                        <button
+                                            type="button"
+                                            onClick={() => toast.info("Password Reset", { description: "Please contact support or check your email settings to reset your password." })}
+                                            className="text-[11px] font-semibold text-indigo-700 hover:text-indigo-900 transition-colors"
+                                        >
+                                            Forgot password?
+                                        </button>
+                                    )}
+                                </div>
+                                <div className="relative">
+                                    <input
+                                        id="auth-password-input"
+                                        type={showPassword ? "text" : "password"}
+                                        required
+                                        minLength={isSignUp ? 8 : 1}
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                        placeholder="••••••••"
+                                        aria-label="Password"
+                                        className="w-full pl-4 pr-11 py-3 text-sm bg-white border border-[#E5E0D5] focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20 rounded-2xl outline-none transition-all text-[#1a1a2e] placeholder:text-gray-400 shadow-sm"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        aria-label={showPassword ? "Hide password" : "Show password"}
+                                        className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-700 transition-colors rounded-lg"
+                                    >
+                                        {showPassword ? <EyeOffIcon className="size-4" /> : <EyeIcon className="size-4" />}
+                                    </button>
+                                </div>
                             </div>
 
                             <button

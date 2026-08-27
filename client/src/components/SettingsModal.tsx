@@ -184,7 +184,12 @@ export const SettingsModal = ({ isOpen, onClose, initialSection = 'profile', scr
       />
 
       {/* ── Main Glass Settings Modal ── */}
-      <div className="relative z-10 w-full max-w-5xl h-[85vh] max-h-[740px] bg-[#FAF9F5] border border-[#CBD5E1] rounded-3xl shadow-2xl shadow-slate-900/15 flex flex-col overflow-hidden text-[#0f172a]">
+      <div 
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="settings-modal-title"
+        className="relative z-10 w-full max-w-5xl h-[85vh] max-h-[740px] bg-[#FAF9F5] border border-[#CBD5E1] rounded-3xl shadow-2xl shadow-slate-900/15 flex flex-col overflow-hidden text-[#0f172a]"
+      >
         
         {/* Modal Header */}
         <div className="px-6 py-4 border-b border-[#E2E8F0] flex items-center justify-between bg-[#F1F5F9]/80 shrink-0">
@@ -193,7 +198,7 @@ export const SettingsModal = ({ isOpen, onClose, initialSection = 'profile', scr
               <SparklesIcon className="size-4.5" />
             </div>
             <div>
-              <h2 className="text-base sm:text-lg font-extrabold tracking-tight text-[#0f172a]">Buildo Settings</h2>
+              <h2 id="settings-modal-title" className="text-base sm:text-lg font-extrabold tracking-tight text-[#0f172a]">Buildo Settings</h2>
               <p className="text-xs text-slate-600 font-normal">Manage your Buildo account, profile, credits, and security</p>
             </div>
           </div>

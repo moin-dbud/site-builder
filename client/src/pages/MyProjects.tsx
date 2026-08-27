@@ -317,7 +317,7 @@ const MyProjects: React.FC = () => {
               <div className="size-14 rounded-2xl bg-indigo-500/15 border border-indigo-500/30 flex items-center justify-center text-indigo-700">
                 <FolderKanbanIcon className="size-7" />
               </div>
-              <h2 className="text-2xl font-bold text-gray-900">No projects yet</h2>
+              <h2 className="text-2xl font-bold text-gray-900">You haven't created a website yet.</h2>
               <p className="text-xs sm:text-sm text-gray-700 leading-relaxed font-medium">
                 Describe your business or brand idea in plain English, and Buildo AI will generate your first website in seconds.
               </p>
