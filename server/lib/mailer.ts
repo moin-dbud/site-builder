@@ -108,6 +108,60 @@ export const sendVerificationOtpEmail = async (toEmail: string, otpCode: string,
   }
 }
 
+export const sendPasswordResetEmail = async (toEmail: string, resetUrl: string, name: string = 'Creator') => {
+  try {
+    const mailTransporter = await getTransporter()
+    const fromAddress = process.env.SMTP_FROM || 'Buildo AI <buildo.ai.work@gmail.com>'
+    console.log(`[NODEMAILER] Sending Password Reset from: "${fromAddress}" → to: ${toEmail}`)
+
+    const mailOptions = {
+      from: fromAddress,
+      replyTo: process.env.SMTP_USER,
+      to: toEmail,
+      subject: 'Reset your Buildo password',
+      html: `
+        <div style="font-family: Arial, sans-serif; background-color: #08080a; color: #ffffff; padding: 32px; border-radius: 20px; max-width: 520px; margin: 0 auto; border: 1px solid #22242c; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+          <div style="text-align: center; margin-bottom: 24px;">
+            <h1 style="color: #6366f1; margin: 0; font-size: 26px; font-weight: 800; tracking-tight: -0.5px;">Buildo</h1>
+            <p style="color: #9ca3af; font-size: 13px; margin-top: 4px;">From thought to website.</p>
+          </div>
+          <div style="background-color: #111216; padding: 28px; border-radius: 16px; border: 1px solid #22242c; text-align: center;">
+            <h2 style="color: #f3f4f6; font-size: 18px; margin-top: 0; margin-bottom: 12px; font-weight: 700;">Password Reset Request</h2>
+            <p style="color: #d1d5db; font-size: 14px; margin-top: 0;">Hi ${name},</p>
+            <p style="color: #9ca3af; font-size: 13px; line-height: 1.6; margin-bottom: 24px;">
+              We received a request to reset the password for your Buildo account. Click the button below to securely create a new password:
+            </p>
+            <div style="margin: 28px 0;">
+              <a href="${resetUrl}" target="_blank" style="background-color: #4f46e5; color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 12px; font-weight: 700; font-size: 14px; display: inline-block; box-shadow: 0 4px 14px rgba(79, 70, 229, 0.4);">
+                Reset Your Password
+              </a>
+            </div>
+            <p style="color: #6b7280; font-size: 12px; margin-bottom: 0; line-height: 1.5;">
+              If you didn't request a password reset, you can safely ignore this email. This link will expire in 1 hour.
+            </p>
+          </div>
+          <div style="text-align: center; margin-top: 24px; color: #4b5563; font-size: 11px;">
+            &copy; ${new Date().getFullYear()} Buildo. All rights reserved.
+          </div>
+        </div>
+      `
+    }
+
+    const info = await mailTransporter.sendMail(mailOptions)
+    console.log(`[NODEMAILER] Sent Password Reset Email to ${toEmail}`)
+    console.log(`[NODEMAILER] Message ID: ${info.messageId}`)
+    const testUrl = nodemailer.getTestMessageUrl(info)
+    if (testUrl) {
+      console.log(`[NODEMAILER] Preview Ethereal URL: ${testUrl}`)
+    }
+    return { success: true, messageId: info.messageId, previewUrl: testUrl }
+  } catch (error: any) {
+    console.error('[NODEMAILER] Error sending password reset email:', error.message)
+    resetTransporter()
+    throw error
+  }
+}
+
 export const verifySMTPConnection = async () => {
   try {
     const t = await getTransporter()

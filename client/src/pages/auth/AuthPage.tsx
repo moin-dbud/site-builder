@@ -1,15 +1,35 @@
 import { useState, useEffect, useRef } from "react"
-import { useParams, useNavigate, Link } from "react-router-dom"
-import { authClient, signIn, signUp } from "@/lib/auth-client"
+import { useParams, useNavigate, Link, useSearchParams } from "react-router-dom"
+import { authClient, signIn, signUp, requestPasswordReset, resetPassword } from "@/lib/auth-client"
 import api from "@/configs/axios"
 import { toast } from "sonner"
-import { Loader2Icon, CheckCircle2Icon, XCircleIcon, SparklesIcon, ArrowRightIcon, EyeIcon, EyeOffIcon } from "lucide-react"
+import {
+    Loader2Icon,
+    CheckCircle2Icon,
+    XCircleIcon,
+    SparklesIcon,
+    ArrowRightIcon,
+    EyeIcon,
+    EyeOffIcon,
+    ArrowLeftIcon,
+    MailIcon,
+    KeyRoundIcon,
+    AlertCircleIcon
+} from "lucide-react"
 import { assets } from "@/assets/assets"
 
 export default function AuthPage() {
     const { pathname } = useParams()
     const navigate = useNavigate()
+    const [searchParams] = useSearchParams()
+    const tokenFromQuery = searchParams.get("token") || ""
+
     const { data: session, isPending } = authClient.useSession()
+
+    // Route detection
+    const isSignUp = pathname === "signup"
+    const isForgotPassword = pathname === "forgot-password"
+    const isResetPassword = pathname === "reset-password"
 
     // Handle sign-out route
     useEffect(() => {
@@ -28,12 +48,20 @@ export default function AuthPage() {
         }
     }, [session, isPending, pathname, navigate])
 
+    // Form inputs state
     const [name, setName] = useState("")
     const [username, setUsername] = useState("")
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
+    const [newPassword, setNewPassword] = useState("")
+    const [confirmPassword, setConfirmPassword] = useState("")
     const [showPassword, setShowPassword] = useState(false)
     const [loading, setLoading] = useState(false)
+
+    // Password reset status states
+    const [resetSent, setResetSent] = useState(false)
+    const [resetSuccess, setResetSuccess] = useState(false)
+    const [tokenError, setTokenError] = useState<string | null>(null)
 
     // Username check state
     const [usernameChecking, setUsernameChecking] = useState(false)
@@ -160,6 +188,74 @@ export default function AuthPage() {
         }
     }
 
+    // Handle Forgot Password submission
+    const handleRequestPasswordReset = async (e: React.FormEvent) => {
+        e.preventDefault()
+        if (!email.trim()) {
+            toast.error("Please enter your email address")
+            return
+        }
+
+        setLoading(true)
+        try {
+            const redirectTo = `${window.location.origin}/auth/reset-password`
+            const res = await requestPasswordReset({
+                email: email.trim(),
+                redirectTo,
+            })
+            if (res?.error) {
+                console.error("[Forgot Password Error]", res.error)
+            }
+            setResetSent(true)
+        } catch (err: any) {
+            console.error("[Forgot Password Exception]", err)
+            setResetSent(true)
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    // Handle Reset Password submission
+    const handleResetPassword = async (e: React.FormEvent) => {
+        e.preventDefault()
+        if (newPassword.length < 8) {
+            toast.error("Password must be at least 8 characters.")
+            return
+        }
+        if (newPassword !== confirmPassword) {
+            toast.error("Passwords do not match.")
+            return
+        }
+        if (!tokenFromQuery) {
+            setTokenError("Invalid or missing password reset link.")
+            return
+        }
+
+        setLoading(true)
+        setTokenError(null)
+        try {
+            const res = await resetPassword({
+                newPassword,
+                token: tokenFromQuery,
+            })
+
+            if (res?.error) {
+                const errMsg = res.error.message || "Failed to reset password"
+                if (res.error.code === 'INVALID_TOKEN' || errMsg.toLowerCase().includes('token')) {
+                    setTokenError("This password reset link is invalid or has expired.")
+                } else {
+                    toast.error(errMsg)
+                }
+            } else {
+                setResetSuccess(true)
+            }
+        } catch (err: any) {
+            toast.error(err.message || "An unexpected error occurred")
+        } finally {
+            setLoading(false)
+        }
+    }
+
     // Show loader while signing out
     if (pathname === "sign-out") {
         return (
@@ -180,13 +276,10 @@ export default function AuthPage() {
         )
     }
 
-    const isSignUp = pathname === "signup"
-
     return (
         <main className="min-h-screen w-full bg-[#F7F5F0] flex overflow-hidden font-sans text-[#1a1a2e]">
             {/* ── Left Cinematic Visual Panel (Desktop Only) ── */}
             <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-[#0a0c10]">
-                {/* Background Environmental Image with Subtle Parallax */}
                 <div
                     className="absolute -inset-4 w-[calc(100%+2rem)] h-[calc(100%+2rem)] transition-transform duration-700 ease-out"
                     style={{
@@ -202,20 +295,10 @@ export default function AuthPage() {
                     />
                 </div>
 
-                {/* Overlays */}
                 <div className="absolute inset-0 bg-gradient-to-tr from-[#08090d]/90 via-[#08090d]/60 to-transparent" />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#08090d] via-transparent to-transparent" />
 
-                {/* Content Overlay */}
                 <div className="relative z-10 w-full p-12 pt-24 flex flex-col justify-between text-white">
-                    {/* <Link to="/" className="inline-flex items-center gap-2.5 group">
-                        <img
-                            src={assets.logo}
-                            alt="Buildo Logo"
-                            className="h-8 w-auto drop-shadow group-hover:scale-105 transition-transform"
-                        />
-                    </Link> */}
-
                     <div className="max-w-md space-y-4 mb-8">
                         <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/20 rounded-full px-3.5 py-1 text-xs text-amber-200 font-medium">
                             <SparklesIcon className="size-3.5 text-amber-300" />
@@ -238,7 +321,6 @@ export default function AuthPage() {
 
             {/* ── Right Form Container Panel ── */}
             <div className="w-full lg:w-1/2 flex flex-col justify-between p-6 sm:p-12 md:p-16 pt-24 sm:pt-28 lg:pt-16 relative z-10 bg-[#F7F5F0] overflow-y-auto">
-                {/* Mobile Top Brand Header */}
                 <div className="flex lg:hidden items-center justify-between mb-6">
                     <Link to="/" className="flex items-center gap-2">
                         <img src={assets.logo} alt="Buildo Logo" className="h-7 w-auto" />
@@ -247,216 +329,445 @@ export default function AuthPage() {
 
                 {/* Form Card Area */}
                 <div className="w-full max-w-md mx-auto my-auto py-4">
-                    {/* Header */}
-                    <div className="mb-8 space-y-2">
-                        <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-[#1a1a2e]">
-                            {isSignUp ? (
-                                <>
-                                    Create your <span className="font-serif-italic text-[#b89158]">Buildo</span> account
-                                </>
-                            ) : (
-                                <>
-                                    Welcome back to <span className="font-serif-italic text-[#b89158]">Buildo</span>
-                                </>
-                            )}
-                        </h1>
-                        <p className="text-xs sm:text-sm text-gray-600 font-normal leading-relaxed">
-                            {isSignUp
-                                ? "Turn your ideas into live websites with AI."
-                                : "Sign in to continue building and managing your websites."}
-                        </p>
-                    </div>
 
-                    {/* Auth Form */}
-                    {isSignUp ? (
-                        <form onSubmit={handleSignUp} className="space-y-4">
-                            <div>
-                                <label className="block text-xs font-semibold text-gray-700 mb-1.5">Full Name</label>
-                                <input
-                                    type="text"
-                                    required
-                                    value={name}
-                                    onChange={(e) => setName(e.target.value)}
-                                    placeholder="Alex Mercer"
-                                    className="w-full px-4 py-3 text-sm bg-white border border-[#E5E0D5] focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20 rounded-2xl outline-none transition-all text-[#1a1a2e] placeholder:text-gray-400 shadow-sm"
-                                />
-                            </div>
+                    {/* ── VIEW 1: FORGOT PASSWORD ── */}
+                    {isForgotPassword ? (
+                        <div>
+                            {resetSent ? (
+                                <div className="space-y-6 text-center">
+                                    <div className="size-14 mx-auto rounded-2xl bg-indigo-50 border border-indigo-200 flex items-center justify-center text-indigo-700 shadow-sm">
+                                        <MailIcon className="size-7" />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <h1 className="text-3xl font-bold tracking-tight text-[#1a1a2e]">
+                                            Check your email
+                                        </h1>
+                                        <p className="text-xs sm:text-sm text-gray-600 leading-relaxed max-w-sm mx-auto">
+                                            If an account exists for this email, we've sent a password reset link. The link will allow you to securely create a new password.
+                                        </p>
+                                    </div>
 
-                            <div>
-                                <div className="flex justify-between items-center mb-1.5">
-                                    <label className="block text-xs font-semibold text-gray-700">Username</label>
-                                    <span className="text-[10px] text-gray-500 font-mono">Permanent once set</span>
-                                </div>
-                                <div className="relative">
-                                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-mono">@</span>
-                                    <input
-                                        type="text"
-                                        required
-                                        value={username}
-                                        onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/\s+/g, ''))}
-                                        placeholder="alexmercer"
-                                        className="w-full pl-9 pr-10 py-3 text-sm bg-white border border-[#E5E0D5] focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20 rounded-2xl outline-none transition-all text-[#1a1a2e] placeholder:text-gray-400 font-mono shadow-sm"
-                                    />
-                                    <div className="absolute right-3.5 top-1/2 -translate-y-1/2 flex items-center">
-                                        {usernameChecking && <Loader2Icon className="size-4 animate-spin text-indigo-600" />}
-                                        {!usernameChecking && usernameStatus && usernameStatus.available && (
-                                            <CheckCircle2Icon className="size-4 text-emerald-600" />
-                                        )}
-                                        {!usernameChecking && usernameStatus && !usernameStatus.available && (
-                                            <XCircleIcon className="size-4 text-rose-500" />
-                                        )}
+                                    <div className="pt-4">
+                                        <Link
+                                            to="/auth/signin"
+                                            className="w-full py-3.5 px-5 bg-[#1a1a2e] hover:bg-black text-white text-sm font-semibold rounded-2xl transition-all shadow-lg hover:scale-[1.01] active:scale-95 inline-flex items-center justify-center gap-2"
+                                        >
+                                            <ArrowLeftIcon className="size-4" />
+                                            <span>Back to Sign In</span>
+                                        </Link>
                                     </div>
                                 </div>
-                                {usernameStatus && (
-                                    <p className={`text-[11px] mt-1.5 font-mono ${usernameStatus.available ? "text-emerald-700" : "text-rose-600"}`}>
-                                        {usernameStatus.available ? "✓ Username is available" : `✕ ${usernameStatus.message}`}
-                                    </p>
-                                )}
-                            </div>
+                            ) : (
+                                <div>
+                                    <div className="mb-8 space-y-2">
+                                        <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-[#1a1a2e]">
+                                            Forgot your <span className="font-serif-italic text-[#b89158]">password?</span>
+                                        </h1>
+                                        <p className="text-xs sm:text-sm text-gray-600 font-normal leading-relaxed">
+                                            Enter the email address associated with your Buildo account and we'll send you a secure reset link.
+                                        </p>
+                                    </div>
 
-                            <div>
-                                <label className="block text-xs font-semibold text-gray-700 mb-1.5">Email address</label>
-                                <input
-                                    type="email"
-                                    required
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    placeholder="alex@example.com"
-                                    className="w-full px-4 py-3 text-sm bg-white border border-[#E5E0D5] focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20 rounded-2xl outline-none transition-all text-[#1a1a2e] placeholder:text-gray-400 shadow-sm"
-                                />
-                            </div>
+                                    <form onSubmit={handleRequestPasswordReset} className="space-y-4">
+                                        <div>
+                                            <label htmlFor="reset-email-input" className="block text-xs font-semibold text-gray-700 mb-1.5">Email address</label>
+                                            <input
+                                                id="reset-email-input"
+                                                type="email"
+                                                required
+                                                value={email}
+                                                onChange={(e) => setEmail(e.target.value)}
+                                                placeholder="alex@example.com"
+                                                aria-label="Email address"
+                                                className="w-full px-4 py-3 text-sm bg-white border border-[#E5E0D5] focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20 rounded-2xl outline-none transition-all text-[#1a1a2e] placeholder:text-gray-400 shadow-sm"
+                                            />
+                                        </div>
 
-                            <div>
-                                <label htmlFor="auth-signup-password" className="block text-xs font-semibold text-gray-700 mb-1.5">Password</label>
-                                <div className="relative">
-                                    <input
-                                        id="auth-signup-password"
-                                        type={showPassword ? "text" : "password"}
-                                        required
-                                        minLength={8}
-                                        value={password}
-                                        onChange={(e) => setPassword(e.target.value)}
-                                        placeholder="Minimum 8 characters"
-                                        aria-label="Password"
-                                        className="w-full pl-4 pr-11 py-3 text-sm bg-white border border-[#E5E0D5] focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20 rounded-2xl outline-none transition-all text-[#1a1a2e] placeholder:text-gray-400 shadow-sm"
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowPassword(!showPassword)}
-                                        aria-label={showPassword ? "Hide password" : "Show password"}
-                                        className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-700 transition-colors rounded-lg"
-                                    >
-                                        {showPassword ? <EyeOffIcon className="size-4" /> : <EyeIcon className="size-4" />}
-                                    </button>
-                                </div>
-                            </div>
-
-                            <button
-                                type="submit"
-                                disabled={loading || usernameChecking || (usernameStatus !== null && !usernameStatus.available)}
-                                className="w-full mt-3 py-3.5 px-5 bg-[#1a1a2e] hover:bg-black disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-semibold rounded-2xl transition-all shadow-lg hover:scale-[1.01] active:scale-95 flex items-center justify-center gap-2"
-                            >
-                                {loading ? (
-                                    <>
-                                        <Loader2Icon className="size-4 animate-spin text-white" />
-                                        <span>Creating account...</span>
-                                    </>
-                                ) : (
-                                    <>
-                                        <span>Create account</span>
-                                        <ArrowRightIcon className="size-4" />
-                                    </>
-                                )}
-                            </button>
-                        </form>
-                    ) : (
-                        <form onSubmit={handleSignIn} className="space-y-4">
-                            <div>
-                                <label className="block text-xs font-semibold text-gray-700 mb-1.5">Email address</label>
-                                <input
-                                    type="email"
-                                    required
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    placeholder="alex@example.com"
-                                    className="w-full px-4 py-3 text-sm bg-white border border-[#E5E0D5] focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20 rounded-2xl outline-none transition-all text-[#1a1a2e] placeholder:text-gray-400 shadow-sm"
-                                />
-                            </div>
-
-                            <div>
-                                <div className="flex justify-between items-center mb-1.5">
-                                    <label htmlFor="auth-password-input" className="block text-xs font-semibold text-gray-700">Password</label>
-                                    {!isSignUp && (
                                         <button
-                                            type="button"
-                                            onClick={() => toast.info("Password Reset", { description: "Please contact support or check your email settings to reset your password." })}
-                                            className="text-[11px] font-semibold text-indigo-700 hover:text-indigo-900 transition-colors"
+                                            type="submit"
+                                            disabled={loading}
+                                            className="w-full mt-3 py-3.5 px-5 bg-[#1a1a2e] hover:bg-black disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-semibold rounded-2xl transition-all shadow-lg hover:scale-[1.01] active:scale-95 flex items-center justify-center gap-2"
                                         >
-                                            Forgot password?
+                                            {loading ? (
+                                                <>
+                                                    <Loader2Icon className="size-4 animate-spin text-white" />
+                                                    <span>Sending reset link...</span>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <span>Send reset link</span>
+                                                    <ArrowRightIcon className="size-4" />
+                                                </>
+                                            )}
                                         </button>
+                                    </form>
+
+                                    <div className="mt-8 pt-6 border-t border-[#E5E0D5] text-center">
+                                        <Link
+                                            to="/auth/signin"
+                                            className="inline-flex items-center gap-1.5 text-xs text-indigo-700 hover:text-indigo-900 font-semibold transition-colors"
+                                        >
+                                            <ArrowLeftIcon className="size-3.5" />
+                                            <span>Back to sign in</span>
+                                        </Link>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    ) : isResetPassword ? (
+                        /* ── VIEW 2: RESET PASSWORD ── */
+                        <div>
+                            {tokenError || !tokenFromQuery ? (
+                                <div className="space-y-6 text-center">
+                                    <div className="size-14 mx-auto rounded-2xl bg-rose-50 border border-rose-200 flex items-center justify-center text-rose-600 shadow-sm">
+                                        <AlertCircleIcon className="size-7" />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <h1 className="text-3xl font-bold tracking-tight text-[#1a1a2e]">
+                                            Invalid reset link
+                                        </h1>
+                                        <p className="text-xs sm:text-sm text-gray-600 leading-relaxed max-w-sm mx-auto">
+                                            {tokenError || "This password reset link is missing, invalid, or has expired."}
+                                        </p>
+                                    </div>
+
+                                    <div className="pt-4">
+                                        <Link
+                                            to="/auth/forgot-password"
+                                            className="w-full py-3.5 px-5 bg-[#1a1a2e] hover:bg-black text-white text-sm font-semibold rounded-2xl transition-all shadow-lg hover:scale-[1.01] active:scale-95 inline-flex items-center justify-center gap-2"
+                                        >
+                                            <KeyRoundIcon className="size-4" />
+                                            <span>Request a new reset link</span>
+                                        </Link>
+                                    </div>
+                                </div>
+                            ) : resetSuccess ? (
+                                <div className="space-y-6 text-center">
+                                    <div className="size-14 mx-auto rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600 shadow-sm">
+                                        <CheckCircle2Icon className="size-7" />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <h1 className="text-3xl font-bold tracking-tight text-[#1a1a2e]">
+                                            Password updated
+                                        </h1>
+                                        <p className="text-xs sm:text-sm text-gray-600 leading-relaxed max-w-sm mx-auto">
+                                            Your Buildo password has been successfully changed.
+                                        </p>
+                                    </div>
+
+                                    <div className="pt-4">
+                                        <Link
+                                            to="/auth/signin"
+                                            className="w-full py-3.5 px-5 bg-[#1a1a2e] hover:bg-black text-white text-sm font-semibold rounded-2xl transition-all shadow-lg hover:scale-[1.01] active:scale-95 inline-flex items-center justify-center gap-2"
+                                        >
+                                            <span>Sign in to Buildo</span>
+                                            <ArrowRightIcon className="size-4" />
+                                        </Link>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div>
+                                    <div className="mb-8 space-y-2">
+                                        <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-[#1a1a2e]">
+                                            Create a <span className="font-serif-italic text-[#b89158]">new password</span>
+                                        </h1>
+                                        <p className="text-xs sm:text-sm text-gray-600 font-normal leading-relaxed">
+                                            Choose a strong password for your Buildo account (minimum 8 characters).
+                                        </p>
+                                    </div>
+
+                                    <form onSubmit={handleResetPassword} className="space-y-4">
+                                        <div>
+                                            <label htmlFor="new-password-input" className="block text-xs font-semibold text-gray-700 mb-1.5">New password</label>
+                                            <div className="relative">
+                                                <input
+                                                    id="new-password-input"
+                                                    type={showPassword ? "text" : "password"}
+                                                    required
+                                                    minLength={8}
+                                                    value={newPassword}
+                                                    onChange={(e) => setNewPassword(e.target.value)}
+                                                    placeholder="Minimum 8 characters"
+                                                    aria-label="New password"
+                                                    className="w-full pl-4 pr-11 py-3 text-sm bg-white border border-[#E5E0D5] focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20 rounded-2xl outline-none transition-all text-[#1a1a2e] placeholder:text-gray-400 shadow-sm"
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setShowPassword(!showPassword)}
+                                                    aria-label={showPassword ? "Hide password" : "Show password"}
+                                                    className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-700 transition-colors rounded-lg"
+                                                >
+                                                    {showPassword ? <EyeOffIcon className="size-4" /> : <EyeIcon className="size-4" />}
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <label htmlFor="confirm-password-input" className="block text-xs font-semibold text-gray-700 mb-1.5">Confirm password</label>
+                                            <div className="relative">
+                                                <input
+                                                    id="confirm-password-input"
+                                                    type={showPassword ? "text" : "password"}
+                                                    required
+                                                    minLength={8}
+                                                    value={confirmPassword}
+                                                    onChange={(e) => setConfirmPassword(e.target.value)}
+                                                    placeholder="Confirm new password"
+                                                    aria-label="Confirm password"
+                                                    className="w-full pl-4 pr-11 py-3 text-sm bg-white border border-[#E5E0D5] focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20 rounded-2xl outline-none transition-all text-[#1a1a2e] placeholder:text-gray-400 shadow-sm"
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setShowPassword(!showPassword)}
+                                                    aria-label={showPassword ? "Hide password" : "Show password"}
+                                                    className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-700 transition-colors rounded-lg"
+                                                >
+                                                    {showPassword ? <EyeOffIcon className="size-4" /> : <EyeIcon className="size-4" />}
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <button
+                                            type="submit"
+                                            disabled={loading}
+                                            className="w-full mt-3 py-3.5 px-5 bg-[#1a1a2e] hover:bg-black disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-semibold rounded-2xl transition-all shadow-lg hover:scale-[1.01] active:scale-95 flex items-center justify-center gap-2"
+                                        >
+                                            {loading ? (
+                                                <>
+                                                    <Loader2Icon className="size-4 animate-spin text-white" />
+                                                    <span>Updating password...</span>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <span>Reset password</span>
+                                                    <ArrowRightIcon className="size-4" />
+                                                </>
+                                            )}
+                                        </button>
+                                    </form>
+
+                                    <div className="mt-8 pt-6 border-t border-[#E5E0D5] text-center">
+                                        <Link
+                                            to="/auth/signin"
+                                            className="inline-flex items-center gap-1.5 text-xs text-indigo-700 hover:text-indigo-900 font-semibold transition-colors"
+                                        >
+                                            <ArrowLeftIcon className="size-3.5" />
+                                            <span>Back to sign in</span>
+                                        </Link>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    ) : (
+                        /* ── VIEW 3: SIGN IN / SIGN UP ── */
+                        <div>
+                            <div className="mb-8 space-y-2">
+                                <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-[#1a1a2e]">
+                                    {isSignUp ? (
+                                        <>
+                                            Create your <span className="font-serif-italic text-[#b89158]">Buildo</span> account
+                                        </>
+                                    ) : (
+                                        <>
+                                            Welcome back to <span className="font-serif-italic text-[#b89158]">Buildo</span>
+                                        </>
                                     )}
-                                </div>
-                                <div className="relative">
-                                    <input
-                                        id="auth-password-input"
-                                        type={showPassword ? "text" : "password"}
-                                        required
-                                        minLength={isSignUp ? 8 : 1}
-                                        value={password}
-                                        onChange={(e) => setPassword(e.target.value)}
-                                        placeholder="••••••••"
-                                        aria-label="Password"
-                                        className="w-full pl-4 pr-11 py-3 text-sm bg-white border border-[#E5E0D5] focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20 rounded-2xl outline-none transition-all text-[#1a1a2e] placeholder:text-gray-400 shadow-sm"
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowPassword(!showPassword)}
-                                        aria-label={showPassword ? "Hide password" : "Show password"}
-                                        className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-700 transition-colors rounded-lg"
-                                    >
-                                        {showPassword ? <EyeOffIcon className="size-4" /> : <EyeIcon className="size-4" />}
-                                    </button>
-                                </div>
+                                </h1>
+                                <p className="text-xs sm:text-sm text-gray-600 font-normal leading-relaxed">
+                                    {isSignUp
+                                        ? "Turn your ideas into live websites with AI."
+                                        : "Sign in to continue building and managing your websites."}
+                                </p>
                             </div>
 
-                            <button
-                                type="submit"
-                                disabled={loading}
-                                className="w-full mt-3 py-3.5 px-5 bg-[#1a1a2e] hover:bg-black disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-semibold rounded-2xl transition-all shadow-lg hover:scale-[1.01] active:scale-95 flex items-center justify-center gap-2"
-                            >
-                                {loading ? (
+                            {isSignUp ? (
+                                <form onSubmit={handleSignUp} className="space-y-4">
+                                    <div>
+                                        <label className="block text-xs font-semibold text-gray-700 mb-1.5">Full Name</label>
+                                        <input
+                                            type="text"
+                                            required
+                                            value={name}
+                                            onChange={(e) => setName(e.target.value)}
+                                            placeholder="Alex Mercer"
+                                            className="w-full px-4 py-3 text-sm bg-white border border-[#E5E0D5] focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20 rounded-2xl outline-none transition-all text-[#1a1a2e] placeholder:text-gray-400 shadow-sm"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <div className="flex justify-between items-center mb-1.5">
+                                            <label className="block text-xs font-semibold text-gray-700">Username</label>
+                                            <span className="text-[10px] text-gray-500 font-mono">Permanent once set</span>
+                                        </div>
+                                        <div className="relative">
+                                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-mono">@</span>
+                                            <input
+                                                type="text"
+                                                required
+                                                value={username}
+                                                onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/\s+/g, ''))}
+                                                placeholder="alexmercer"
+                                                className="w-full pl-9 pr-10 py-3 text-sm bg-white border border-[#E5E0D5] focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20 rounded-2xl outline-none transition-all text-[#1a1a2e] placeholder:text-gray-400 font-mono shadow-sm"
+                                            />
+                                            <div className="absolute right-3.5 top-1/2 -translate-y-1/2 flex items-center">
+                                                {usernameChecking && <Loader2Icon className="size-4 animate-spin text-indigo-600" />}
+                                                {!usernameChecking && usernameStatus && usernameStatus.available && (
+                                                    <CheckCircle2Icon className="size-4 text-emerald-600" />
+                                                )}
+                                                {!usernameChecking && usernameStatus && !usernameStatus.available && (
+                                                    <XCircleIcon className="size-4 text-rose-500" />
+                                                )}
+                                            </div>
+                                        </div>
+                                        {usernameStatus && (
+                                            <p className={`text-[11px] mt-1.5 font-mono ${usernameStatus.available ? "text-emerald-700" : "text-rose-600"}`}>
+                                                {usernameStatus.available ? "✓ Username is available" : `✕ ${usernameStatus.message}`}
+                                            </p>
+                                        )}
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-xs font-semibold text-gray-700 mb-1.5">Email address</label>
+                                        <input
+                                            type="email"
+                                            required
+                                            value={email}
+                                            onChange={(e) => setEmail(e.target.value)}
+                                            placeholder="alex@example.com"
+                                            className="w-full px-4 py-3 text-sm bg-white border border-[#E5E0D5] focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20 rounded-2xl outline-none transition-all text-[#1a1a2e] placeholder:text-gray-400 shadow-sm"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label htmlFor="auth-signup-password" className="block text-xs font-semibold text-gray-700 mb-1.5">Password</label>
+                                        <div className="relative">
+                                            <input
+                                                id="auth-signup-password"
+                                                type={showPassword ? "text" : "password"}
+                                                required
+                                                minLength={8}
+                                                value={password}
+                                                onChange={(e) => setPassword(e.target.value)}
+                                                placeholder="Minimum 8 characters"
+                                                aria-label="Password"
+                                                className="w-full pl-4 pr-11 py-3 text-sm bg-white border border-[#E5E0D5] focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20 rounded-2xl outline-none transition-all text-[#1a1a2e] placeholder:text-gray-400 shadow-sm"
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowPassword(!showPassword)}
+                                                aria-label={showPassword ? "Hide password" : "Show password"}
+                                                className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-700 transition-colors rounded-lg"
+                                            >
+                                                {showPassword ? <EyeOffIcon className="size-4" /> : <EyeIcon className="size-4" />}
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <button
+                                        type="submit"
+                                        disabled={loading || usernameChecking || (usernameStatus !== null && !usernameStatus.available)}
+                                        className="w-full mt-3 py-3.5 px-5 bg-[#1a1a2e] hover:bg-black disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-semibold rounded-2xl transition-all shadow-lg hover:scale-[1.01] active:scale-95 flex items-center justify-center gap-2"
+                                    >
+                                        {loading ? (
+                                            <>
+                                                <Loader2Icon className="size-4 animate-spin text-white" />
+                                                <span>Creating account...</span>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <span>Create account</span>
+                                                <ArrowRightIcon className="size-4" />
+                                            </>
+                                        )}
+                                    </button>
+                                </form>
+                            ) : (
+                                <form onSubmit={handleSignIn} className="space-y-4">
+                                    <div>
+                                        <label className="block text-xs font-semibold text-gray-700 mb-1.5">Email address</label>
+                                        <input
+                                            type="email"
+                                            required
+                                            value={email}
+                                            onChange={(e) => setEmail(e.target.value)}
+                                            placeholder="alex@example.com"
+                                            className="w-full px-4 py-3 text-sm bg-white border border-[#E5E0D5] focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20 rounded-2xl outline-none transition-all text-[#1a1a2e] placeholder:text-gray-400 shadow-sm"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <div className="flex justify-between items-center mb-1.5">
+                                            <label htmlFor="auth-password-input" className="block text-xs font-semibold text-gray-700">Password</label>
+                                            <Link
+                                                to="/auth/forgot-password"
+                                                className="text-[11px] font-semibold text-indigo-700 hover:text-indigo-900 transition-colors"
+                                            >
+                                                Forgot password?
+                                            </Link>
+                                        </div>
+                                        <div className="relative">
+                                            <input
+                                                id="auth-password-input"
+                                                type={showPassword ? "text" : "password"}
+                                                required
+                                                minLength={1}
+                                                value={password}
+                                                onChange={(e) => setPassword(e.target.value)}
+                                                placeholder="••••••••"
+                                                aria-label="Password"
+                                                className="w-full pl-4 pr-11 py-3 text-sm bg-white border border-[#E5E0D5] focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20 rounded-2xl outline-none transition-all text-[#1a1a2e] placeholder:text-gray-400 shadow-sm"
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowPassword(!showPassword)}
+                                                aria-label={showPassword ? "Hide password" : "Show password"}
+                                                className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-700 transition-colors rounded-lg"
+                                            >
+                                                {showPassword ? <EyeOffIcon className="size-4" /> : <EyeIcon className="size-4" />}
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <button
+                                        type="submit"
+                                        disabled={loading}
+                                        className="w-full mt-3 py-3.5 px-5 bg-[#1a1a2e] hover:bg-black disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-semibold rounded-2xl transition-all shadow-lg hover:scale-[1.01] active:scale-95 flex items-center justify-center gap-2"
+                                    >
+                                        {loading ? (
+                                            <>
+                                                <Loader2Icon className="size-4 animate-spin text-white" />
+                                                <span>Signing in...</span>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <span>Sign in</span>
+                                                <ArrowRightIcon className="size-4" />
+                                            </>
+                                        )}
+                                    </button>
+                                </form>
+                            )}
+
+                            {/* Switch Auth Mode Footnote */}
+                            <div className="mt-8 pt-6 border-t border-[#E5E0D5] text-center text-xs text-gray-600 font-medium">
+                                {isSignUp ? (
                                     <>
-                                        <Loader2Icon className="size-4 animate-spin text-white" />
-                                        <span>Signing in...</span>
+                                        Already have an account?{" "}
+                                        <Link to="/auth/signin" className="text-indigo-700 hover:text-indigo-900 font-semibold underline underline-offset-2">
+                                            Sign in
+                                        </Link>
                                     </>
                                 ) : (
                                     <>
-                                        <span>Sign in</span>
-                                        <ArrowRightIcon className="size-4" />
+                                        Don't have an account yet?{" "}
+                                        <Link to="/auth/signup" className="text-indigo-700 hover:text-indigo-900 font-semibold underline underline-offset-2">
+                                            Create account
+                                        </Link>
                                     </>
                                 )}
-                            </button>
-                        </form>
+                            </div>
+                        </div>
                     )}
-
-                    {/* Switch Auth Mode Footnote */}
-                    <div className="mt-8 pt-6 border-t border-[#E5E0D5] text-center text-xs text-gray-600 font-medium">
-                        {isSignUp ? (
-                            <>
-                                Already have an account?{" "}
-                                <Link to="/auth/signin" className="text-indigo-700 hover:text-indigo-900 font-semibold underline underline-offset-2">
-                                    Sign in
-                                </Link>
-                            </>
-                        ) : (
-                            <>
-                                Don't have an account yet?{" "}
-                                <Link to="/auth/signup" className="text-indigo-700 hover:text-indigo-900 font-semibold underline underline-offset-2">
-                                    Create account
-                                </Link>
-                            </>
-                        )}
-                    </div>
                 </div>
 
                 {/* Footer note */}

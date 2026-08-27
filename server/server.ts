@@ -13,6 +13,9 @@ import { getPublicSettings } from "./controllers/adminController.js";
 
 const app = express();
 
+// Trust proxy headers for IP resolution behind reverse proxies (Render, Vercel, Cloudflare, Nginx)
+app.set('trust proxy', true);
+
 const rawOrigins = (process.env.TRUSTED_ORIGINS || '')
     .split(',')
     .map(o => o.trim().replace(/^["']|["']$/g, '').replace(/\/+$/, ''))
