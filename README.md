@@ -601,7 +601,7 @@ Distributed under the **MIT License**. See [`LICENSE`](./LICENSE) for more detai
 ## 👨‍💻 Developer
 
 **Moin Sheikh**
-* **Portfolio / Website:** [buildo.moinsheikh.in](https://buildo.moinsheikh.in)
+* **Portfolio :** [moinsheikh.in](https://moinsheikh.in)
 * **GitHub:** [@moin-dbud](https://github.com/moin-dbud)
 * **LinkedIn:** [Moin Sheikh](https://www.linkedin.com/in/moin-build/)
 * **Email:** [hello@moinsheikh.in](mailto:hello@moinsheikh.in)
