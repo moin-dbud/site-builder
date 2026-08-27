@@ -53,7 +53,7 @@ model WebsiteProject {
   // Relations
   conversation Conversation[]
   versions     Version[]
-  user         User           @relation(fields: [userId], references: [id])
+  user         User           @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -167,7 +167,7 @@ model AdminAuditLog {
   timestamp   DateTime @default(now())
 
   // Relations
-  adminUser   User     @relation(fields: [adminUserId], references: [id])
+  adminUser   User     @relation(fields: [adminUserId], references: [id], onDelete: Cascade)
 }
 
 // Key-value store for runtime-configurable system settings.
