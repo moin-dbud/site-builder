@@ -13,6 +13,7 @@ import userRouter from "./routes/userRoutes.js";
 import projectRouter from "./routes/projectRoutes.js";
 import cashfreeRouter from "./routes/cashfreeRoutes.js";
 import adminRouter from "./routes/adminRoutes.js";
+import healthRouter from "./routes/healthRoutes.js";
 import { maintenanceMode } from "./middlewares/auth.js";
 import { verifySMTPConnection } from "./lib/mailer.js";
 import { getPublicSettings } from "./controllers/adminController.js";
@@ -68,6 +69,10 @@ app.all('/api/auth/{*any}', toNodeHandler(auth));
 
 // ── 3b. Public settings (no auth) ───────────────────────────────────
 app.get('/api/public-settings', getPublicSettings);
+
+// ── 3c. Health Check Endpoints (Mounted before maintenance mode & auth) ──────
+app.use('/health', healthRouter);
+app.use('/api/health', healthRouter);
 
 // ── 4. Admin Router (Mounted AFTER express.json so req.body is parsed) ─────
 app.use('/api/admin', adminRouter);

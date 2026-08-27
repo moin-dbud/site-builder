@@ -56,8 +56,8 @@ export const requireAdmin = async (req: Request, res: Response, next: NextFuncti
 // Should be mounted BEFORE regular route handlers, AFTER admin routes.
 export const maintenanceMode = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        // Admin routes and auth routes are always exempt
-        if (req.path.startsWith('/api/admin') || req.path.startsWith('/api/auth')) {
+        // Admin, auth, and health routes are always exempt
+        if (req.path.startsWith('/api/admin') || req.path.startsWith('/api/auth') || req.path.startsWith('/api/health') || req.path === '/health') {
             return next();
         }
 
