@@ -56,7 +56,16 @@ export const auth = betterAuth({
         revokeSessionsOnPasswordReset: true,
         sendResetPassword: async ({ user, url, token }, request) => {
             console.log(`[BETTER-AUTH] Password reset requested for user: ${user.email}`)
-            await emailService.sendPasswordResetEmail(user.email, url, user.name || 'Creator')
+            try {
+                await emailService.sendPasswordResetEmail(user.email, url, user.name || 'Creator')
+            } catch (err: any) {
+                console.error('[BETTER-AUTH] Email delivery failed:', err?.message || err)
+            }
+            console.log(`\n==========================================`)
+            console.log(`[BUILD O PASSWORD RESET LINK]`)
+            console.log(`User: ${user.email}`)
+            console.log(`Reset URL: ${url}`)
+            console.log(`==========================================\n`)
         },
     },
     user: {
