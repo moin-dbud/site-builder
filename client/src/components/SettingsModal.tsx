@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { AccountSettingsCards, ChangePasswordCard, DeleteAccountCard } from '@daveyplate/better-auth-ui'
 import { 
   UserIcon, 
@@ -161,10 +162,21 @@ export const SettingsModal = ({ isOpen, onClose, initialSection = 'profile', scr
     }
   }
 
+  // Prevent background scrolling while modal is open
+  useEffect(() => {
+    if (isOpen) {
+      const originalOverflow = document.body.style.overflow
+      document.body.style.overflow = 'hidden'
+      return () => {
+        document.body.style.overflow = originalOverflow
+      }
+    }
+  }, [isOpen])
+
   if (!isOpen) return null
 
-  return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-6 md:p-8 animate-kinetic-fade">
+  return createPortal(
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-6 md:p-8 animate-kinetic-fade">
       {/* ── Translucent Frosted Glass Backdrop Overlay ── */}
       <div 
         onClick={onClose}
@@ -533,8 +545,8 @@ export const SettingsModal = ({ isOpen, onClose, initialSection = 'profile', scr
             Done
           </button>
         </div>
-
       </div>
-    </div>
+    </div>,
+    document.body
   )
-}
+    }

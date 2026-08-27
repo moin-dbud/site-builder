@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { assets } from '../assets/assets'
-import { Link, useNavigate, useLocation } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { authClient } from '@/lib/auth-client'
 import { UserButton } from '@daveyplate/better-auth-ui'
 import api from '@/configs/axios'
@@ -8,7 +8,6 @@ import { MenuIcon, XIcon, ZapIcon } from 'lucide-react'
 
 const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false)
-  const navigate = useNavigate()
   const location = useLocation()
   const [credits, setCredits] = useState<number | null>(null)
   const [scrolled, setScrolled] = useState(false)
@@ -130,8 +129,9 @@ const Navbar = () => {
               <div className="flex items-center gap-2 px-1">
                 {credits !== null && (
                   <button
-                    onClick={() => navigate('/account/settings?section=billing', { state: { section: 'billing' } })}
-                    className="flex items-center gap-1.5 text-xs font-mono-tech text-amber-200 font-semibold px-2.5 py-1 rounded-full bg-amber-500/20 border border-amber-400/30 hover:bg-amber-500/30 transition-colors"
+                    onClick={() => window.dispatchEvent(new CustomEvent('open-settings', { detail: { section: 'billing' } }))}
+                    className="flex items-center gap-1.5 text-xs font-mono-tech text-amber-200 font-semibold px-2.5 py-1 rounded-full bg-amber-500/20 border border-amber-400/30 hover:bg-amber-500/30 transition-colors cursor-pointer"
+                    title="Open Billing & Credits"
                   >
                     <ZapIcon className="size-3 text-amber-300" />
                     <span>{credits}</span>

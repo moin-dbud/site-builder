@@ -1,4 +1,4 @@
-﻿import { Routes, Route, useLocation, useNavigate } from 'react-router-dom'
+import { Routes, Route, useLocation } from 'react-router-dom'
 import Home from './pages/Home'
 import Pricing from './pages/Pricing'
 import Community from './pages/Community'
@@ -19,6 +19,7 @@ import { useState, useEffect } from 'react'
 import { authClient } from '@/lib/auth-client'
 import api from '@/configs/axios'
 import { SetUsernameModal } from './components/SetUsernameModal'
+import { SettingsModal } from './components/SettingsModal'
 import { AlertCircleIcon, XIcon } from 'lucide-react'
 
 const UserProfileRoute = () => {
@@ -35,12 +36,28 @@ const ViewRoute = () => {
 
 const App = () => {
   const { pathname } = useLocation()
-  const navigate = useNavigate()
   const { data: session } = authClient.useSession()
   const [userData, setUserData] = useState<{ emailVerified: boolean; username: string | null; profilePublic: boolean } | null>(null)
   // Fetched from /api/public-settings — defaults to true (verification required) until server responds
   const [emailVerificationRequired, setEmailVerificationRequired] = useState(true)
   const [bannerDismissed, setBannerDismissed] = useState(false)
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false)
+  const [settingsConfig, setSettingsConfig] = useState<{ section?: string; scrollTo?: string }>({})
+
+  // Global Settings Modal Open Listener
+  useEffect(() => {
+    const handleOpenSettings = (e: any) => {
+      const detail = e?.detail || {}
+      setSettingsConfig({
+        section: detail.section || 'profile',
+        scrollTo: detail.scrollTo || undefined
+      })
+      setIsSettingsOpen(true)
+    }
+
+    window.addEventListener('open-settings', handleOpenSettings)
+    return () => window.removeEventListener('open-settings', handleOpenSettings)
+  }, [])
 
   // Force scroll to top on refresh and route change
   useEffect(() => {
@@ -130,7 +147,7 @@ const App = () => {
         <div className="sticky top-16 z-40 bg-amber-950/90 border-b border-amber-500/30 backdrop-blur-sm">
           <div className="max-w-7xl mx-auto px-4 py-2.5 flex items-center justify-between gap-3">
             <button
-              onClick={() => navigate('/account/settings', { state: { section: 'profile' } })}
+              onClick={() => window.dispatchEvent(new CustomEvent('open-settings', { detail: { section: 'profile' } }))}
               className="flex items-center gap-2.5 text-xs text-amber-200 hover:text-amber-100 transition-colors group flex-1 min-w-0"
             >
               <AlertCircleIcon className="size-4 text-amber-400 shrink-0" />
@@ -174,6 +191,15 @@ const App = () => {
         <Route path='/:username' element={<UserProfileRoute />} />
         <Route path='/:username/:slug' element={<ViewRoute />} />
       </Routes>
+
+      {/* Global Settings Modal Overlay */}
+      <SettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        initialSection={settingsConfig.section}
+        scrollTo={settingsConfig.scrollTo}
+      />
+
       <Analytics />
     </div>
   )

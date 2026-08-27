@@ -18,7 +18,6 @@ import {
 } from 'lucide-react'
 import Sidebar from '../components/Sidebar'
 import ProjectPreview, { type ProjectPreviewRef } from '../components/ProjectPreview'
-import { SettingsModal } from '../components/SettingsModal'
 import api from '@/configs/axios'
 import { toast } from 'sonner'
 import { authClient } from '@/lib/auth-client'
@@ -35,7 +34,6 @@ const Projects = () => {
   const [device, setDevice] = useState<'phone' | 'tablet' | 'desktop'>('desktop')
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false)
 
   const previewRef = useRef<ProjectPreviewRef>(null)
 
@@ -262,8 +260,8 @@ const Projects = () => {
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.95 }}
-            onClick={() => setIsSettingsOpen(true)}
-            className="bg-white hover:bg-gray-50 border border-[#E5E0D5] text-gray-700 hover:text-[#1a1a2e] px-3 py-1.5 flex items-center gap-1.5 rounded-xl transition-all shadow-sm"
+            onClick={() => window.dispatchEvent(new CustomEvent('open-settings', { detail: { section: 'profile' } }))}
+            className="bg-white hover:bg-gray-50 border border-[#E5E0D5] text-gray-700 hover:text-[#1a1a2e] px-3 py-1.5 flex items-center gap-1.5 rounded-xl transition-all shadow-sm cursor-pointer"
             title="Open Buildo Settings"
           >
             <SettingsIcon className="size-3.5 text-indigo-600" />
@@ -288,7 +286,7 @@ const Projects = () => {
       </div>
 
       {/* ── Studio Workspace Layout ── */}
-      <div className={`flex flex-1 overflow-hidden p-2 sm:p-3 gap-3 bg-[#F4F2EC] transition-all duration-300 ${isSettingsOpen ? 'blur-[2px] opacity-90 pointer-events-none select-none' : ''}`}>
+      <div className="flex flex-1 overflow-hidden p-2 sm:p-3 gap-3 bg-[#F4F2EC]">
         <Sidebar
           isMenuOpen={isMenuOpen}
           project={project}
@@ -306,12 +304,6 @@ const Projects = () => {
           />
         </div>
       </div>
-
-      {/* Settings Modal Floating Overlay */}
-      <SettingsModal
-        isOpen={isSettingsOpen}
-        onClose={() => setIsSettingsOpen(false)}
-      />
     </div>
   ) : (
     <div className="flex flex-col items-center justify-center h-screen bg-[#F7F5F0] text-[#1a1a2e] gap-4 p-6 text-center">
