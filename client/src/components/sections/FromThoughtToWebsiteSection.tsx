@@ -273,10 +273,6 @@ export const FromThoughtToWebsiteSection: React.FC = () => {
           className="text-center max-w-3xl mx-auto space-y-4 mb-16 md:mb-20"
           style={{ opacity: 0 }}
         >
-          {/* Section 2 Badge */}
-          <div className="inline-flex items-center justify-center px-3 py-1 rounded-full bg-slate-200/60 border border-slate-300/80 text-slate-600 font-mono text-[11px] font-bold uppercase tracking-widest shadow-2xs mb-1">
-            SECTION 2
-          </div>
 
           <h2 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-[#0f172a] leading-[1.12]">
             From{' '}
