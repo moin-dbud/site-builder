@@ -15,8 +15,9 @@ const Navbar = () => {
 
   const { data: session } = authClient.useSession()
 
-  // Detect whether we are on the home page
+  // Detect whether we are on the home page or auth page
   const isHome = location.pathname === '/'
+  const isAuthPage = location.pathname.startsWith('/auth')
 
   // Scroll listener — marks navbar as "scrolled" after 60px
   useEffect(() => {
@@ -123,32 +124,39 @@ const Navbar = () => {
           </Link>
         </nav>
 
-        {/* Right Action / Auth Control */}
-        <div className="flex items-center gap-3">
-          {session?.user ? (
-            <div className="flex items-center gap-2 px-1">
-              {credits !== null && (
-                <button
-                  onClick={() => navigate('/account/settings?section=billing', { state: { section: 'billing' } })}
-                  className="flex items-center gap-1.5 text-xs font-mono-tech text-amber-200 font-semibold px-2.5 py-1 rounded-full bg-amber-500/20 border border-amber-400/30 hover:bg-amber-500/30 transition-colors"
-                >
-                  <ZapIcon className="size-3 text-amber-300" />
-                  <span>{credits}</span>
-                </button>
-              )}
-              <div className="bg-white/10 backdrop-blur-xl border border-white/40 rounded-full">
-                <UserButton size="icon" />
+          {/* Right Action / Auth Control */}
+          <div className="flex items-center gap-3">
+            {session?.user ? (
+              <div className="flex items-center gap-2 px-1">
+                {credits !== null && (
+                  <button
+                    onClick={() => navigate('/account/settings?section=billing', { state: { section: 'billing' } })}
+                    className="flex items-center gap-1.5 text-xs font-mono-tech text-amber-200 font-semibold px-2.5 py-1 rounded-full bg-amber-500/20 border border-amber-400/30 hover:bg-amber-500/30 transition-colors"
+                  >
+                    <ZapIcon className="size-3 text-amber-300" />
+                    <span>{credits}</span>
+                  </button>
+                )}
+                <div className="bg-white/10 backdrop-blur-xl border border-white/40 rounded-full">
+                  <UserButton size="icon" />
+                </div>
               </div>
-            </div>
-          ) : (
-            <Link
-              to="/auth/signin"
-              className="inline-flex items-center gap-1.5 bg-gradient-to-r from-amber-500 via-orange-500 to-indigo-600 hover:from-amber-400 hover:to-indigo-500 text-white font-semibold text-xs sm:text-sm rounded-full px-5 py-2 transition-all duration-300 shadow-lg shadow-indigo-950/40 hover:scale-[1.04] active:scale-95 border border-white/20"
-            >
-              <span>Get Started</span>
-              <span className="text-amber-200">→</span>
-            </Link>
-          )}
+            ) : isAuthPage ? (
+              <Link
+                to="/"
+                className="inline-flex items-center gap-1.5 bg-white/90 hover:bg-white text-[#1a1a2e] font-semibold text-xs sm:text-sm rounded-full px-4.5 py-2 transition-all duration-200 shadow-md hover:scale-[1.03] active:scale-95 border border-[#E5E0D5]"
+              >
+                <span>← Back to Home</span>
+              </Link>
+            ) : (
+              <Link
+                to="/auth/signin"
+                className="inline-flex items-center gap-1.5 bg-gradient-to-r from-amber-500 via-orange-500 to-indigo-600 hover:from-amber-400 hover:to-indigo-500 text-white font-semibold text-xs sm:text-sm rounded-full px-5 py-2 transition-all duration-300 shadow-lg shadow-indigo-950/40 hover:scale-[1.04] active:scale-95 border border-white/20"
+              >
+                <span>Get Started</span>
+                <span className="text-amber-200">→</span>
+              </Link>
+            )}
 
           {/* Mobile Menu Trigger */}
           <button
@@ -219,13 +227,23 @@ const Navbar = () => {
 
           <div className="pt-4 border-t border-white/15 text-center">
             {!session?.user ? (
-              <Link
-                to="/auth/signin"
-                onClick={() => setMenuOpen(false)}
-                className="block w-full py-3 text-sm font-semibold text-white bg-gradient-to-r from-amber-500 via-orange-500 to-indigo-600 rounded-full transition-all shadow-lg shadow-indigo-950/50 text-center"
-              >
-                Get Started →
-              </Link>
+              isAuthPage ? (
+                <Link
+                  to="/"
+                  onClick={() => setMenuOpen(false)}
+                  className="block w-full py-3 text-sm font-semibold text-[#1a1a2e] bg-white rounded-full transition-all shadow-md text-center border border-[#E5E0D5]"
+                >
+                  ← Back to Home
+                </Link>
+              ) : (
+                <Link
+                  to="/auth/signin"
+                  onClick={() => setMenuOpen(false)}
+                  className="block w-full py-3 text-sm font-semibold text-white bg-gradient-to-r from-amber-500 via-orange-500 to-indigo-600 rounded-full transition-all shadow-lg shadow-indigo-950/50 text-center"
+                >
+                  Get Started →
+                </Link>
+              )
             ) : (
               <p className="text-xs text-gray-400 font-mono-tech">Signed in as {session.user.email}</p>
             )}

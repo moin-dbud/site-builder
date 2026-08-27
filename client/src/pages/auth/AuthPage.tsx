@@ -206,14 +206,14 @@ export default function AuthPage() {
                 <div className="absolute inset-0 bg-gradient-to-t from-[#08090d] via-transparent to-transparent" />
 
                 {/* Content Overlay */}
-                <div className="relative z-10 w-full p-12 flex flex-col justify-between text-white">
-                    <Link to="/" className="inline-flex items-center gap-2.5 group">
+                <div className="relative z-10 w-full p-12 pt-24 flex flex-col justify-between text-white">
+                    {/* <Link to="/" className="inline-flex items-center gap-2.5 group">
                         <img
                             src={assets.logo}
                             alt="Buildo Logo"
                             className="h-8 w-auto drop-shadow group-hover:scale-105 transition-transform"
                         />
-                    </Link>
+                    </Link> */}
 
                     <div className="max-w-md space-y-4 mb-8">
                         <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/20 rounded-full px-3.5 py-1 text-xs text-amber-200 font-medium">
@@ -236,21 +236,11 @@ export default function AuthPage() {
             </div>
 
             {/* ── Right Form Container Panel ── */}
-            <div className="w-full lg:w-1/2 flex flex-col justify-between p-6 sm:p-12 md:p-16 relative z-10 bg-[#F7F5F0] overflow-y-auto">
+            <div className="w-full lg:w-1/2 flex flex-col justify-between p-6 sm:p-12 md:p-16 pt-24 sm:pt-28 lg:pt-16 relative z-10 bg-[#F7F5F0] overflow-y-auto">
                 {/* Mobile Top Brand Header */}
-                <div className="flex lg:hidden items-center justify-between mb-8">
+                <div className="flex lg:hidden items-center justify-between mb-6">
                     <Link to="/" className="flex items-center gap-2">
                         <img src={assets.logo} alt="Buildo Logo" className="h-7 w-auto" />
-                    </Link>
-                    <Link to="/" className="text-xs font-medium text-gray-500 hover:text-gray-900 transition-colors">
-                        ← Back to Home
-                    </Link>
-                </div>
-
-                {/* Desktop Back Link */}
-                <div className="hidden lg:flex justify-end mb-4">
-                    <Link to="/" className="text-xs font-semibold text-gray-500 hover:text-gray-900 transition-colors flex items-center gap-1">
-                        ← Back to Home
                     </Link>
                 </div>
 
