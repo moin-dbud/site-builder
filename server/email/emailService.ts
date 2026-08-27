@@ -75,7 +75,17 @@ export const emailService = {
     // Priority 1: Check HTTPS API providers (Resend / Brevo) - Port 443 is never blocked on cloud hosts (Render, Vercel, AWS)
     if (process.env.RESEND_API_KEY) {
       try {
-        const fromEmail = process.env.RESEND_FROM || process.env.SMTP_FROM || 'Buildo AI <onboarding@resend.dev>'
+        let resendFrom = process.env.RESEND_FROM
+        if (!resendFrom) {
+          const smtpFrom = process.env.SMTP_FROM || ''
+          if (smtpFrom && !/@(gmail|yahoo|hotmail|outlook)\.com/i.test(smtpFrom)) {
+            resendFrom = smtpFrom
+          } else {
+            // Default to verified domain on Resend (moinsheikh.in)
+            resendFrom = 'Buildo AI <noreply@moinsheikh.in>'
+          }
+        }
+
         const res = await fetch('https://api.resend.com/emails', {
           method: 'POST',
           headers: {
@@ -83,7 +93,7 @@ export const emailService = {
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
-            from: fromEmail,
+            from: resendFrom,
             to: [recipient],
             subject: options.subject,
             html: options.html,
@@ -92,13 +102,16 @@ export const emailService = {
         })
         const data = await res.json() as any
         if (res.ok && data.id) {
-          console.log(`[EMAIL-SERVICE] ✅ Sent "${options.subject}" via Resend API → to: ${maskedRecipient} (ID: ${data.id})`)
+          console.log(`[EMAIL-SERVICE] ✅ Sent "${options.subject}" via Resend API (from: ${resendFrom}) → to: ${maskedRecipient} (ID: ${data.id})`)
           return { success: true, messageId: data.id }
         } else {
-          console.error(`[EMAIL-SERVICE] ❌ Resend API delivery failed:`, data?.message || data)
+          const errorDetail = data?.message || JSON.stringify(data)
+          console.error(`[EMAIL-SERVICE] ❌ Resend API delivery failed (from: ${resendFrom}): ${errorDetail}`)
+          return { success: false, error: `Resend API Error: ${errorDetail}` }
         }
       } catch (err: any) {
         console.error(`[EMAIL-SERVICE] ❌ Resend API fetch failed:`, err?.message || err)
+        return { success: false, error: err?.message || 'Resend API request failed' }
       }
     }
 
