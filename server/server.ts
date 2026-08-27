@@ -58,7 +58,7 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true }));
 
 // ── 3. Better Auth Endpoint ────────────────────────────────────────────────
-app.all('/api/auth/*', toNodeHandler(auth));
+app.all('/api/auth/{*any}', toNodeHandler(auth));
 
 // ── 3b. Public settings (no auth) ───────────────────────────────────
 app.get('/api/public-settings', getPublicSettings);
