@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { MailIcon, SendIcon, CheckCircle2Icon, AlertCircleIcon, Loader2Icon, MessageSquareIcon, HelpCircleIcon, BugIcon, HandshakeIcon, ArrowLeftIcon } from 'lucide-react'
 import { Link } from 'react-router-dom'
@@ -209,7 +209,7 @@ export const Contact: React.FC = () => {
 
             <div className="bg-gradient-to-br from-amber-500/10 to-sky-500/10 border border-[#E5E0D5] rounded-2xl p-5 text-center text-xs text-gray-600 space-y-1">
               <span className="font-mono-tech font-bold text-gray-900">Direct Contact</span>
-              <p>Email: <a href="mailto:support@moinsheikh.in" className="text-sky-800 font-medium hover:underline">hello@moinsheikh.in</a></p>
+              <p>Email: <a href="mailto:hello@moinsheikh.in" className="text-sky-800 font-medium hover:underline">hello@moinsheikh.in</a></p>
             </div>
           </div>
 

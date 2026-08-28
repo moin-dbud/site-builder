@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { motion } from 'framer-motion'
-import { ShieldCheckIcon, CalendarIcon, ChevronRightIcon, AlertTriangleIcon } from 'lucide-react'
+import { ShieldCheckIcon, CalendarIcon, ChevronRightIcon } from 'lucide-react'
 import Footer from '../components/Footer'
 
 interface Section {

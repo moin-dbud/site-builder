@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { SearchIcon, BookOpenIcon, SparklesIcon, ChevronRightIcon, MenuIcon, XIcon, ArrowUpRightIcon, CodeIcon, LayersIcon, ZapIcon, CheckCircle2Icon, HelpCircleIcon } from 'lucide-react'
+import { SearchIcon, BookOpenIcon, SparklesIcon, ChevronRightIcon, MenuIcon, XIcon, CodeIcon, LayersIcon, HelpCircleIcon } from 'lucide-react'
 import Footer from '../components/Footer'
 
 interface DocSection {
@@ -590,7 +590,7 @@ export const Docs: React.FC = () => {
                 <section
                   key={section.id}
                   id={section.id}
-                  ref={el => (sectionRefs.current[section.id] = el)}
+                  ref={el => { sectionRefs.current[section.id] = el }}
                   className="bg-white/90 border border-[#E5E0D5] rounded-3xl p-6 sm:p-8 shadow-sm transition-all hover:border-gray-300"
                 >
                   <div className="flex items-center gap-2 mb-2">
