@@ -12,6 +12,10 @@ import { Toaster, toast } from 'sonner'
 import AuthPage from './pages/auth/AuthPage.tsx'
 import Setting from './pages/Setting.tsx'
 import PaymentVerify from './pages/PaymentVerify.tsx'
+import Docs from './pages/Docs'
+import Contact from './pages/Contact'
+import Privacy from './pages/Privacy'
+import Terms from './pages/Terms'
 import { useParams } from 'react-router-dom'
 import { Analytics } from '@vercel/analytics/react';
 
@@ -188,6 +192,10 @@ const App = () => {
         <Route path='/auth/:pathname' element={<AuthPage/>} />
         <Route path='/account/settings' element={<Setting/>} />
         <Route path='/payment/verify' element={<PaymentVerify/>} />
+        <Route path='/docs' element={<Docs/>} />
+        <Route path='/contact' element={<Contact/>} />
+        <Route path='/privacy' element={<Privacy/>} />
+        <Route path='/terms' element={<Terms/>} />
         <Route path='/:username' element={<UserProfileRoute />} />
         <Route path='/:username/:slug' element={<ViewRoute />} />
       </Routes>

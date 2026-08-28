@@ -1,5 +1,6 @@
 import React from 'react'
 import { motion } from 'framer-motion'
+import { Link } from 'react-router-dom'
 
 const SocialIcons = [
   {
@@ -102,24 +103,19 @@ export const Footer: React.FC = () => {
             </h4>
             <ul className="space-y-2.5 text-xs sm:text-sm text-gray-500 font-medium">
               <li>
-                <a href="#pricing" className="hover:text-gray-900 transition-colors">
+                <Link to="/pricing" className="hover:text-gray-900 transition-colors">
                   Pricing
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#docs" className="hover:text-gray-900 transition-colors">
+                <Link to="/docs" className="hover:text-gray-900 transition-colors">
                   Docs
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#blog" className="hover:text-gray-900 transition-colors">
-                  Blog
-                </a>
-              </li>
-              <li>
-                <a href="#agent" className="hover:text-gray-900 transition-colors">
-                  Agent+
-                </a>
+                <Link to="/community" className="hover:text-gray-900 transition-colors">
+                  Community
+                </Link>
               </li>
             </ul>
           </div>
@@ -131,19 +127,19 @@ export const Footer: React.FC = () => {
             </h4>
             <ul className="space-y-2.5 text-xs sm:text-sm text-gray-500 font-medium">
               <li>
-                <a href="#contact" className="hover:text-gray-900 transition-colors">
+                <Link to="/contact" className="hover:text-gray-900 transition-colors">
                   Contact
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#privacy" className="hover:text-gray-900 transition-colors">
+                <Link to="/privacy" className="hover:text-gray-900 transition-colors">
                   Privacy Policy
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#terms" className="hover:text-gray-900 transition-colors">
+                <Link to="/terms" className="hover:text-gray-900 transition-colors">
                   Terms of Service
-                </a>
+                </Link>
               </li>
             </ul>
           </div>

@@ -14,6 +14,7 @@ import projectRouter from "./routes/projectRoutes.js";
 import cashfreeRouter from "./routes/cashfreeRoutes.js";
 import adminRouter from "./routes/adminRoutes.js";
 import healthRouter from "./routes/healthRoutes.js";
+import contactRouter from "./routes/contactRoutes.js";
 import { maintenanceMode } from "./middlewares/auth.js";
 import { verifySMTPConnection } from "./lib/mailer.js";
 import { getPublicSettings } from "./controllers/adminController.js";
@@ -90,6 +91,7 @@ app.get('/', (req: Request, res: Response) => {
 // ── 6. Application Routers ─────────────────────────────────────────────────
 app.use('/api/user', userRouter);
 app.use('/api/project', projectRouter);
+app.use('/api/contact', contactRouter);
 // DEPLOY NOTE: After deploying, update the webhook URL in Cashfree dashboard
 // to https://yourserver.com/api/cashfree/webhook and set CASHFREE_ENV=production
 app.use('/api/cashfree', cashfreeRouter);
