@@ -1,8 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
   provider = "prisma-client"
   output   = "../generated/prisma"
@@ -13,86 +8,69 @@ datasource db {
 }
 
 model User {
-  id            String @id
-  email         String
-  username      String?  @unique
-  name          String
-  totalCreation Int    @default(0)
-  credits       Int    @default(20)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  emailVerified Boolean   @default(false)
-  emailOtp      String?
+  id              String             @id
+  email           String
+  name            String
+  totalCreation   Int                @default(0)
+  credits         Int                @default(20)
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  emailVerified   Boolean            @default(false)
+  username        String?            @unique
+  emailOtp        String?
   emailOtpExpires DateTime?
-  isAdmin       Boolean   @default(false)
-  profilePublic Boolean   @default(true)
-
-  // Relations
-  projects      WebsiteProject[]
-  sessions      Session[]
-  accounts      Account[]
-  transactions  Transaction[]
-  auditLogs     AdminAuditLog[]
-  notifications UserNotification[]
+  isAdmin         Boolean            @default(false)
+  profilePublic   Boolean            @default(true)
+  auditLogs       AdminAuditLog[]
+  transactions    Transaction[]
+  notifications   UserNotification[]
+  projects        WebsiteProject[]
+  accounts        Account[]
+  sessions        Session[]
 
   @@map("user")
 }
 
 model WebsiteProject {
-  id                    String  @id @default(uuid())
+  id                    String         @id @default(uuid())
   name                  String
-  slug                  String?
   initial_prompt        String
   current_code          String?
-  current_version_index String  @default("")
+  current_version_index String         @default("")
   userId                String
-  isPublished           Boolean @default(false)
-  featured              Boolean @default(false)
+  isPublished           Boolean        @default(false)
+  createdAt             DateTime       @default(now())
+  updatedAt             DateTime       @updatedAt
   designSystemId        String?
-
-  // Relations
-  conversation Conversation[]
-  versions     Version[]
-  user         User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  slug                  String?
+  featured              Boolean        @default(false)
+  conversation          Conversation[]
+  versions              Version[]
+  user                  User           @relation(fields: [userId], references: [id])
 
   @@unique([userId, slug])
 }
 
-enum Role {
-  user
-  assistant
-}
-
 model Conversation {
-  id        String   @id @default(uuid())
+  id        String         @id @default(uuid())
   role      Role
   content   String
-  timestamp DateTime @default(now())
+  timestamp DateTime       @default(now())
   projectId String
-
-  // Relations
-  project WebsiteProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  project   WebsiteProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
 }
 
 model Version {
-  id          String   @id @default(uuid())
+  id          String         @id @default(uuid())
   code        String
   description String?
-  timestamp   DateTime @default(now())
+  timestamp   DateTime       @default(now())
   projectId   String
-
-  // Relations
-  project WebsiteProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  project     WebsiteProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
 }
 
 model Transaction {
   id              String   @id @default(uuid())
-  gatewayOrderId  String   @unique  // Cashfree order_id (or other gateway's order ID)
-  gatewayProvider String   @default("cashfree")
-  status          String   @default("pending")  // pending | completed | failed
   isPaid          Boolean  @default(false)
   planId          String
   amount          Float
@@ -100,15 +78,16 @@ model Transaction {
   userId          String
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
-
-  // Relations
+  gatewayOrderId  String   @unique
+  gatewayProvider String   @default("cashfree")
+  status          String   @default("pending")
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Session {
   id        String   @id
   expiresAt DateTime
-  token     String
+  token     String   @unique
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   ipAddress String?
@@ -116,7 +95,6 @@ model Session {
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([token])
   @@index([userId])
   @@map("session")
 }
@@ -126,7 +104,6 @@ model Account {
   accountId             String
   providerId            String
   userId                String
-  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   accessToken           String?
   refreshToken          String?
   idToken               String?
@@ -136,6 +113,7 @@ model Account {
   password              String?
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@map("account")
@@ -153,44 +131,32 @@ model Verification {
   @@map("verification")
 }
 
-// ─── Admin-specific models ─────────────────────────────────────────────────
-
-// Audit log for every destructive or state-changing admin action.
-// adminUserId references the User who performed the action.
 model AdminAuditLog {
   id          String   @id @default(uuid())
   adminUserId String
-  action      String   // e.g. "DELETE_USER", "ADJUST_CREDITS", "UNPUBLISH_PROJECT"
-  targetType  String?  // e.g. "user", "project", "transaction"
-  targetId    String?  // The ID of the affected entity
-  details     Json?    // Additional context (delta, reason, old value, etc.)
+  action      String
+  targetType  String?
+  targetId    String?
+  details     Json?
   timestamp   DateTime @default(now())
-
-  // Relations
-  adminUser   User     @relation(fields: [adminUserId], references: [id], onDelete: Cascade)
+  adminUser   User     @relation(fields: [adminUserId], references: [id])
 }
 
-// Key-value store for runtime-configurable system settings.
-// id is the setting key (e.g. "creditsPerGeneration"), value is always stored as a string.
-// NOTE: Set isAdmin = true on the first admin user via a direct DB query:
-//   UPDATE "user" SET "isAdmin" = true WHERE email = 'your@email.com';
 model SystemSetting {
-  id        String   @id  // setting key
+  id        String   @id
   value     String
   updatedAt DateTime @updatedAt
 }
 
-// Design system presets stored in DB so the admin panel can edit them at runtime.
-// Migrated from server/config/designSystems.ts — same interface shape.
 model DesignSystem {
   id                String   @id
   name              String
-  keywords          Json     // string[]
-  palette           Json     // { primary, secondary, background, surface, text, muted }
-  typography        Json     // { headingFont, bodyFont, googleFontsImport, headingWeight }
+  keywords          Json
+  palette           Json
+  typography        Json
   spacing           String
   radius            String
-  componentPatterns Json     // { navbar, hero, card }
+  componentPatterns Json
   layoutGuidance    String
   isEnabled         Boolean  @default(true)
   createdAt         DateTime @default(now())
@@ -204,7 +170,10 @@ model UserNotification {
   message   String
   isRead    Boolean  @default(false)
   createdAt DateTime @default(now())
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
+enum Role {
+  user
+  assistant
+}
