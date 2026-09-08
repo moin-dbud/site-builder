@@ -1,0 +1,179 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id              String             @id
+  email           String
+  name            String
+  totalCreation   Int                @default(0)
+  credits         Int                @default(20)
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  emailVerified   Boolean            @default(false)
+  username        String?            @unique
+  emailOtp        String?
+  emailOtpExpires DateTime?
+  isAdmin         Boolean            @default(false)
+  profilePublic   Boolean            @default(true)
+  auditLogs       AdminAuditLog[]
+  transactions    Transaction[]
+  notifications   UserNotification[]
+  projects        WebsiteProject[]
+  accounts        Account[]
+  sessions        Session[]
+
+  @@map("user")
+}
+
+model WebsiteProject {
+  id                    String         @id @default(uuid())
+  name                  String
+  initial_prompt        String
+  current_code          String?
+  current_version_index String         @default("")
+  userId                String
+  isPublished           Boolean        @default(false)
+  createdAt             DateTime       @default(now())
+  updatedAt             DateTime       @updatedAt
+  designSystemId        String?
+  slug                  String?
+  featured              Boolean        @default(false)
+  conversation          Conversation[]
+  versions              Version[]
+  user                  User           @relation(fields: [userId], references: [id])
+
+  @@unique([userId, slug])
+}
+
+model Conversation {
+  id        String         @id @default(uuid())
+  role      Role
+  content   String
+  timestamp DateTime       @default(now())
+  projectId String
+  project   WebsiteProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+model Version {
+  id          String         @id @default(uuid())
+  code        String
+  description String?
+  timestamp   DateTime       @default(now())
+  projectId   String
+  project     WebsiteProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+model Transaction {
+  id              String   @id @default(uuid())
+  isPaid          Boolean  @default(false)
+  planId          String
+  amount          Float
+  credits         Int
+  userId          String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  gatewayOrderId  String   @unique
+  gatewayProvider String   @default("cashfree")
+  status          String   @default("pending")
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+  @@map("verification")
+}
+
+model AdminAuditLog {
+  id          String   @id @default(uuid())
+  adminUserId String
+  action      String
+  targetType  String?
+  targetId    String?
+  details     Json?
+  timestamp   DateTime @default(now())
+  adminUser   User     @relation(fields: [adminUserId], references: [id])
+}
+
+model SystemSetting {
+  id        String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+}
+
+model DesignSystem {
+  id                String   @id
+  name              String
+  keywords          Json
+  palette           Json
+  typography        Json
+  spacing           String
+  radius            String
+  componentPatterns Json
+  layoutGuidance    String
+  isEnabled         Boolean  @default(true)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+model UserNotification {
+  id        String   @id @default(uuid())
+  userId    String
+  title     String
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+enum Role {
+  user
+  assistant
+}
