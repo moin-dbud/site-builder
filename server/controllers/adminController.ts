@@ -701,7 +701,10 @@ export const getPublicSettings = async (_req: Request, res: Response) => {
         const emailVerificationRequired = await getSettingLib('emailVerificationRequired');
         res.json({ emailVerificationRequired: emailVerificationRequired === 'true' });
     } catch (error: any) {
-        res.status(500).json({ message: error.message });
+        console.error('[public-settings] DB unavailable:', error?.message || error);
+        // If the database is down, keep the app usable by falling back to the
+        // safest default instead of returning a hard 500 for the public flag.
+        res.json({ emailVerificationRequired: true });
     }
 };
 

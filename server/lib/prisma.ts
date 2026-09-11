@@ -3,14 +3,21 @@ import pg from "pg";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../generated/prisma/client.js";
 
-const connectionString = `${process.env.DATABASE_URL}`;
+const rawConnectionString = process.env.DATABASE_URL || "";
+const connectionString = rawConnectionString
+    .replace(/channel_binding=require/gi, "")
+    .replace(/sslmode=verify-full/gi, "sslmode=require")
+    .replace(/[?&]$/, "");
 
-// Configure PostgreSQL connection pool for serverless Neon database
+// Configure PostgreSQL connection pool for Neon/Render deployments.
+// `channel_binding` and `sslmode=verify-full` can cause connection failures
+// in hosted environments, while `sslmode=require` is the safer default.
 const pool = new pg.Pool({
     connectionString,
     max: 10,
     idleTimeoutMillis: 20000,
     connectionTimeoutMillis: 10000,
+    ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : false,
 });
 
 // Traps background connection terminations (e.g. Neon serverless compute autosuspend/idle drop)
