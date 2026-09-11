@@ -10,6 +10,8 @@ import UserDetail from '@/pages/UserDetail'
 import Community from '@/pages/Community'
 import Transactions from '@/pages/Transactions'
 import DesignSystems from '@/pages/DesignSystems'
+import Components from '@/pages/Components'
+import ComponentDetail from '@/pages/ComponentDetail'
 import Settings from '@/pages/Settings'
 import DangerZone from '@/pages/DangerZone'
 
@@ -96,6 +98,8 @@ export default function App() {
                 <Route path="/community"      element={<Community />} />
                 <Route path="/transactions"   element={<Transactions />} />
                 <Route path="/design-systems" element={<DesignSystems />} />
+                <Route path="/components"     element={<Components />} />
+                <Route path="/components/:id" element={<ComponentDetail />} />
                 <Route path="/settings"       element={<Settings />} />
                 <Route path="/danger-zone"    element={<DangerZone />} />
                 <Route path="*"              element={<Navigate to="/" replace />} />
