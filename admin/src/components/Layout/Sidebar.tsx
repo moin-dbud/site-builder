@@ -1,7 +1,15 @@
 import { NavLink, useNavigate } from 'react-router-dom'
 import {
-  LayoutDashboard, Users, FolderOpen, CreditCard,
-  Palette, Settings, ShieldAlert, LogOut, Zap
+  LayoutDashboard,
+  Users,
+  FolderOpen,
+  CreditCard,
+  Palette,
+  Component,
+  Settings,
+  ShieldAlert,
+  LogOut,
+  Zap
 } from 'lucide-react'
 import { signOut } from '@/lib/auth-client'
 import { toast } from 'sonner'
@@ -22,12 +30,13 @@ const navGroups = [
     ]
   },
   {
-    label: 'Configuration',
-    items: [
-      { to: '/design-systems', icon: Palette,   label: 'Design Systems' },
-      { to: '/settings',       icon: Settings,  label: 'System Settings' },
-    ]
-  },
+  label: 'Configuration',
+  items: [
+    { to: '/design-systems', icon: Palette,    label: 'Design Systems' },
+    { to: '/components',     icon: Component,  label: 'Component Library' },
+    { to: '/settings',       icon: Settings,   label: 'System Settings' },
+  ]
+},
   {
     label: 'Control',
     items: [
