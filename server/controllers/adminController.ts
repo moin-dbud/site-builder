@@ -708,3 +708,464 @@ export const getPublicSettings = async (_req: Request, res: Response) => {
     }
 };
 
+// ─── COMPONENT REGISTRY ─────────────────────────────────────────────────────
+
+export const getComponents = async (req: Request, res: Response) => {
+    try {
+        const components = await prisma.component.findMany({
+            orderBy: [
+                { category: 'asc' },
+                { name: 'asc' },
+            ],
+            include: {
+                variants: {
+                    orderBy: { name: 'asc' },
+                },
+                versions: {
+                    orderBy: { version: 'desc' },
+                },
+            },
+        });
+
+        return res.json({ components });
+    } catch (error: any) {
+        console.error('[Admin Components] getComponents:', error);
+        return res.status(500).json({
+            message: error.message || 'Failed to fetch components',
+        });
+    }
+};
+
+
+export const getComponentById = async (req: Request, res: Response) => {
+    try {
+        const id = String(req.params.id);
+
+        const component = await prisma.component.findUnique({
+            where: { id },
+            include: {
+                variants: {
+                    orderBy: { name: 'asc' },
+                },
+                versions: {
+                    orderBy: { version: 'desc' },
+                },
+            },
+        });
+
+        if (!component) {
+            return res.status(404).json({
+                message: 'Component not found',
+            });
+        }
+
+        return res.json({ component });
+    } catch (error: any) {
+        console.error('[Admin Components] getComponentById:', error);
+        return res.status(500).json({
+            message: error.message || 'Failed to fetch component',
+        });
+    }
+};
+
+
+export const createComponent = async (req: Request, res: Response) => {
+    try {
+        const {
+            name,
+            slug,
+            category,
+            description,
+            tags,
+            compatibleStyles,
+            compatibleSkills,
+            propsSchema,
+            slotsSchema,
+            responsiveRules,
+            accessibilityRules,
+            mediaRequirements,
+            implementationCode,
+            implementationType,
+        } = req.body;
+
+        if (!name || !slug || !category) {
+            return res.status(400).json({
+                message: 'name, slug, and category are required',
+            });
+        }
+
+        if (!implementationCode) {
+            return res.status(400).json({
+                message: 'implementationCode is required',
+            });
+        }
+
+        const existing = await prisma.component.findUnique({
+            where: { slug },
+        });
+
+        if (existing) {
+            return res.status(409).json({
+                message: 'A component with this slug already exists',
+            });
+        }
+
+        const component = await prisma.component.create({
+            data: {
+                name,
+                slug,
+                category,
+                description: description || null,
+                tags: tags ?? [],
+                compatibleStyles: compatibleStyles ?? [],
+                compatibleSkills: compatibleSkills ?? [],
+                propsSchema: propsSchema ?? null,
+                slotsSchema: slotsSchema ?? null,
+                responsiveRules: responsiveRules ?? null,
+                accessibilityRules: accessibilityRules ?? null,
+                mediaRequirements: mediaRequirements ?? null,
+
+                status: 'DRAFT',
+                isEnabled: true,
+
+                versions: {
+                    create: {
+                        version: 1,
+                        implementationCode,
+                        implementationType: implementationType || 'html',
+                        status: 'DRAFT',
+                        changelog: 'Initial component version',
+                    },
+                },
+            },
+            include: {
+                variants: true,
+                versions: true,
+            },
+        });
+
+        return res.status(201).json({
+            message: 'Component created successfully',
+            component,
+        });
+    } catch (error: any) {
+        console.error('[Admin Components] createComponent:', error);
+        return res.status(500).json({
+            message: error.message || 'Failed to create component',
+        });
+    }
+};
+
+
+export const updateComponent = async (req: Request, res: Response) => {
+    try {
+        const id = String(req.params.id);
+
+        const existing = await prisma.component.findUnique({
+            where: { id },
+        });
+
+        if (!existing) {
+            return res.status(404).json({
+                message: 'Component not found',
+            });
+        }
+
+        const {
+            name,
+            slug,
+            category,
+            description,
+            tags,
+            compatibleStyles,
+            compatibleSkills,
+            propsSchema,
+            slotsSchema,
+            responsiveRules,
+            accessibilityRules,
+            mediaRequirements,
+        } = req.body;
+
+        if (slug && slug !== existing.slug) {
+            const slugExists = await prisma.component.findUnique({
+                where: { slug },
+            });
+
+            if (slugExists) {
+                return res.status(409).json({
+                    message: 'A component with this slug already exists',
+                });
+            }
+        }
+
+        const component = await prisma.component.update({
+            where: { id },
+            data: {
+                ...(name !== undefined && { name }),
+                ...(slug !== undefined && { slug }),
+                ...(category !== undefined && { category }),
+                ...(description !== undefined && { description }),
+                ...(tags !== undefined && { tags }),
+                ...(compatibleStyles !== undefined && { compatibleStyles }),
+                ...(compatibleSkills !== undefined && { compatibleSkills }),
+                ...(propsSchema !== undefined && { propsSchema }),
+                ...(slotsSchema !== undefined && { slotsSchema }),
+                ...(responsiveRules !== undefined && { responsiveRules }),
+                ...(accessibilityRules !== undefined && { accessibilityRules }),
+                ...(mediaRequirements !== undefined && { mediaRequirements }),
+            },
+            include: {
+                variants: true,
+                versions: {
+                    orderBy: { version: 'desc' },
+                },
+            },
+        });
+
+        return res.json({
+            message: 'Component updated successfully',
+            component,
+        });
+    } catch (error: any) {
+        console.error('[Admin Components] updateComponent:', error);
+        return res.status(500).json({
+            message: error.message || 'Failed to update component',
+        });
+    }
+};
+
+
+export const toggleComponent = async (req: Request, res: Response) => {
+    try {
+        const id = String(req.params.id);
+
+        const component = await prisma.component.findUnique({
+            where: { id },
+        });
+
+        if (!component) {
+            return res.status(404).json({
+                message: 'Component not found',
+            });
+        }
+
+        const updated = await prisma.component.update({
+            where: { id },
+            data: {
+                isEnabled: !component.isEnabled,
+            },
+        });
+
+        return res.json({
+            message: updated.isEnabled
+                ? 'Component enabled'
+                : 'Component disabled',
+            isEnabled: updated.isEnabled,
+        });
+    } catch (error: any) {
+        console.error('[Admin Components] toggleComponent:', error);
+        return res.status(500).json({
+            message: error.message || 'Failed to toggle component',
+        });
+    }
+};
+
+
+export const updateComponentStatus = async (req: Request, res: Response) => {
+    try {
+        const id = String(req.params.id);
+        const { status } = req.body;
+
+        const validStatuses = [
+            'DRAFT',
+            'TESTING',
+            'PUBLISHED',
+            'ARCHIVED',
+        ];
+
+        if (!validStatuses.includes(status)) {
+            return res.status(400).json({
+                message: 'Invalid component status',
+            });
+        }
+
+        const component = await prisma.component.findUnique({
+            where: { id },
+        });
+
+        if (!component) {
+            return res.status(404).json({
+                message: 'Component not found',
+            });
+        }
+
+        const updated = await prisma.component.update({
+            where: { id },
+            data: { status },
+        });
+
+        return res.json({
+            message: 'Component status updated',
+            component: updated,
+        });
+    } catch (error: any) {
+        console.error('[Admin Components] updateComponentStatus:', error);
+        return res.status(500).json({
+            message: error.message || 'Failed to update component status',
+        });
+    }
+};
+
+
+export const createComponentVersion = async (req: Request, res: Response) => {
+    try {
+        const id = String(req.params.id);
+        const {
+            implementationCode,
+            implementationType,
+            changelog,
+        } = req.body;
+
+        if (!implementationCode) {
+            return res.status(400).json({
+                message: 'implementationCode is required',
+            });
+        }
+
+        const component = await prisma.component.findUnique({
+            where: { id },
+        });
+
+        if (!component) {
+            return res.status(404).json({
+                message: 'Component not found',
+            });
+        }
+
+        const latest = await prisma.componentVersion.findFirst({
+            where: { componentId: id },
+            orderBy: { version: 'desc' },
+        });
+
+        const nextVersion = (latest?.version ?? 0) + 1;
+
+        const version = await prisma.componentVersion.create({
+            data: {
+                componentId: id,
+                version: nextVersion,
+                implementationCode,
+                implementationType: implementationType || 'html',
+                status: 'DRAFT',
+                changelog: changelog || null,
+            },
+        });
+
+        return res.status(201).json({
+            message: `Component version ${nextVersion} created`,
+            version,
+        });
+    } catch (error: any) {
+        console.error('[Admin Components] createComponentVersion:', error);
+        return res.status(500).json({
+            message: error.message || 'Failed to create component version',
+        });
+    }
+};
+
+
+export const createComponentVariant = async (req: Request, res: Response) => {
+    try {
+        const id = String(req.params.id);
+
+        const {
+            name,
+            slug,
+            description,
+            propsSchema,
+            layoutRules,
+            responsiveRules,
+        } = req.body;
+
+        if (!name || !slug) {
+            return res.status(400).json({
+                message: 'name and slug are required',
+            });
+        }
+
+        const component = await prisma.component.findUnique({
+            where: { id },
+        });
+
+        if (!component) {
+            return res.status(404).json({
+                message: 'Component not found',
+            });
+        }
+
+        const existing = await prisma.componentVariant.findFirst({
+            where: {
+                componentId: id,
+                slug,
+            },
+        });
+
+        if (existing) {
+            return res.status(409).json({
+                message: 'This variant already exists',
+            });
+        }
+
+        const variant = await prisma.componentVariant.create({
+            data: {
+                componentId: id,
+                name,
+                slug,
+                description: description || null,
+                propsSchema: propsSchema ?? null,
+                layoutRules: layoutRules ?? null,
+                responsiveRules: responsiveRules ?? null,
+                isEnabled: true,
+            },
+        });
+
+        return res.status(201).json({
+            message: 'Component variant created',
+            variant,
+        });
+    } catch (error: any) {
+        console.error('[Admin Components] createComponentVariant:', error);
+        return res.status(500).json({
+            message: error.message || 'Failed to create component variant',
+        });
+    }
+};
+
+
+export const deleteComponent = async (req: Request, res: Response) => {
+    try {
+        const id = String(req.params.id);
+
+        const component = await prisma.component.findUnique({
+            where: { id },
+        });
+
+        if (!component) {
+            return res.status(404).json({
+                message: 'Component not found',
+            });
+        }
+
+        await prisma.component.delete({
+            where: { id },
+        });
+
+        return res.json({
+            message: 'Component deleted successfully',
+        });
+    } catch (error: any) {
+        console.error('[Admin Components] deleteComponent:', error);
+        return res.status(500).json({
+            message: error.message || 'Failed to delete component',
+        });
+    }
+};
