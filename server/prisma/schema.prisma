@@ -177,3 +177,89 @@ enum Role {
   user
   assistant
 }
+
+enum ComponentStatus {
+  DRAFT
+  TESTING
+  PUBLISHED
+  ARCHIVED
+}
+
+enum ComponentVersionStatus {
+  DRAFT
+  TESTING
+  PUBLISHED
+  ARCHIVED
+}
+
+model Component {
+  id          String  @id @default(uuid())
+  name        String
+  slug        String  @unique
+  category    String
+  description String?
+
+  status    ComponentStatus @default(DRAFT)
+  isEnabled Boolean         @default(true)
+
+  tags             Json?
+  compatibleStyles Json?
+  compatibleSkills Json?
+
+  propsSchema        Json?
+  slotsSchema        Json?
+  responsiveRules    Json?
+  accessibilityRules Json?
+  mediaRequirements  Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  versions ComponentVersion[]
+  variants ComponentVariant[]
+}
+
+model ComponentVersion {
+  id          String @id @default(uuid())
+  componentId String
+  version     Int    @default(1)
+
+  implementationCode String
+  implementationType String @default("html")
+
+  status ComponentVersionStatus @default(DRAFT)
+
+  changelog String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  component Component @relation(fields: [componentId], references: [id], onDelete: Cascade)
+
+  @@unique([componentId, version])
+  @@index([componentId])
+}
+
+model ComponentVariant {
+  id String @id @default(uuid())
+
+  componentId String
+  name        String
+  slug        String
+
+  description String?
+
+  propsSchema     Json?
+  layoutRules     Json?
+  responsiveRules Json?
+
+  isEnabled Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  component Component @relation(fields: [componentId], references: [id], onDelete: Cascade)
+
+  @@unique([componentId, slug])
+  @@index([componentId])
+}
