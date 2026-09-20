@@ -24,6 +24,17 @@ import {
     toggleMaintenance,
     toggleCashfreeFrozen,
     toggleEmailVerification,
+
+    getComponents,
+    getComponentById,
+    createComponent,
+    updateComponent,
+    toggleComponent,
+    updateComponentStatus,
+    createComponentVersion,
+    createComponentVariant,
+    deleteComponent,
+
     getPublicSettings,
 } from '../controllers/adminController.js';
 
@@ -59,6 +70,22 @@ adminRouter.get('/design-systems', listDesignSystems);
 adminRouter.post('/design-systems', createDesignSystem);
 adminRouter.patch('/design-systems/:id', updateDesignSystem);
 adminRouter.patch('/design-systems/:id/toggle', toggleDesignSystem);
+
+// ─── Component Registry ────────────────────────────────────────────────────
+
+adminRouter.get('/components', getComponents);
+adminRouter.get('/components/:id', getComponentById);
+
+adminRouter.post('/components', createComponent);
+adminRouter.patch('/components/:id', updateComponent);
+
+adminRouter.patch('/components/:id/toggle', toggleComponent);
+adminRouter.patch('/components/:id/status', updateComponentStatus);
+
+adminRouter.post('/components/:id/versions', createComponentVersion);
+adminRouter.post('/components/:id/variants', createComponentVariant);
+
+adminRouter.delete('/components/:id', deleteComponent);
 
 // ── System Settings ───────────────────────────────────────────────────────
 adminRouter.get('/settings', getSettings);
